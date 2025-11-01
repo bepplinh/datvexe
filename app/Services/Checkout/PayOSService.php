@@ -66,7 +66,7 @@ class PayOSService
         $description = 'Thanh toán đơn hàng #' . $draft->id;
 
         // 3) expiredAt từ TTL (mặc định 15 phút)
-        $ttlMinutes = $ttlMinutes ?? 15;
+        $ttlMinutes = $ttlMinutes ?? 1;
         $expiredAt  = now()->addMinutes($ttlMinutes)->timestamp;
 
         // 4) Ký đúng 5 fields
@@ -74,8 +74,8 @@ class PayOSService
             'amount'      => $amount,
             'orderCode'   => $orderCode,
             'description' => $description,
-            'returnUrl'   => $this->returnUrl, // ví dụ https://app.yoursite/checkout/success
-            'cancelUrl'   => $this->cancelUrl, // ví dụ https://app.yoursite/checkout/cancel
+            'returnUrl'   => $this->returnUrl,
+            'cancelUrl'   => $this->cancelUrl,
         ];
         $signature = $this->signFiveFields($signData, $this->checksumKey);
 

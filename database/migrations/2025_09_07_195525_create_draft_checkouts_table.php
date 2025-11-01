@@ -42,7 +42,7 @@ return new class extends Migration
             $table->json('passenger_info')->nullable();
         
             // Trạng thái & thời gian
-            $table->enum('status', ['pending','paying','paid','canceled','expired'])
+            $table->enum('status', ['pending','paying','paid','cancelled','expired'])
                   ->default('pending')->index();
             $table->timestamp('expires_at')->index();
             $table->timestamp('completed_at')->nullable();

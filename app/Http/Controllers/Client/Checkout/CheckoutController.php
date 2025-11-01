@@ -159,7 +159,7 @@ class CheckoutController extends Controller
             //payment provider === payos
             if ($provider === 'payos') {
                 try {
-                    $res = $this->payOS->createLinkFromDraft($updated);
+                    $res = $this->payOS->createLinkFromDraft($updated, (int) 1);
 
                     if (is_object($res)) $res = (array) $res;
 
