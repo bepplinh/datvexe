@@ -15,7 +15,6 @@ class Booking extends Model
 
     protected $fillable = [
         'code',
-        'trip_id',
         'user_id',
         'coupon_id',
         'subtotal_price',
@@ -43,11 +42,6 @@ class Booking extends Model
         'cancelled_at' => 'datetime'
     ];
 
-    public function trip()
-    {
-        return $this->belongsTo(Trip::class);
-    }
-
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -56,11 +50,6 @@ class Booking extends Model
     public function legs()
     {
         return $this->hasMany(BookingLeg::class);
-    }
-
-    public function items()
-    {
-        return $this->hasMany(BookingItem::class);
     }
 
     public function payments()

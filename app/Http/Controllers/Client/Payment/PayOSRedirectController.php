@@ -1,48 +1,24 @@
 <?php
-
 namespace App\Http\Controllers\Client\Payment;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Redirect;
+use Illuminate\Routing\Controller;
 
 class PayOSRedirectController extends Controller
 {
-    public function success(Request $request)
+    public function success(Request $req)
     {
-        $orderCode = $request->query('orderCode');
-        $frontend = config('app.frontend_url', 'http://localhost:5173');
-
-        Log::info('PayOS redirect SUCCESS', [
-            'orderCode' => $orderCode,
-            'all' => $request->all(),
-        ]);
-
-        // Redirect đến FE checkout page, kèm query
-        $url = "{$frontend}/checkout?pay_status=success";
-        if ($orderCode) {
-            $url .= "&orderCode={$orderCode}";
-        }
-
-        return Redirect::away($url);
+        $orderCode = $req->query('orderCode'); // PayOS gắn vào query
+        return redirect()->away(
+            'http://localhost:5173/checkout/result?mode=success&orderCode=' . urlencode((string)$orderCode)
+        );
     }
 
-    public function cancel(Request $request)
+    public function cancel(Request $req)
     {
-        $orderCode = $request->query('orderCode');
-        $frontend = config('app.frontend_url', 'http://localhost:5173');
-
-        Log::info('PayOS redirect CANCEL', [
-            'orderCode' => $orderCode,
-            'all' => $request->all(),
-        ]);
-
-        $url = "{$frontend}/checkout?pay_status=cancel";
-        if ($orderCode) {
-            $url .= "&orderCode={$orderCode}";
-        }
-
-        return Redirect::away($url);
+        $orderCode = $req->query('orderCode');
+        return redirect()->away(
+            'http://localhost:5173/checkout/result?mode=cancel&orderCode=' . urlencode((string)$orderCode)
+        );
     }
 }

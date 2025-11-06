@@ -17,6 +17,8 @@ class BookingLeg extends Model
         'trip_id',
         'pickup_location_id',
         'dropoff_location_id',
+        'pickup_location_snap',
+        'dropoff_location_snap',
         'pickup_address',
         'dropoff_address',
         'total_price',

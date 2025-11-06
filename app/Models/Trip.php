@@ -38,6 +38,11 @@ class Trip extends Model
 		return $this->hasMany(TripStation::class);
 	}
 
+	public function bookingLeg()
+	{
+		return $this->hasMany(BookingLeg::class);
+	}
+
 	/** Trạm đón theo hướng đi */
 	public function pickStations()
 	{

@@ -11,7 +11,7 @@ use App\Models\Seat;
 
 class SeatLockService
 {
-    const DEFAULT_TTL = 180;
+    const DEFAULT_TTL = 20;
 
     public function __construct(
         private DraftCheckoutService $drafts,
@@ -124,71 +124,87 @@ class SeatLockService
      * All-or-nothing lock với Lua (GIỮ NGUYÊN Lua),
      * nhưng format message ở PHP bằng seat_number map.
      */
-    private function lockSeatsAcrossTrips(array $seatsByTrip, array $seatNumberById, string $token, int $ttl): void
-    {
+    private function lockSeatsAcrossTrips(
+        array $seatsByTrip,
+        array $seatNumberById,
+        string $token,
+        int $ttl
+    ): void {
         $lua = <<<'LUA'
-local payload = cjson.decode(ARGV[1])
-local token   = ARGV[2]
-local ttl     = tonumber(ARGV[3])
-
--- Thu thập conflict trước
-local conflicts = {}  -- mỗi phần tử: {type="BOOKED"/"LOCKED", trip_id=..., seat_id=...}
-
-for trip_id_str, seat_list in pairs(payload) do
-    local trip_id = tostring(trip_id_str)
-    for _, seat_id in ipairs(seat_list) do
-        local seatKey   = "trip:" .. trip_id .. ":seat:" .. seat_id .. ":lock"
-        local bookedKey = "trip:" .. trip_id .. ":booked"
-
-        -- Nếu ghế đã BOOKED
-        if redis.call("SISMEMBER", bookedKey, seat_id) == 1 then
-            table.insert(conflicts, { type = "BOOKED", trip_id = trip_id, seat_id = seat_id })
-        else
-            local current = redis.call("GET", seatKey)
-            if current and current ~= token then
-                table.insert(conflicts, { type = "LOCKED", trip_id = trip_id, seat_id = seat_id })
+    local payload = cjson.decode(ARGV[1])
+    local token   = ARGV[2]
+    local ttl     = tonumber(ARGV[3])
+    
+    -- Thu thập conflict trước
+    local conflicts = {}  -- mỗi phần tử: {type="BOOKED"/"LOCKED", trip_id=..., seat_id=...}
+    
+    for trip_id_str, seat_list in pairs(payload) do
+        local trip_id = tostring(trip_id_str)
+        for _, seat_id in ipairs(seat_list) do
+            local seatKey   = "trip:" .. trip_id .. ":seat:" .. seat_id .. ":lock"
+            local bookedKey = "trip:" .. trip_id .. ":booked"
+    
+            -- Nếu ghế đã BOOKED
+            if redis.call("SISMEMBER", bookedKey, seat_id) == 1 then
+                table.insert(conflicts, { type = "BOOKED", trip_id = trip_id, seat_id = seat_id })
+            else
+                local current = redis.call("GET", seatKey)
+                if current and current ~= token then
+                    table.insert(conflicts, { type = "LOCKED", trip_id = trip_id, seat_id = seat_id })
+                end
             end
         end
     end
-end
-
--- Nếu có bất kỳ conflict -> không lock gì cả
-if #conflicts > 0 then
-    return "CONFLICTS:" .. cjson.encode(conflicts)
-end
-
--- Không conflict -> lock tất cả
-for trip_id_str, seat_list in pairs(payload) do
-    local trip_id = tostring(trip_id_str)
-    for _, seat_id in ipairs(seat_list) do
-        local seatKey = "trip:" .. trip_id .. ":seat:" .. seat_id .. ":lock"
-        redis.call("SET", seatKey, token, "EX", ttl)
-        redis.call("SADD", "trip:" .. trip_id .. ":locked", seat_id)
-        redis.call("SADD", "session:" .. token .. ":seats", trip_id .. ":" .. seat_id)
+    
+    -- Nếu có bất kỳ conflict -> không lock gì cả
+    if #conflicts > 0 then
+        return "CONFLICTS:" .. cjson.encode(conflicts)
     end
-end
-
-return "OK"
-LUA;
-
+    
+    -- Không conflict -> lock tất cả
+    for trip_id_str, seat_list in pairs(payload) do
+        local trip_id = tostring(trip_id_str)
+        for _, seat_id in ipairs(seat_list) do
+            local seatKey = "trip:" .. trip_id .. ":seat:" .. seat_id .. ":lock"
+    
+            -- key lock theo ghế
+            redis.call("SET", seatKey, token, "EX", ttl)
+    
+            -- set ghế đang locked theo trip
+            redis.call("SADD", "trip:" .. trip_id .. ":locked", seat_id)
+    
+            -- set ghế theo session token
+            redis.call("SADD", "session:" .. token .. ":seats", trip_id .. ":" .. seat_id)
+        end
+    end
+    
+    return "OK"
+    LUA;
+    
         // ❗ GỬI cho Lua DẠNG SỐ THUẦN (KHÔNG gửi object), để tránh lỗi concat table
         $payload = $seatsByTrip;
-
-        $res = Redis::eval($lua, 0, json_encode($payload, JSON_UNESCAPED_UNICODE), $token, $ttl);
-
+    
+        $res = Redis::eval(
+            $lua,
+            0,
+            json_encode($payload, JSON_UNESCAPED_UNICODE),
+            $token,
+            $ttl
+        );
+    
         if ($res !== 'OK') {
             $msg = 'Lỗi khi lock ghế. Vui lòng thử lại.';
-
+    
             if (is_string($res) && str_starts_with($res, 'CONFLICTS:')) {
                 $conflicts = json_decode(substr($res, 10), true) ?: [];
-
+    
                 if (!empty($conflicts)) {
                     // Lấy conflict đầu tiên để tạo thông điệp ngắn gọn
                     $c = $conflicts[0];
                     $tripId  = $c['trip_id'] ?? '?';
                     $seatId  = (int)($c['seat_id'] ?? 0);
                     $seatNum = $seatNumberById[$seatId] ?? (string)$seatId;
-
+    
                     if (($c['type'] ?? '') === 'BOOKED') {
                         $msg = "Ghế {$seatNum} đã được đặt trong chuyến {$tripId}. Vui lòng chọn ghế khác.";
                     } else {
@@ -196,12 +212,17 @@ LUA;
                     }
                 }
             }
-
+    
             throw ValidationException::withMessages([
                 'seats' => [$msg],
             ]);
         }
+    
+        // ✅ Sau khi lock thành công: set TTL cho cả session giữ ghế (pha 1)
+        // Đây là "đồng hồ 3 phút" để sau này CheckoutController check
+        Redis::setex("session:{$token}:ttl", $ttl, 1);
     }
+    
 
     private function ttlLeftForSeats(array $seatsByTrip): array
     {

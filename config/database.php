@@ -58,9 +58,9 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-        PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-        PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone='+07:00'",
-    ]) : [],
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone='+07:00'",
+            ]) : [],
         ],
 
         'mariadb' => [
@@ -143,35 +143,48 @@ return [
     */
 
     'redis' => [
-
         'client' => env('REDIS_CLIENT', 'predis'),
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', ''),
-            'persistent' => env('REDIS_PERSISTENT', false),
-            'read_write_timeout' => 0, // không timeout khi subscribe
-            'timeout' => 5,            // timeout khi kết nối
-        ],
-
-        'default' => [
-            'url' => env('REDIS_URL'),
-            'host' => env('REDIS_HOST', '127.0.0.1'),
-            'username' => env('REDIS_USERNAME'),
-            'password' => env('REDIS_PASSWORD'),
-            'port' => env('REDIS_PORT', '6379'),
-            'database' => env('REDIS_DB', '0'),
+            'prefix'  => env('REDIS_PREFIX', ''),
+            // ✅ tham số mặc định cho mọi connection Predis
+            'parameters' => [
+                'persistent'         => (bool) env('REDIS_PERSISTENT', false),
+                'read_write_timeout' => 0,   // cần = 0 cho SUBSCRIBE
+                'timeout'            => 5,
+            ],
         ],
 
         'cache' => [
-            'url' => env('REDIS_URL'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
-            'username' => env('REDIS_USERNAME'),
-            'password' => env('REDIS_PASSWORD'),
-            'port' => env('REDIS_PORT', '6379'),
-            'database' => env('REDIS_CACHE_DB', '1'),
+            'password' => env('REDIS_PASSWORD', null),
+            'port' => env('REDIS_PORT', 6379),
+            'database' => env('REDIS_CACHE_DB', '1'), // Thường dùng DB khác cho cache
         ],
 
+        // connection thường cho app (đọc/ghi, EVAL, SREM, ...)
+        'default' => [
+            'url'      => env('REDIS_URL'),
+            'host'     => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port'     => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_DB', '0'),
+        ],
+
+        // connection chuyên SUBSCRIBE (không dùng để EVAL/ghi)
+        'subscriber' => [
+            'url'      => env('REDIS_URL'),
+            'host'     => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port'     => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_DB', '0'),
+            'read_write_timeout' => 0,  // đảm bảo riêng cho sub
+            'timeout'            => 5,
+            'persistent'         => false,
+        ],
     ],
 
 ];

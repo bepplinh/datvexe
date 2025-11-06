@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
 
 <head>
     <meta charset="utf-8">
@@ -12,9 +12,9 @@
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
     <!-- Styles / Scripts -->
-    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @else
+    <?php if(file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot'))): ?>
+        <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
+    <?php else: ?>
         <style>
             /*! tailwindcss v4.0.7 | MIT License | https://tailwindcss.com */
             @layer theme {
@@ -1516,37 +1516,37 @@
                 initial-value: ""
             }
         </style>
-    @endif
+    <?php endif; ?>
 </head>
 
 <body
     class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] flex p-6 lg:p-8 items-center lg:justify-center min-h-screen flex-col">
     <header class="w-full lg:max-w-4xl max-w-[335px] text-sm mb-6 not-has-[nav]:hidden">
-        @php
+        <?php
             use Illuminate\Support\Facades\Route;
-        @endphp
-        @if (Route::has('login'))
+        ?>
+        <?php if(Route::has('login')): ?>
             <nav class="flex items-center justify-end gap-4">
-                @auth
-                    <a href="{{ url('/dashboard') }}"
+                <?php if(auth()->guard()->check()): ?>
+                    <a href="<?php echo e(url('/dashboard')); ?>"
                         class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] border-[#19140035] hover:border-[#1915014a] border text-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#62605b] rounded-sm text-sm leading-normal">
                         Dashboard
                     </a>
-                @else
-                    <a href="{{ route('login') }}"
+                <?php else: ?>
+                    <a href="<?php echo e(route('login')); ?>"
                         class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] dark:hover:border-[#3E3E3A] rounded-sm text-sm leading-normal">
                         Log in
                     </a>
 
-                    @if (Route::has('register'))
-                        <a href="{{ route('register') }}"
+                    <?php if(Route::has('register')): ?>
+                        <a href="<?php echo e(route('register')); ?>"
                             class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] border-[#19140035] hover:border-[#1915014a] border text-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#62605b] rounded-sm text-sm leading-normal">
                             Register
                         </a>
-                    @endif
-                @endauth
+                    <?php endif; ?>
+                <?php endif; ?>
             </nav>
-        @endif
+        <?php endif; ?>
     </header>
     <div
         class="flex items-center justify-center w-full transition-opacity opacity-100 duration-750 lg:grow starting:opacity-0">
@@ -1611,7 +1611,7 @@
             </div>
             <div
                 class="bg-[#fff2f2] dark:bg-[#1D0002] relative lg:-ml-px -mb-px lg:mb-0 rounded-t-lg lg:rounded-t-none lg:rounded-r-lg aspect-[335/376] lg:aspect-auto w-full lg:w-[438px] shrink-0 overflow-hidden">
-                {{-- Laravel Logo --}}
+                
                 <svg class="w-full text-[#F53003] dark:text-[#F61500] transition-all translate-y-0 opacity-100 max-w-none duration-750 starting:opacity-0 starting:translate-y-6"
                     viewBox="0 0 438 104" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.2036 -3H0V102.197H49.5189V86.7187H17.2036V-3Z" fill="currentColor" />
@@ -1631,7 +1631,7 @@
                         fill="currentColor" />
                 </svg>
 
-                {{-- Light Mode 12 SVG --}}
+                
                 <svg class="w-[448px] max-w-none relative -mt-[4.9rem] -ml-8 lg:ml-0 lg:-mt-[6.6rem] dark:hidden"
                     viewBox="0 0 440 376" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g
@@ -1803,7 +1803,7 @@
                     </g>
                 </svg>
 
-                {{-- Dark Mode 12 SVG --}}
+                
                 <svg class="w-[448px] max-w-none relative -mt-[4.9rem] -ml-8 lg:ml-0 lg:-mt-[6.6rem] hidden dark:block"
                     viewBox="0 0 440 376" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g
@@ -1975,9 +1975,10 @@
         </main>
     </div>
 
-    @if (Route::has('login'))
+    <?php if(Route::has('login')): ?>
         <div class="h-14.5 hidden lg:block"></div>
-    @endif
+    <?php endif; ?>
 </body>
 
 </html>
+<?php /**PATH C:\xampp\htdocs\datvexe\resources\views/welcome.blade.php ENDPATH**/ ?>

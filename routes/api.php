@@ -2,6 +2,9 @@
 
 namespace routes;
 
+use App\Models\Booking;
+use App\Mail\BookingSuccessMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BusController;
 use App\Http\Controllers\AuthController;
@@ -26,6 +29,7 @@ use App\Http\Controllers\Client\Checkout\CheckoutController;
 use App\Http\Controllers\Client\Checkout\SeatLockController;
 use App\Http\Controllers\TripGenerateFromTemplateController;
 use App\Http\Controllers\Client\Payment\PayOSWebhookController;
+use App\Http\Controllers\Client\Payment\PayOSRedirectController;
 
 
 Route::post('/login',    [AuthController::class, 'login']);
@@ -43,6 +47,8 @@ Route::prefix('auth/otp')->group(function () {
 
 // Public webhook for PayOS (should not require auth)
 Route::post('payos/webhook', [PayOSWebhookController::class, 'handle']);
+Route::get('/payos/redirect/success', [PayOSRedirectController::class, 'success']);
+Route::get('/payos/redirect/cancel', [PayOSRedirectController::class, 'cancel']);
 
 Route::middleware(['auth:api', 'x-session-token'])->group(function () {
     Route::get('/me',       [AuthController::class, 'me']);
@@ -59,9 +65,6 @@ Route::middleware(['auth:api', 'x-session-token'])->group(function () {
 
         Route::post('seats/checkout', [SeatFlowController::class, 'checkout']);
         Route::post('seats/release',  [SeatFlowController::class, 'release']);
-
-        // Có thể làm webhook public từ PSP (không bắt buộc auth:api nếu cần)
-        Route::post('seats/payment/success', [SeatFlowController::class, 'paymentSuccess']);
     });
 });
 
@@ -97,3 +100,23 @@ Route::get('/client/locations/search', [ClientLocationController::class, 'search
 Route::post('/client/trips/search', [TripSearchController::class, 'search']);
 
 Route::post('/ai/chat', [GeminiChatController::class, 'chat']);
+
+
+Route::get('test', function () {
+    $booking = \App\Models\Booking::with(['legs.trip', 'legs.items'])
+                                    ->findOrFail(1);
+    return view('emails.booking_success', [
+        'booking' => $booking,
+    ]);
+});
+
+Route::get('/test-send-mail', function () {
+    // 1. Chỉ cần findOrFail. 
+    // Mailable sẽ tự lo phần load relations.
+    $booking = Booking::findOrFail(1);
+
+    // 2. Gửi mail
+    Mail::to('bep2702@gmail.com')->send(new BookingSuccessMail($booking));
+
+    return "Đã gửi mail! (Hãy kiểm tra Mailtrap inbox của bạn)";
+});

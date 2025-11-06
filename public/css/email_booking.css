@@ -1,0 +1,321 @@
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px 20px;
+        }
+        
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        
+        .order-number {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        
+        .order-number-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .order-number-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .info-item {
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 6px;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .info-value {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .info-value.highlight {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .ticket-section {
+            background: #f9f9f9;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+        
+        .ticket-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .ticket-item:last-child {
+            border-bottom: none;
+        }
+        
+        .ticket-type {
+            flex: 1;
+        }
+        
+        .ticket-type-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .ticket-type-qty {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .ticket-price {
+            font-weight: 600;
+            color: #667eea;
+            text-align: right;
+            min-width: 80px;
+        }
+        
+        .pricing-section {
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .price-row.total {
+            padding-top: 12px;
+            border-top: 2px solid #f0f0f0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .price-label {
+            color: #666;
+        }
+        
+        .price-value {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .price-value.total {
+            color: #667eea;
+        }
+        
+        .ticket-details {
+            background: #f0f4ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .ticket-code {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .ticket-code-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .ticket-code-value {
+            font-size: 22px;
+            font-weight: 600;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 3px;
+        }
+        
+        .qr-code {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .qr-code img {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .note {
+            background: #fffbf0;
+            border-left: 4px solid #ffa500;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .cta-button:hover {
+            opacity: 0.9;
+        }
+        
+        .footer {
+            background: #f8f8f8;
+            padding: 30px 20px;
+            text-align: center;
+            border-top: 1px solid #e8e8e8;
+            color: #999;
+            font-size: 13px;
+        }
+        
+        .footer-links {
+            margin: 15px 0;
+        }
+        
+        .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .footer-note {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #bbb;
+        }
+        
+        /* Responsive Design */
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .ticket-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .ticket-price {
+                text-align: left;
+                margin-top: 10px;
+            }
+            
+            .price-row {
+                padding: 0 10px;
+            }
+        }

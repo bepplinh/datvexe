@@ -8,202 +8,187 @@ use App\Services\DraftCheckoutService\DraftCheckoutService;
 
 class SeatFlowService
 {
-    public const DEFAULT_TTL               = 180; // giây
-    public const MAX_PER_SESSION_PER_TRIP  = 6;   // giới hạn ghế/phiên/trip
+  public const DEFAULT_TTL               = 180; // giây
+  public const MAX_PER_SESSION_PER_TRIP  = 6;   // giới hạn ghế/phiên/trip
 
-    private ?string $luaTryLockSha = null;
-    private ?string $luaReleaseSha = null;
+  private ?string $luaTryLockSha = null;
+  private ?string $luaReleaseSha = null;
 
-    public function __construct(
-        private DraftCheckoutService $drafts,
-    ) {}
+  public function __construct(
+    private DraftCheckoutService $drafts,
+  ) {}
 
-    /* ============================================================
+  /* ============================================================
      |  PUBLIC API
      * ============================================================
      */
 
-    /**
-     * Multi-trip checkout (atomic): lock tất cả ghế của nhiều trip trong 1 lần.
-     *
-     * @param array       $trips   [['trip_id'=>101,'seat_ids'=>[12,13],'leg'=>'OUT'], ...]
-     * @param string      $token   Session token duy nhất (ổn định cho phiên)
-     * @param int         $ttlSeconds
-     * @param int         $maxPerSessionPerTrip
-     * @param int|null    $userId  Nếu có đăng nhập
-     * @return array      Kết quả JSON-friendly
-     */
+  /**
+   * Multi-trip checkout (atomic): lock tất cả ghế của nhiều trip trong 1 lần.
+   *
+   * @param array       $trips   [['trip_id'=>101,'seat_ids'=>[12,13],'leg'=>'OUT'], ...]
+   * @param string      $token   Session token duy nhất (ổn định cho phiên)
+   * @param int         $ttlSeconds
+   * @param int         $maxPerSessionPerTrip
+   * @param int|null    $userId  Nếu có đăng nhập
+   * @return array      Kết quả JSON-friendly
+   */
 
 
-    /**
-     * Dùng trước khi finalize 1 trip: khẳng định tất cả seat vẫn đang lock bởi token.
-     */
-    public function assertSeatsLockedByToken(int $tripId, array $seatIds, string $token): void
-    {
-        $seatIds = $this->normalizeSeatIds($seatIds);
-        foreach ($seatIds as $sid) {
-            $k = $this->kSeatLock($tripId, $sid);
-            $owner = Redis::get($k);
-            if ($owner !== $token) {
-                throw new RuntimeException("Seat {$sid} (trip {$tripId}) không còn lock bởi token.");
-            }
-        }
+  /**
+   * Dùng trước khi finalize 1 trip: khẳng định tất cả seat vẫn đang lock bởi token.
+   */
+  public function assertSeatsLockedByToken(int $tripId, array $seatIds, string $token): void
+  {
+    $seatIds = $this->normalizeSeatIds($seatIds);
+    foreach ($seatIds as $sid) {
+      $k = $this->kSeatLock($tripId, $sid);
+      $owner = Redis::get($k);
+      if ($owner !== $token) {
+        throw new RuntimeException("Seat {$sid} (trip {$tripId}) không còn lock bởi token.");
+      }
     }
+  }
 
-    /**
-     * Dùng trước khi finalize multi-trip: assert theo map [tripId => [seatIds..]].
-     */
-    public function assertMultiLockedByToken(array $tripSeatMap, string $token): void
-    {
-        foreach ($tripSeatMap as $tid => $sids) {
-            $this->assertSeatsLockedByToken((int)$tid, (array)$sids, $token);
-        }
+  /**
+   * Dùng trước khi finalize multi-trip: assert theo map [tripId => [seatIds..]].
+   */
+  public function assertMultiLockedByToken(array $tripSeatMap, string $token): void
+  {
+    foreach ($tripSeatMap as $tid => $sids) {
+      $this->assertSeatsLockedByToken((int)$tid, (array)$sids, $token);
     }
+  }
 
-    /**
-     * Nhả ghế theo token cho danh sách trip (dùng khi hủy/timeout).
-     * @return int Số ghế đã DEL
-     */
-    public function releaseLocksAfterBooked(array $tripIds, string $token): int
-    {
-        $this->ensureLuaLoaded();
-        $tripIds = array_values(array_unique(array_map('intval', $tripIds)));
+  /**
+   * Nhả ghế theo token cho danh sách trip (dùng khi hủy/timeout).
+   * @return int Số ghế đã DEL
+   */
+  public function releaseLocksAfterBooked(array $tripIds, string $token): int
+  {
+    $this->ensureLuaLoaded();
+    $tripIds = array_values(array_unique(array_map('intval', $tripIds)));
 
-        // KEYS = [ trip:{tid}:locked_by:{token}, ... ]
-        $setKeys = array_map(fn($tid) => $this->kTripLockedByToken($tid, $token), $tripIds);
+    // KEYS = [ trip:{tid}:locked_by:{token}, ... ]
+    $setKeys = array_map(fn($tid) => $this->kTripLockedByToken($tid, $token), $tripIds);
 
-        $res = $this->evalshaOrEval(
-            Redis::connection(),
-            $this->luaReleaseSha,
-            $this->luaReleaseScript(),
-            count($setKeys),
-            array_merge($setKeys, [$token])
-        );
+    $res = $this->evalshaOrEval(
+      Redis::connection(),
+      $this->luaReleaseSha,
+      $this->luaReleaseScript(),
+      count($setKeys),
+      array_merge($setKeys, [$token])
+    );
 
-        return (int)($res[0] ?? 0);
-    }
+    return (int)($res[0] ?? 0);
+  }
 
-    /* ============================================================
+  /* ============================================================
      |  KEY BUILDERS
      * ============================================================
      */
 
-    private function kSeatLock(int $tripId, int $seatId): string
-    {
-        // Giữ format này vì Lua parse theo pattern này
-        return "trip:{$tripId}:seat:{$seatId}:lock";
-    }
+  private function kSeatLock(int $tripId, int $seatId): string
+  {
+    // Giữ format này vì Lua parse theo pattern này
+    return "trip:{$tripId}:seat:{$seatId}:lock";
+  }
 
-    private function kTripLockedByToken(int $tripId, string $token): string
-    {
-        return "trip:{$tripId}:locked_by:{$token}";
-    }
+  private function kTripLockedByToken(int $tripId, string $token): string
+  {
+    return "trip:{$tripId}:locked_by:{$token}";
+  }
 
-    private function kSessionSet(int $tripId, string $token): string
-    {
-        return "trip:{$tripId}:sess:{$token}:s";
-    }
+  private function kSessionSet(int $tripId, string $token): string
+  {
+    return "trip:{$tripId}:sess:{$token}:s";
+  }
 
-    private function kTripSet(int $tripId): string
-    {
-        return "trip:{$tripId}:locks:s";
-    }
+  private function kTripSet(int $tripId): string
+  {
+    return "trip:{$tripId}:locks:s";
+  }
 
-    /* ============================================================
+  /* ============================================================
      |  HELPERS
      * ============================================================
      */
 
-    private function normalizeSeatIds(array $seatIds): array
-    {
-        $seatIds = array_values(array_unique(array_map('intval', $seatIds)));
-        return array_values(array_filter($seatIds, fn($v) => $v > 0));
+  private function normalizeSeatIds(array $seatIds): array
+  {
+    $seatIds = array_values(array_unique(array_map('intval', $seatIds)));
+    return array_values(array_filter($seatIds, fn($v) => $v > 0));
+  }
+
+  /**
+   * @return array{0: array<int,array{trip_id:int,seat_id:int,leg?:string|null}>, 1: array<int,array<int>>}
+   */
+  private function normalizeTrips(array $trips): array
+  {
+    $pairs = [];       // [['trip_id'=>101,'seat_id'=>12,'leg'=>'OUT'], ...]
+    $byTrip = [];      // [101 => [12,13], 202 => [5], ...]
+
+    foreach ($trips as $t) {
+      $tid  = (int)($t['trip_id'] ?? 0);
+      $sids = $this->normalizeSeatIds($t['seat_ids'] ?? []);
+      $leg  = isset($t['leg']) ? (string)$t['leg'] : null;
+      if ($tid <= 0 || empty($sids)) continue;
+
+      foreach ($sids as $sid) {
+        $pairs[] = ['trip_id' => $tid, 'seat_id' => $sid, 'leg' => $leg];
+      }
+      $byTrip[$tid] = $sids;
     }
 
-    /**
-     * @return array{0: array<int,array{trip_id:int,seat_id:int,leg?:string|null}>, 1: array<int,array<int>>}
-     */
-    private function normalizeTrips(array $trips): array
-    {
-        $pairs = [];       // [['trip_id'=>101,'seat_id'=>12,'leg'=>'OUT'], ...]
-        $byTrip = [];      // [101 => [12,13], 202 => [5], ...]
+    // (option) sắp xếp theo trip_id để giảm deadlock giữa nhiều client
+    usort($pairs, fn($a, $b) => $a['trip_id'] <=> $b['trip_id']);
 
-        foreach ($trips as $t) {
-            $tid  = (int)($t['trip_id'] ?? 0);
-            $sids = $this->normalizeSeatIds($t['seat_ids'] ?? []);
-            $leg  = isset($t['leg']) ? (string)$t['leg'] : null;
-            if ($tid <= 0 || empty($sids)) continue;
+    return [$pairs, $byTrip];
+  }
 
-            foreach ($sids as $sid) {
-                $pairs[] = ['trip_id' => $tid, 'seat_id' => $sid, 'leg' => $leg];
-            }
-            $byTrip[$tid] = $sids;
-        }
-
-        // (option) sắp xếp theo trip_id để giảm deadlock giữa nhiều client
-        usort($pairs, fn($a, $b) => $a['trip_id'] <=> $b['trip_id']);
-
-        return [$pairs, $byTrip];
+  private function seatLabelFromKey(string $key): string
+  {
+    // Nếu có map seat_id→label trong DB thì thay thế logic này
+    if (preg_match('/seat:(\d+):lock$/', $key, $m)) {
+      return 'ID ' . $m[1];
     }
+    return 'N/A';
+  }
 
-    private function seatLabelFromKey(string $key): string
-    {
-        // Nếu có map seat_id→label trong DB thì thay thế logic này
-        if (preg_match('/seat:(\d+):lock$/', $key, $m)) {
-            return 'ID ' . $m[1];
-        }
-        return 'N/A';
+  private function ensureLuaLoaded(): void
+  {
+    if (!$this->luaTryLockSha) {
+      $this->luaTryLockSha = (string) Redis::script('load', $this->luaTryLockScript());
     }
-
-    /* ============================================================
-     |  LUA LOADER + EVAL HELPERS
-     * ============================================================
-     */
-
-    private function ensureLuaLoaded(): void
-    {
-        if (!$this->luaTryLockSha) {
-            $this->luaTryLockSha = (string) Redis::script('load', $this->luaTryLockScript());
-        }
-        if (!$this->luaReleaseSha) {
-            $this->luaReleaseSha = (string) Redis::script('load', $this->luaReleaseScript());
-        }
+    if (!$this->luaReleaseSha) {
+      $this->luaReleaseSha = (string) Redis::script('load', $this->luaReleaseScript());
     }
+  }
 
-    /**
-     * Tương thích cả phpredis/predis: ưu tiên evalsha, fallback sang eval nếu sha chưa có.
-     *
-     * @param \Illuminate\Redis\Connections\Connection $redis
-     * @param string|null $sha
-     * @param string      $script
-     * @param int         $numKeys
-     * @param array       $keysAndArgs
-     * @return mixed
-     */
-    private function evalshaOrEval($redis, ?string $sha, string $script, int $numKeys, array $keysAndArgs)
-    {
-        try {
-            // Predis: evalsha($sha, $numKeys, ...$params)
-            return $redis->evalsha($sha, $numKeys, ...$keysAndArgs);
-        } catch (\Throwable $e) {
-            // Fallback: eval($script, $numKeys, ...$params)
-            return $redis->eval($script, $numKeys, ...$keysAndArgs);
-        }
+  private function evalshaOrEval($redis, ?string $sha, string $script, int $numKeys, array $keysAndArgs)
+  {
+    try {
+      // Predis: evalsha($sha, $numKeys, ...$params)
+      return $redis->evalsha($sha, $numKeys, ...$keysAndArgs);
+    } catch (\Throwable $e) {
+      // Fallback: eval($script, $numKeys, ...$params)
+      return $redis->eval($script, $numKeys, ...$keysAndArgs);
     }
+  }
 
-    /**
-     * LUA: LOCK MULTI-TRIP (atomic)
-     * KEYS = [ trip:{tid}:seat:{sid}:lock, ... ]
-     * ARGV = [ token, ttlSeconds, maxPerTrip ]
-     * Return:
-     *  {1, lockedCount}
-     *  {0, failedKey}
-     *  {-1, tripId, limit, current, add}
-     *  {-2, "BAD_KEY", key}
-     */
-    private function luaTryLockScript(): string
-    {
-        return <<< 'LUA'
+  /**
+   * LUA: LOCK MULTI-TRIP (atomic)
+   * KEYS = [ trip:{tid}:seat:{sid}:lock, ... ]
+   * ARGV = [ token, ttlSeconds, maxPerTrip ]
+   * Return:
+   *  {1, lockedCount}
+   *  {0, failedKey}
+   *  {-1, tripId, limit, current, add}
+   *  {-2, "BAD_KEY", key}
+   */
+  private function luaTryLockScript(): string
+  {
+    return <<< 'LUA'
 local token  = ARGV[1]
 local ttlSec = tonumber(ARGV[2]) or 180
 local maxPer = tonumber(ARGV[3]) or 6
@@ -280,17 +265,17 @@ end
 
 return {1, #KEYS}
 LUA;
-    }
+  }
 
-    /**
-     * LUA: RELEASE by token-set per trip
-     * KEYS = [ trip:{tid}:locked_by:{token}, ... ]  // hoặc dùng sess:{token}:s nếu bạn muốn
-     * ARGV = [ token ]
-     * Return: { releasedCount }
-     */
-    private function luaReleaseScript(): string
-    {
-        return <<< 'LUA'
+  /**
+   * LUA: RELEASE by token-set per trip
+   * KEYS = [ trip:{tid}:locked_by:{token}, ... ]  // hoặc dùng sess:{token}:s nếu bạn muốn
+   * ARGV = [ token ]
+   * Return: { releasedCount }
+   */
+  private function luaReleaseScript(): string
+  {
+    return <<< 'LUA'
 local token = ARGV[1]
 local released = 0
 
@@ -314,5 +299,34 @@ end
 
 return {released}
 LUA;
+  }
+
+  public function isSessionHoldAlive(string $token): bool
+  {
+    $key = "session:{$token}:ttl";
+
+    // Nếu không tồn tại key => hết TTL
+    if (!Redis::exists($key)) {
+      return false;
     }
+
+    // TTL: -2 = không tồn tại, -1 = không có expire, >0 = còn lại
+    $ttl = Redis::ttl($key);
+
+    return $ttl > 0;
+  }
+
+  /**
+   * Khi chuyển sang PayOS, có thể dùng hàm này để nâng TTL lên TTL payos.
+   * Ví dụ ttlPayos = 900 (15 phút).
+   */
+  public function promoteSessionTtlForPayos(string $token, int $ttlPayosSeconds): void
+  {
+    $key = "session:{$token}:ttl";
+
+    // Nếu key vẫn còn (chưa hết TTL) thì set TTL mới
+    if (Redis::exists($key)) {
+      Redis::expire($key, $ttlPayosSeconds);
+    }
+  }
 }

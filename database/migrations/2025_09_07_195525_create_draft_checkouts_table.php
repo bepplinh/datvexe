@@ -44,6 +44,7 @@ return new class extends Migration
             // Trạng thái & thời gian
             $table->enum('status', ['pending','paying','paid','cancelled','expired'])
                   ->default('pending')->index();
+            $table->string('problem')->nullable();
             $table->timestamp('expires_at')->index();
             $table->timestamp('completed_at')->nullable();
         

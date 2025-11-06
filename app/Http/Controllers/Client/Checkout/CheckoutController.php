@@ -7,9 +7,11 @@ use App\Models\DraftCheckout;
 use App\Services\SeatFlowService;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Services\Checkout\BookingService;
-use App\Http\Requests\Draft\UpdateDraftRequest;
+use Illuminate\Support\Facades\Redis;
 use App\Services\Checkout\PayOSService;
+use App\Services\Checkout\BookingService;
+use Illuminate\Validation\ValidationException;
+use App\Http\Requests\Draft\UpdateDraftRequest;
 use App\Services\SeatFlow\ReleaseLocksAfterBooked;
 use App\Services\DraftCheckoutService\UpdateDraftPayment;
 
@@ -28,6 +30,30 @@ class CheckoutController extends Controller
         int $draftId
     ) {
         $sessionToken = $request->header('X-Session-Token');
+        if (!$sessionToken) {
+            abort(400, 'Thiếu X-Session-Token');
+        }
+        $draft = DraftCheckout::query()
+            ->where('id', $draftId)
+            ->where('session_token', $sessionToken)
+            ->firstOrFail();
+
+        if (!in_array($draft->status, ['pending', 'paying'], true)) {
+            return response()->json([
+                'message' => 'Đơn đặt này đã hết hiệu lực hoặc đã được xử lý. Vui lòng tạo đơn mới.'
+            ], 422);
+        }
+
+        if (!$this->seatFlow->isSessionHoldAlive($sessionToken)) {
+            $draft->update([
+                'status' => 'cancelled'
+            ]);
+
+            throw ValidationException::withMessages([
+                'message' => 'Thời gian giữ ghế đã hết, quý khách vui lòng chọn lại ghế.'
+            ]);
+        }
+
         $data = $request->validated();
 
         $updated = $this->updateDraftPayment->updateDraftCheckout(
@@ -159,7 +185,24 @@ class CheckoutController extends Controller
             //payment provider === payos
             if ($provider === 'payos') {
                 try {
+                    $ttlMinutes = (int) 1;
+                    $ttlPayosSeconds = $ttlMinutes * 60;
+                    $this->seatFlow->promoteSessionTtlForPayos($sessionToken, $ttlPayosSeconds);
                     $res = $this->payOS->createLinkFromDraft($updated, (int) 1);
+
+                    if (
+                        !$res || empty($res->checkoutUrl) || empty($res->orderCode)
+                    ) {
+                        Redis::del("session:{$sessionToken}:ttl");
+                        $updated->update([
+                            'status'           => 'cancelled',
+                            'problem' => 'payos_failed',
+                        ]);
+
+                        throw ValidationException::withMessages([
+                            'payment' => ['Không thể tạo link thanh toán. Vui lòng thử lại sau.'],
+                        ]);
+                    }
 
                     if (is_object($res)) $res = (array) $res;
 
@@ -170,7 +213,7 @@ class CheckoutController extends Controller
                         'status'             => 'paying',
                         'payment_provider'   => 'payos',
                         'payment_intent_id'  => (string) $orderCode,
-                        'expires_at'         => now()->addMinutes(15),
+                        'expires_at'         => now()->addMinutes($ttlMinutes),
                     ]);
 
                     return response()->json([
@@ -188,7 +231,7 @@ class CheckoutController extends Controller
             }
         } catch (Throwable $e) {
             return response()->json([
-                'message' => 'Co loi khi thanh toan, vui long thu lai',
+                'message' => 'Đã có lỗi xảy ra khi thanh toán, vui lòng thử lại.',
                 'error'   => $e->getMessage(),
             ], 500);
         }

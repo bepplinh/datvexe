@@ -14,7 +14,7 @@ use Exception;
 class TripStationController extends Controller
 {
     public function __construct(private TripStationService $service) {}
-
+  
     public function index(Request $request): JsonResponse
     {
         $filters = $request->only([
