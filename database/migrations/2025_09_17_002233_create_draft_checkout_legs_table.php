@@ -23,8 +23,8 @@ return new class extends Migration
                 ->constrained('locations')->nullOnDelete();
 
             // Snapshot tên/địa chỉ điểm đón/trả tại thời điểm đặt (tránh lệ thuộc bảng locations)
-            $table->json('pickup_snapshot')->nullable();
-            $table->json('dropoff_snapshot')->nullable();
+            $table->string('pickup_snapshot')->nullable();
+            $table->string('dropoff_snapshot')->nullable();
 
             $table->text('pickup_address')->nullable();
             $table->text('dropoff_address')->nullable();

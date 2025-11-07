@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use RuntimeException;
+use App\Models\DraftCheckout;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use App\Services\DraftCheckoutService\DraftCheckoutService;
 
@@ -320,13 +322,93 @@ LUA;
    * Khi chuyển sang PayOS, có thể dùng hàm này để nâng TTL lên TTL payos.
    * Ví dụ ttlPayos = 900 (15 phút).
    */
-  public function promoteSessionTtlForPayos(string $token, int $ttlPayosSeconds): void
+  public function promoteSessionTtlForPayos(string $sessionToken, int $ttlSeconds): void
   {
-    $key = "session:{$token}:ttl";
+      $redis = Redis::connection('default');
 
-    // Nếu key vẫn còn (chưa hết TTL) thì set TTL mới
-    if (Redis::exists($key)) {
-      Redis::expire($key, $ttlPayosSeconds);
-    }
+      /*
+       * 1) Kéo TTL cho session tổng
+       *    session:{token}:ttl
+       */
+      $sessionKey = "session:{$sessionToken}:ttl";
+
+      if ($redis->exists($sessionKey)) {
+          $ttlBefore = $redis->ttl($sessionKey);
+          $redis->expire($sessionKey, $ttlSeconds);
+          $ttlAfter  = $redis->ttl($sessionKey);
+
+          Log::info('[promoteSessionTtlForPayos] session ttl updated', [
+              'key'        => $sessionKey,
+              'ttl_before' => $ttlBefore,
+              'ttl_after'  => $ttlAfter,
+          ]);
+      } else {
+          Log::warning('[promoteSessionTtlForPayos] session key not found', [
+              'key' => $sessionKey,
+          ]);
+      }
+
+      /*
+       * 2) Từ sessionToken → tìm draft hiện tại
+       *    (pending / paying) để tránh dính draft cũ
+       */
+      $draft = DraftCheckout::query()
+          ->where('session_token', $sessionToken)
+          ->whereIn('status', ['pending', 'paying'])
+          ->latest('id')
+          ->with(['items' => function ($q) {
+              $q->select('id', 'draft_checkout_id', 'trip_id', 'seat_id');
+          }])
+          ->first();
+
+      if (!$draft) {
+          Log::warning('[promoteSessionTtlForPayos] no draft found for session', [
+              'session' => $sessionToken,
+          ]);
+          return;
+      }
+
+      /*
+       * 3) Lấy unique (trip_id, seat_id) từ draft items
+       */
+      $pairs = $draft->items
+          ->map(fn ($it) => $it->trip_id . ':' . $it->seat_id)
+          ->unique()
+          ->values()
+          ->all();
+
+      $updatedLocks = 0;
+
+      foreach ($pairs as $pair) {
+          [$tripId, $seatId] = explode(':', $pair);
+
+          $lockKey = "trip:{$tripId}:seat:{$seatId}:lock";
+
+          if ($redis->exists($lockKey)) {
+              $lockTtlBefore = $redis->ttl($lockKey);
+              $redis->expire($lockKey, $ttlSeconds);
+              $lockTtlAfter  = $redis->ttl($lockKey);
+
+              $updatedLocks++;
+
+              Log::info('[promoteSessionTtlForPayos] seat lock ttl updated', [
+                  'key'        => $lockKey,
+                  'ttl_before' => $lockTtlBefore,
+                  'ttl_after'  => $lockTtlAfter,
+              ]);
+          } else {
+              Log::warning('[promoteSessionTtlForPayos] lock key not found', [
+                  'key'    => $lockKey,
+                  'tripId' => $tripId,
+                  'seatId' => $seatId,
+              ]);
+          }
+      }
+
+      Log::info('[promoteSessionTtlForPayos] DONE', [
+          'session'      => $sessionToken,
+          'ttl'          => $ttlSeconds,
+          'locks_updated'=> $updatedLocks,
+      ]);
   }
 }

@@ -31,8 +31,6 @@ class UpdateDraftPayment
                 'coupon_id',
                 'payment_provider',
                 'payment_intent_id',
-                'pickup_location_id',
-                'dropoff_location_id',
                 'pickup_address',
                 'dropoff_address',
             ];
@@ -61,18 +59,10 @@ class UpdateDraftPayment
 
                     if ($leg) {
                         $legAssignables = [
-                            'pickup_location_id', 'dropoff_location_id',
                             'pickup_address', 'dropoff_address',
                         ];
 
                         $legUpdate = array_intersect_key($legData, array_flip($legAssignables));
-
-                        // Nếu là chiều RETURN thì đảo pickup/dropoff so với chiều OUT nếu người dùng chọn khứ hồi
-                        if (($legType === 'RETURN') && ($payload['is_round_trip'] ?? false)) {
-                            $tempPickup = $legUpdate['pickup_location_id'] ?? null;
-                            $legUpdate['pickup_location_id'] = $legUpdate['dropoff_location_id'] ?? $tempPickup;
-                            $legUpdate['dropoff_location_id'] = $tempPickup;
-                        }
 
                         if (!empty($legUpdate)) {
                             $leg->fill($legUpdate);

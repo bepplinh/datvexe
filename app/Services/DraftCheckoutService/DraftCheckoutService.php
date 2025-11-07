@@ -20,7 +20,11 @@ class DraftCheckoutService
         array $legsByTrip,
         string $token,
         ?int $userId,
-        int $ttlSeconds
+        int $ttlSeconds,
+        int $fromLocationId,
+        int $toLocationId,
+        string $fromLocation,
+        string $toLocation
     ): array {
         if (empty($seatsByTrip)) {
             throw ValidationException::withMessages(['trips' => ['Không có ghế hợp lệ.']]);
@@ -37,10 +41,9 @@ class DraftCheckoutService
         }
 
         // 4) Transaction tạo/cập nhật draft + legs + items
-        $result = DB::transaction(function () use ($seatsByTrip, $legsByTrip, $snapshotsByTrip, $token, $userId, $ttlSeconds) {
+        $result = DB::transaction(function () use ($seatsByTrip, $legsByTrip, $snapshotsByTrip, $token, $userId, $ttlSeconds , $fromLocationId, $toLocationId, $fromLocation, $toLocation) {
 
             // 4.1 Upsert draft theo session_token (idempotent)
-            /** @var DraftCheckout|null $draft */
             $draft = DraftCheckout::query()
                 ->where('session_token', $token)
                 ->whereIn('status', ['pending', 'paying'])
@@ -79,10 +82,21 @@ class DraftCheckoutService
                 if (isset($existingLegs[$tripId])) {
                     $legMap[$tripId] = $existingLegs[$tripId];
                 } else {
+                    $legCode = $legsByTrip[$tripId] ?? null;
+
+                    if ($legCode === 'RETURN') {
+                        [$fromLocationId, $toLocationId] = [$toLocationId, $fromLocationId];
+                        [$fromLocation, $toLocation] = [$toLocation,$fromLocation];
+                    }
+
                     $newLegRows[] = [
                         'draft_checkout_id' => $draft->id,
                         'trip_id'           => $tripId,
-                        'leg'               => $legsByTrip[$tripId] ?? null,
+                        'leg'               => $legCode,
+                        'pickup_location_id' => $fromLocationId,
+                        'dropoff_location_id' => $toLocationId,
+                        'pickup_snapshot' => $fromLocation,
+                        'dropoff_snapshot' => $toLocation,
                         'total_price'       => 0,
                         'created_at'        => $now,
                         'updated_at'        => $now,

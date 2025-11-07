@@ -46,7 +46,7 @@ class CheckoutController extends Controller
 
         if (!$this->seatFlow->isSessionHoldAlive($sessionToken)) {
             $draft->update([
-                'status' => 'cancelled'
+                'status' => 'expired'
             ]);
 
             throw ValidationException::withMessages([

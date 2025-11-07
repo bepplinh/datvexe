@@ -37,6 +37,8 @@ class TripSearchService
                     $q->where('from_location_id', $fromLocationId)
                         ->where('to_location_id', $toLocationId);
                 },
+                'route.tripStations.fromLocation:id,name',
+                'route.tripStations.toLocation:id,name',
                 'bus.typeBus',
                 'bus.seatLayoutTemplate'
             ])
@@ -109,9 +111,11 @@ class TripSearchService
             }
 
             return [
-                'trip_id'              => $trip->id,
+                'trip_id'         => $trip->id,
                 'route_id'        => $trip->route_id,
                 'route_name'      => $trip->route->name ?? null,
+                'from_location'   => optional($tripStation->fromLocation)->name,
+                'to_location'     => optional($tripStation->toLocation)->name,
                 'bus_id'          => $trip->bus_id,
                 'day'             => $dep ? $dep->format('Y-m-d') : null,
                 'departure_time'  => $dep ? $dep->format('H:i') : null,
@@ -125,17 +129,16 @@ class TripSearchService
                 'seats_booked'    => $booked,
                 'seats_locked'    => $locked,
                 'available_seats' => $available,
-                
+
                 // Location IDs cho segment được search
                 'from_location_id' => $fromLocationId,
                 'to_location_id'   => $toLocationId,
-                
+
                 'bus' => [
                     'name'         => optional($trip->bus)->name,
                     'code'         => optional($trip->bus)->code,
                     'plate_number' => optional($trip->bus)->plate_number,
-                    'type'         => optional(optional($trip->bus)->typeBus)->name,
-
+                    'type'         => optional(optional($trip->bus)->typeBus)->name
                 ],
                 'route' => [
                     'from_city_id' => optional($trip->route)->from_city,

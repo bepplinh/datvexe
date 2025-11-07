@@ -17,9 +17,6 @@ class UpdateDraftRequest extends FormRequest
 
             'booker_name'     => ['nullable','string','max:120'],
             'booker_phone'    => ['nullable','string','max:20'],
-
-            'pickup_location_id'  => ['nullable','integer','exists:locations,id'],
-            'dropoff_location_id' => ['nullable','integer','exists:locations,id'],
             'pickup_address'      => ['nullable','string','max:500'],
             'dropoff_address'     => ['nullable','string','max:500'],
 

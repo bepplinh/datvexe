@@ -28,8 +28,8 @@ class BookingService
             'total_price' => (int) $draft->total_price,
             'discount_amount' => (int) $draft->discount_amount,
             'status' => 'paid',
-            'origin_location_id' => $draft->pickup_location_id ?? 1, // Default location
-            'destination_location_id' => $draft->dropoff_location_id ?? 2, // Default location
+            'origin_location_id' => $draft->pickup_location_id,
+            'destination_location_id' => $draft->dropoff_location_id,
             'pickup_address' => $draft->pickup_address ?? null,
             'dropoff_address' => $draft->dropoff_address ?? null,
             'paid_at' => now(),
@@ -117,6 +117,8 @@ class BookingService
                 'trip_id'               => $leg->trip_id,
                 'pickup_location_id'    => $leg->pickup_location_id,
                 'dropoff_location_id'   => $leg->dropoff_location_id,
+                'pickup_snapshot'       => $leg->pickup_snapshot,
+                'dropoff_snapshot'      => $leg->dropoff_snapshot,
                 'pickup_address'        => $leg->pickup_address,
                 'dropoff_address'       => $leg->dropoff_address,
                 'total_price'           => $leg->total_price,

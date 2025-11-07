@@ -11,7 +11,7 @@ use App\Models\Seat;
 
 class SeatLockService
 {
-    const DEFAULT_TTL = 20;
+    const DEFAULT_TTL = 30;
 
     public function __construct(
         private DraftCheckoutService $drafts,
@@ -32,7 +32,11 @@ class SeatLockService
         array $trips,
         string $sessionToken,
         int $ttl = self::DEFAULT_TTL,
-        ?int $userId = null
+        ?int $userId = null,
+        int $from_location_id,
+        int $to_location_id,
+        string $from_location,
+        string $to_location
     ): array {
         [$seatsByTrip, $legsByTrip] = $this->normalizeTripsWithLeg($trips);
 
@@ -55,10 +59,14 @@ class SeatLockService
         // Tạo draft từ các lock đã thành công
         $draft = $this->drafts->createFromLocks(
             seatsByTrip: $seatsByTrip,
-            legsByTrip:  $legsByTrip,
-            token:       $sessionToken,
-            userId:      $userId,
-            ttlSeconds:  $ttl
+            legsByTrip: $legsByTrip,
+            token: $sessionToken,
+            userId: $userId,
+            ttlSeconds: $ttl,
+            fromLocationId: $from_location_id,
+            toLocationId: $to_location_id,
+            fromLocation: $from_location,
+            toLocation: $to_location
         );
 
         // TTL còn lại để FE hiển thị countdown
@@ -180,10 +188,10 @@ class SeatLockService
     
     return "OK"
     LUA;
-    
+
         // ❗ GỬI cho Lua DẠNG SỐ THUẦN (KHÔNG gửi object), để tránh lỗi concat table
         $payload = $seatsByTrip;
-    
+
         $res = Redis::eval(
             $lua,
             0,
@@ -191,20 +199,20 @@ class SeatLockService
             $token,
             $ttl
         );
-    
+
         if ($res !== 'OK') {
             $msg = 'Lỗi khi lock ghế. Vui lòng thử lại.';
-    
+
             if (is_string($res) && str_starts_with($res, 'CONFLICTS:')) {
                 $conflicts = json_decode(substr($res, 10), true) ?: [];
-    
+
                 if (!empty($conflicts)) {
                     // Lấy conflict đầu tiên để tạo thông điệp ngắn gọn
                     $c = $conflicts[0];
                     $tripId  = $c['trip_id'] ?? '?';
                     $seatId  = (int)($c['seat_id'] ?? 0);
                     $seatNum = $seatNumberById[$seatId] ?? (string)$seatId;
-    
+
                     if (($c['type'] ?? '') === 'BOOKED') {
                         $msg = "Ghế {$seatNum} đã được đặt trong chuyến {$tripId}. Vui lòng chọn ghế khác.";
                     } else {
@@ -212,17 +220,17 @@ class SeatLockService
                     }
                 }
             }
-    
+
             throw ValidationException::withMessages([
                 'seats' => [$msg],
             ]);
         }
-    
+
         // ✅ Sau khi lock thành công: set TTL cho cả session giữ ghế (pha 1)
         // Đây là "đồng hồ 3 phút" để sau này CheckoutController check
         Redis::setex("session:{$token}:ttl", $ttl, 1);
     }
-    
+
 
     private function ttlLeftForSeats(array $seatsByTrip): array
     {

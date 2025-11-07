@@ -43,7 +43,6 @@ class PayOSWebhookController extends Controller
                     return response()->json(['success' => false, 'error' => 'invalid_signature'], 400);
                 }
                 if (is_array($verified)) {
-                    // tránh ghi đè mù quáng: chỉ bổ sung trường thiếu
                     $data = array_replace($data, $verified);
                 }
             } catch (Throwable $e) {
@@ -142,7 +141,6 @@ class PayOSWebhookController extends Controller
         // 5) PAID → finalize idempotent trong transaction
         try {
             $result = DB::transaction(function () use ($orderCode) {
-                /** @var DraftCheckout|null $draft */
                 $draft = DraftCheckout::query()
                     ->with(['legs.items'])
                     ->where('payment_provider', 'payos')
