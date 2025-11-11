@@ -1,0 +1,43 @@
+.bannerContainer {
+    position: relative;
+    width: 100vw;
+    left: 50%;
+    margin-left: -50vw;
+    height: 550px; /* 👈 chỉnh chiều cao tại đây */
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5; /* màu nền phòng khi ảnh load chậm */
+}
+
+.bannerContainer img {
+    width: 100%;
+    max-width: 1950px; /* giới hạn chiều rộng tối đa trên desktop */
+    height: 100%; /* ảnh cao bằng container */
+    object-fit: contain; /* thu nhỏ ảnh nhưng vẫn hiển thị đủ nội dung, không crop */
+    object-position: center; /* căn giữa ảnh theo trục dọc và ngang */
+    display: block;
+    margin: 0 auto; /* căn giữa ảnh trong container */
+}
+
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+    .bannerContainer {
+        height: 450px;
+    }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+    .bannerContainer {
+        height: 350px;
+    }
+}
+
+/* Responsive - Mobile nhỏ */
+@media (max-width: 480px) {
+    .bannerContainer {
+        height: 250px;
+    }
+}

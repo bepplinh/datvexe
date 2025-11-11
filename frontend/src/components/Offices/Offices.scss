@@ -1,0 +1,50 @@
+.office {
+    // background-color: red;
+    padding: 30px 0;
+
+    .container {
+        margin: 0 auto;
+        max-width: 1200px;
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+
+            h2 {
+                font-size: 22px;
+                font-weight: 700;
+                margin: 0;
+                color: #2d2d2f;
+            }
+        }
+    }
+
+    .content {
+        display: flex;
+        gap: 15px;
+
+        .content-section {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            border-right: 1px solid black;
+
+            .content-section:nth-child(3) {
+                border: none;
+            }
+
+            .content-top {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .content-bottom {
+                display: flex;
+                align-items: center;
+            }
+        }
+    }
+}

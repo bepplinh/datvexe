@@ -1,0 +1,228 @@
+.section {
+    margin: 0;
+}
+.container {
+    padding: 30px 0;
+    width: 100%;
+    background-image: url("../../assets/bg1.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+.section {
+    position: relative;
+    margin-top: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* optional background that visually stretches behind the content */
+.bgWrap {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+.bgImg {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1920px; /* matches Figma export width */
+    max-width: 200%;
+    opacity: 0.12; /* subtle */
+}
+
+/* header row (icon + title) */
+.headerRow {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.icon {
+    width: 40px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.icon img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+.heading {
+    font-family: "Lexend", sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.85);
+    margin: 0;
+}
+
+/* grid of cards */
+.grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: 20px;
+    /* responsive: try to fit 4,3,2,1 */
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+/* card */
+.card {
+    display: flex;
+    flex-direction: column;
+    min-height: 260px;
+    background: transparent;
+}
+
+/* top image with rounded top corners */
+.cardImage {
+    height: 181px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+.cardImage img {
+    position: absolute;
+    top: 0;
+    left: -9%;
+    width: 118.26%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* body */
+.cardBody {
+    background: #ffffff;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    box-shadow: 0px 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0px 8px 10px -6px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cardTitle {
+    font-family: "Lexend", sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #2d2d2f;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* info box (pale background with calendar and date + btn) */
+.infoBox {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.infoBox > .bg {
+    background: #f7f7f7;
+}
+
+/* the inner gray rounded container (calendar + date) */
+.infoLeft {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f7f7f7;
+    padding: 8px;
+    border-radius: 16px;
+}
+
+/* small calendar icon */
+.iconSmall {
+    width: 35px;
+    height: 37.7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.iconSmall img {
+    width: 33px;
+    height: 33px;
+    display: block;
+}
+
+/* label and date */
+.label {
+    font-family: "Lexend", sans-serif;
+    font-size: 10px;
+    color: #666666;
+}
+.date {
+    font-family: "Lexend", sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.85);
+}
+
+/* CTA */
+.ctaWrap {
+    margin-top: 8px;
+}
+.btnPrimary {
+    width: 100%;
+    background: #ed1925;
+    color: #ffffff;
+    border: 1px solid #d9d9d9;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-family: "Lexend", sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* subtle dashed border block around CTA (mimic Figma) */
+.cardBody .borderDashed {
+    border: 1px dashed #ed1925;
+    border-radius: 12px;
+    padding: 5px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 900px) {
+    .section {
+        padding: 0 20px;
+    }
+    .bgImg {
+        display: none; /* reduce clutter on small screens */
+    }
+
+    .heading {
+        font-size: 18px;
+    }
+
+    .cardImage {
+        height: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    .cardImage {
+        height: 140px;
+    }
+    .icon {
+        width: 32px;
+        height: 28px;
+    }
+    .heading {
+        font-size: 16px;
+    }
+}

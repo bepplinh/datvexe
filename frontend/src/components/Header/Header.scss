@@ -1,0 +1,484 @@
+
+.site-header {
+    background: #ffffff;
+    border-bottom: 1px solid #eaeaea;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    font-family:
+        "Lexend",
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    transition:
+        box-shadow 0.3s ease,
+        background-color 0.3s ease;
+
+    &--scrolled {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+    }
+
+    &__inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        column-gap: 32px;
+        transition: padding 0.3s ease;
+    }
+
+    &--scrolled &__inner {
+        padding: 8px 12px;
+    }
+
+    /* ============ LOGO ============ */
+
+    &__logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    &__logo-icon {
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+
+        img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+        }
+    }
+
+    &__logo-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+    }
+
+    &__logo-line {
+        font-weight: 700;
+        letter-spacing: 0.08em;
+
+        &--top {
+            font-size: 10px;
+            color: #666666;
+        }
+
+        &--bottom {
+            font-size: 14px;
+            color: #0347aa;
+        }
+    }
+
+    /* ============ NAV ============ */
+
+    &__nav {
+        flex: 1 1 auto;
+
+        @media (min-width: 768px) {
+            display: flex;
+            justify-content: center;
+        }
+
+        @media (max-width: 767.98px) {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            box-shadow: 0 8px 16px rgba(15, 23, 42, 0.1);
+            display: none;
+        }
+    }
+
+    &__nav--open {
+        @media (max-width: 767.98px) {
+            display: block;
+        }
+    }
+
+    &__nav-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        @media (min-width: 768px) {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        @media (max-width: 767.98px) {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 8px 16px 12px;
+            gap: 4px;
+        }
+    }
+
+    &__nav-link {
+        display: inline-block;
+        padding: 8px 10px;
+        font-size: 16px;
+        line-height: 16px;
+        text-decoration: none;
+        color: #6c6969;
+        font-weight: 400;
+        white-space: nowrap;
+        transition: color 0.15s ease;
+
+        &--active {
+            font-weight: 700;
+        }
+
+        &:hover {
+            color: #0347aa;
+        }
+    }
+
+    /* ============ HOTLINE + ĐĂNG NHẬP ============ */
+
+    &__right {
+        flex-shrink: 0;
+
+        @media (max-width: 767.98px) {
+            display: none;
+        }
+    }
+
+    &__right-inner {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+
+        @media (max-width: 767.98px) {
+            flex-wrap: wrap;
+        }
+    }
+
+    &__hotline {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__hotline-icon {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+
+        img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+        }
+    }
+
+    &__hotline-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__hotline-label {
+        font-size: 14px;
+        color: #0347aa;
+        line-height: 22px;
+    }
+
+    &__hotline-number {
+        font-size: 14px;
+        color: #717171;
+        line-height: 22px;
+    }
+
+    &__login-btn {
+        padding: 6px 16px;
+        border-radius: 999px;
+        border: 1px solid #0347aa;
+        background: #0347aa;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        transition:
+            background 0.15s ease,
+            border-color 0.15s ease,
+            transform 0.1s ease;
+
+        &:hover {
+            background: #023784;
+            border-color: #023784;
+            transform: translateY(-1px);
+        }
+
+        &:active {
+            transform: translateY(0);
+        }
+    }
+
+    &__profile {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        &--open {
+            .site-header__profile-arrow {
+                transform: rotate(180deg);
+            }
+
+            .site-header__profile-trigger {
+                border-color: #d1d5db;
+                background: #f9fafb;
+            }
+        }
+    }
+
+    &__profile-trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        background: transparent;
+        cursor: pointer;
+        transition:
+            background 0.15s ease,
+            border-color 0.15s ease,
+            box-shadow 0.15s ease;
+        font-size: 14px;
+        color: #111827;
+
+        &:hover {
+            background: #f9fafb;
+            border-color: #e5e7eb;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+        }
+
+        @media (max-width: 767.98px) {
+            width: 100%;
+            justify-content: space-between;
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+    }
+
+    &__profile-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        background: #e1e9f9;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: #0347aa;
+        overflow: hidden;
+        flex-shrink: 0;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        span {
+            font-size: 14px;
+            letter-spacing: 0.02em;
+        }
+    }
+
+    &__profile-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        min-width: 0;
+
+        @media (max-width: 767.98px) {
+            margin-left: 12px;
+            margin-right: auto;
+        }
+    }
+
+    &__profile-name {
+        font-weight: 600;
+        color: #111827;
+        max-width: 140px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+
+        @media (max-width: 767.98px) {
+            max-width: 180px;
+        }
+    }
+
+    &__profile-arrow {
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 6px solid #6b7280;
+        transition: transform 0.2s ease;
+    }
+
+    &__profile-menu {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        background: #ffffff;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        box-shadow:
+            0 12px 20px rgba(15, 23, 42, 0.12),
+            0 3px 6px rgba(15, 23, 42, 0.08);
+        padding: 6px;
+        display: none;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 200px;
+        z-index: 40;
+
+        @media (max-width: 767.98px) {
+            position: static;
+            margin-top: 8px;
+            box-shadow: none;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            width: 100%;
+            padding: 8px;
+        }
+    }
+
+    &__profile-menu-item {
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-size: 14px;
+        color: #111827;
+        text-align: left;
+        transition:
+            background 0.15s ease,
+            color 0.15s ease;
+
+        &:hover {
+            background: #f3f4f6;
+        }
+
+        &--danger {
+            color: #dc2626;
+
+            &:hover {
+                background: #fee2e2;
+            }
+        }
+    }
+
+    &__profile--open &__profile-menu {
+        display: flex;
+    }
+
+    /* ============ MOBILE EXTRA (hotline + login trong menu) ============ */
+
+    &__mobile-extra {
+        border-top: 1px solid #e5e7eb;
+        padding: 8px 16px 10px;
+
+        @media (min-width: 768px) {
+            display: none;
+        }
+
+        .site-header__right-inner {
+            justify-content: space-between;
+        }
+
+        .site-header__hotline-label,
+        .site-header__hotline-number {
+            font-size: 13px;
+        }
+
+        .site-header__hotline-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .site-header__login-btn {
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+    }
+
+    /* ============ TOGGLE (HAMBURGER) ============ */
+
+    &__toggle {
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+        border: 1px solid #e5e7eb;
+        background: #ffffff;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 4px;
+        padding: 0;
+        cursor: pointer;
+
+        span {
+            width: 18px;
+            height: 2px;
+            border-radius: 999px;
+            background: #111827;
+            transition:
+                transform 0.2s ease,
+                opacity 0.2s ease;
+        }
+
+        @media (max-width: 767.98px) {
+            display: inline-flex;
+        }
+    }
+
+    &__toggle--active {
+        span:nth-child(1) {
+            transform: translateY(3px) rotate(45deg);
+        }
+
+        span:nth-child(2) {
+            opacity: 0;
+        }
+
+        span:nth-child(3) {
+            transform: translateY(-3px) rotate(-45deg);
+        }
+    }
+
+    /* ============ RESPONSIVE EXTRA ============ */
+
+    @media (min-width: 1280px) {
+        &__inner {
+            padding-inline: 0; // center trong max-width 1200
+        }
+    }
+}

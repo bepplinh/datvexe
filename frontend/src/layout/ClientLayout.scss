@@ -1,0 +1,24 @@
+.sticky-bottom-right {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+    }
+
+    @media (max-width: 768px) {
+        bottom: 16px;
+        right: 16px;
+        font-size: 14px;
+        padding: 10px 16px;
+    }
+}
