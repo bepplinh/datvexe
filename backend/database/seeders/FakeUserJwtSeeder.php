@@ -21,6 +21,7 @@ class FakeUserJwtSeeder extends Seeder
             'phone' => null,
             'password' => bcrypt('admin123'),
             'role' => 'admin', // nếu có cột role
+            'gender' => 'male', // nếu có cột gender
         ]);
 
         // Tạo user thường
@@ -31,6 +32,7 @@ class FakeUserJwtSeeder extends Seeder
             'phone' => null,
             'password' => bcrypt('user123'),
             'role' => 'customer', // nếu có cột role
+            'gender' => 'male', // nếu có cột gender
         ]);
 
         // Sinh JWT token

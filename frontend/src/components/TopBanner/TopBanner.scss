@@ -1,0 +1,44 @@
+.section-top {
+    border-bottom: 1px solid rgb(194, 193, 193);
+
+    .container {
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+
+        display: flex;
+        align-items: center;
+        /* KHÔNG dùng space-between để các item tự fill full chiều ngang */
+        /* justify-content: space-between;  <- bỏ dòng này */
+        padding: 10px 0;
+
+        .top-banner-item {
+            flex: 1; // 🔥 4 item chia đều 1200px
+            display: flex;
+            align-items: center;
+            justify-content: center; // icon + text nằm giữa ô
+            gap: 5px;
+            padding: 0 10px;
+
+            &:not(:last-child) {
+                border-right: 1px solid rgb(194, 193, 193); // gạch dọc ngăn cách
+            }
+
+            .top-banner-icon {
+                color: #0347aa; // icon cùng màu text
+                font-size: 20px;
+            }
+
+            p {
+                color: #0347aa;
+                font-weight: 550;
+                white-space: nowrap; // tránh bị xuống dòng xấu
+            }
+        }
+    }
+}
+@media (max-width: 1100px) {
+    .section-top {
+        display: none;
+    }
+}

@@ -5,14 +5,22 @@ import PopularRoutes from "./../../components/PopularRoute/PopularRoute";
 import ServiceList from "../../components/ServiceList/ServiceList";
 import Offices from "../../components/Offices/Offices";
 import NewsSection from "../../components/NewsSection/NewsSection";
+import SearchTrip from "../../components/SearchTrip/SearchTrip";
+
+import "./HomePage.scss";
 
 function HomePage() {
     return (
         <>
-            <Banner />
+            <div className="home-page__banner-search-wrapper">
+                <Banner />
+                <div className="home-page__search-trip-container">
+                    <SearchTrip />
+                </div>
+            </div>
             <Intro />
             <PopularRoutes />
-            {/* <ServiceList /> */}
+            <ServiceList />
             <Offices />
             <NewsSection />
         </>

@@ -51,4 +51,62 @@ export const authService = {
     getToken() {
         return Cookies.get(TOKEN_KEY) || null;
     },
+
+    // ✅ OTP: Gửi mã OTP
+    async sendOtp({ phone, purpose = "register", channel = "sms" }) {
+        const res = await apiClient.post("/auth/otp/start", {
+            phone,
+            purpose,
+            channel,
+        });
+        return res.data;
+    },
+
+    // ✅ OTP: Xác thực mã OTP
+    async verifyOtp({ phone, code, purpose = "register", newPassword = null }) {
+        const payload = {
+            phone,
+            code,
+            purpose,
+        };
+        if (purpose === "reset_password" && newPassword) {
+            payload.new_password = newPassword;
+        }
+        const res = await apiClient.post("/auth/otp/verify", payload);
+        return res.data;
+    },
+
+    // ✅ Đăng ký: Hoàn tất đăng ký sau khi OTP đã verify
+    async completeRegister({
+        registerToken,
+        username,
+        password,
+        name = null,
+        birthday = null,
+        email = null,
+    }) {
+        const res = await apiClient.post("/auth/register/complete", {
+            register_token: registerToken,
+            username,
+            password,
+            name,
+            birthday,
+            email,
+        });
+
+        // Nếu thành công, backend trả về token và user
+        const { access_token, user } = res.data;
+
+        if (access_token) {
+            Cookies.set(TOKEN_KEY, access_token, {
+                expires: 7, // 7 ngày
+            });
+
+            apiClient.defaults.headers.common[
+                "Authorization"
+            ] = `Bearer ${access_token}`;
+        }
+
+        return { user, token: access_token };
+    },
 };

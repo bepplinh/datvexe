@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Client;
 
+
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
@@ -19,43 +20,40 @@ class ClientProfileController extends Controller
             'email'    => $user->email,
             'phone'    => $user->phone,
             'birthday' => $user->birthday,
+            'gender' => $user->gender
         ]);
     }
 
     public function update(Request $request)
     {
         $user = $request->user();
+    
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:255','unique:users'],
+            'username' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('users', 'username')->ignore($user->id),
+            ],         
             'birthday' => ['nullable', 'date'],
             'email'    => [
                 'nullable',
                 'email:rfc',
-                // unique nhưng bỏ qua chính user hiện tại
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
+            'gender' => ['required']
         ]);
-
-        if (array_key_exists('usernamename', $data)) {
-            $user->name = $data['username'];
-        }
-
-          // Gán dữ liệu (chỉ update field cho phép)
-          if (array_key_exists('name', $data)) {
-            $user->name = $data['name'];
-        }
-
-        if (array_key_exists('birthday', $data)) {
-            $user->birthday = $data['birthday'];
-        }
-
-        if (array_key_exists('email', $data)) {
-            $user->email = $data['email'];
-        }
-
+    
+        // Gán các field cho phép
+        $user->name     = $data['name'];
+        $user->username = $data['username'];
+        $user->birthday = $data['birthday'] ?? $user->birthday;
+        $user->email    = $data['email'] ?? $user->email;
+        $user->gender   = $data['gender'];
+    
         $user->save();
-
+    
         return response()->json([
             'success' => true,
             'message' => 'Cập nhật thông tin cá nhân thành công.',
@@ -65,7 +63,9 @@ class ClientProfileController extends Controller
                 'email'    => $user->email,
                 'phone'    => $user->phone,
                 'birthday' => $user->birthday,
+                'gender'   => $user->gender,
             ],
         ]);
     }
+    
 }

@@ -1,33 +1,19 @@
 // Footer.jsx
 import React from "react";
 import "./footer.scss";
-
-const IMG_GOOGLE_PLAY =
-    "https://www.figma.com/api/mcp/asset/e67b77de-b9a3-47ce-bd82-85f4797f6eb3";
-const IMG_IOS =
-    "https://www.figma.com/api/mcp/asset/dc4ad008-10e6-446f-b5e9-9c8cb7e53e6b";
+import ICON_FACEBOOK from "../../assets/footer/ICON_FACEBOOK.svg";
+import ICON_YOUTUBE from "../../assets/footer/ICON_YOUTUBE.svg";
+import ICON_TIKTOK from "../../assets/footer/ICON_TIKTOK.png";
+import IMG_BOCONGTHUONG from "../../assets/footer/IMG_BOCONGTHUONG.png";
+import IMG_IOS from "../../assets/footer/IMG_IOS.png";
+import IMG_GOOGLE_PLAY from "../../assets/footer/IMG_GOOGLE_PLAY.png";
+import ICON_QR from "../../assets/footer/ICON_QR.svg";
+import ICON_PHONE from "../../assets/footer/ICON_PHONE.svg";
+import ICON_HOME from "../../assets/footer/ICON_HOME.svg";
+import ICON_GLOBE from "../../assets/footer/ICON_GLOBE.svg";
+import ICON_MAIL from "../../assets/footer/ICON_MAIL.svg";
 const IMG_PARTNER =
     "https://www.figma.com/api/mcp/asset/8e12fcc9-d9e4-4e26-b0db-44d3af6c5694";
-const IMG_BOCONGTHUONG =
-    "https://www.figma.com/api/mcp/asset/cc94c1e2-3af9-4db6-9354-56294bec1541";
-
-const ICON_HOME =
-    "https://www.figma.com/api/mcp/asset/e0097965-929f-4654-9541-0e7b557b4933";
-const ICON_GLOBE =
-    "https://www.figma.com/api/mcp/asset/d1e9873f-0cbc-43ee-a669-3155cb219089";
-const ICON_MAIL =
-    "https://www.figma.com/api/mcp/asset/5534b5b6-9b54-40d1-af12-f5876710b84d";
-const ICON_PHONE =
-    "https://www.figma.com/api/mcp/asset/0711e903-7a77-4c25-860e-039968bb0874";
-const ICON_QR =
-    "https://www.figma.com/api/mcp/asset/b2904eb4-df24-4ac7-bf8b-1f9b1b0f9c78";
-
-const ICON_FACEBOOK =
-    "https://www.figma.com/api/mcp/asset/8d7d80b7-a111-4d1a-887c-b92ec4c17307";
-const ICON_YOUTUBE =
-    "https://www.figma.com/api/mcp/asset/a8f1f407-6d7c-43c7-bcd0-1cf04bc4ec96";
-const ICON_LINK =
-    "https://www.figma.com/api/mcp/asset/27b48138-090b-416c-a142-7db5dbf5e9aa";
 
 function Footer() {
     return (
@@ -219,7 +205,7 @@ function Footer() {
                                 <img src={ICON_YOUTUBE} alt="YouTube" />
                             </a>
                             <a href="#link" className="footer__social-link">
-                                <img src={ICON_LINK} alt="Link" />
+                                <img src={ICON_TIKTOK} alt="Link" />
                             </a>
                         </div>
                     </div>

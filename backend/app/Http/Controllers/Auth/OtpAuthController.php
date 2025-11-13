@@ -253,12 +253,14 @@ class OtpAuthController extends Controller
         ]);
 
         $token = auth('api')->login($user);
-        $resp = $this->respondWithToken($token);
 
+        // Trả về token và user để frontend có thể đăng nhập tự động
         return response()->json([
-            'success' => true,
-            'message' => 'Tạo tài khoản thành công',
-            'user'    => $user,
+            'success'      => true,
+            'message'      => 'Tạo tài khoản thành công',
+            'access_token' => $token,
+            'token_type'   => 'bearer',
+            'user'         => $user,
         ]);
     }
 

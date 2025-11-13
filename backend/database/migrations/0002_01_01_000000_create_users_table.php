@@ -9,13 +9,13 @@ return new class extends Migration {
     {
         Schema::create('users', function (Blueprint $t) {
             $t->id();
-            $t->string('name')->nullable();            // thêm cột name
-            $t->string('username')->unique();          // cho đăng nhập username
-            $t->string('email')->nullable()->unique(); // FB có thể không trả email
+            $t->string('name')->nullable();        
+            $t->string('username')->unique();          
+            $t->string('email')->nullable()->unique(); 
             $t->string('phone', 20)->nullable()->unique();
             $t->date('birthday')->nullable();
             $t->enum('role', ['customer','staff','admin'])->default('customer');
-            $t->string('avatar')->nullable();
+            $t->enum('gender', ['male','female','other']);
             $t->string('password')->nullable();
             $t->timestamp('phone_verified_at')->nullable();
             $t->timestamp('email_verified_at')->nullable();

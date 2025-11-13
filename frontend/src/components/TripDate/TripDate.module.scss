@@ -1,0 +1,72 @@
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  height: 58px;
+}
+
+.background {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  column-gap: 10px;
+  border-radius: 8px;
+  background: #555555;
+  padding: 8px;
+}
+
+.dim {
+  opacity: 0.2;
+}
+
+.iconWrap {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: #ffffff;
+  padding-right: 7px;
+  padding-left: 7px;
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+}
+
+.left {
+  rotate: -180deg;
+}
+
+.iconSvg {
+  width: 26px;
+  height: 27px;
+}
+
+.textBox {
+  display: inline-flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: flex-start;
+  min-width: 301px;
+}
+
+.title {
+  line-height: 20px;
+  letter-spacing: 0;
+  color: #ffffff;
+  font-family: Lexend, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+  font-size: 14px;
+}
+
+.subtitle {
+  line-height: 22px;
+  letter-spacing: 0;
+  color: #ffffff;
+  font-family: Lexend, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+  font-size: 14px;
+}
+

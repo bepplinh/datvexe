@@ -30,17 +30,17 @@ export default function Offices() {
         <div className="office">
             <div className="container">
                 <div className="header">
-                    <img src={branches} alt="" />
+                    <img src={branches} alt="branches" />
                     <h2>Hệ thống phòng vé</h2>
                 </div>
 
                 <div className="content">
-                    {offices.map((item) => {
+                    {offices.map((item, index) => {
                         return (
-                            <div className="content-section">
+                            <div className="content-section" key={index}>
                                 <div className="content-top">
                                     <div>
-                                        <img src={item.img} alt="" />
+                                        <img src={item.img} alt={item.name} />
                                     </div>
                                     <div>
                                         <h2>{item.name}</h2>
@@ -48,7 +48,7 @@ export default function Offices() {
                                     </div>
                                 </div>
                                 <div className="content-bottom">
-                                    <img src={phone_circle} alt="" />
+                                    <img src={phone_circle} alt="phone" />
                                     <p>{item.phone}</p>
                                 </div>
                             </div>

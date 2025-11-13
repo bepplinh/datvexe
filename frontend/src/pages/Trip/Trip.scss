@@ -1,0 +1,32 @@
+.search {
+    padding: 25px 0;
+    background-color: #144a7f;
+    margin-bottom: 25px;
+}
+
+.trip-content {
+    max-width: 1200px;
+    display: flex;
+    gap: 20px;
+}
+
+.trip-left {
+    width: 276px;
+    height: auto;
+    background-color: transparent;
+}
+
+.trip-right {
+    width: 1000px;
+    height: 120px;
+    background-color: pink;
+}
+
+.trip-date {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    column-gap: 20px;
+    width: 876px;
+    height: 58px;
+}

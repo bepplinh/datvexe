@@ -3,10 +3,12 @@ import Footer from "../components/Footer/Footer";
 import { Outlet } from "react-router-dom";
 import SocialSide from "../components/SocialSide/SocialSide";
 import "./ClientLayout.scss";
+import TopBanner from "../components/TopBanner/TopBanner";
 
 function ClientLayout() {
     return (
         <>
+            <TopBanner />
             <Header />
 
             <main>
