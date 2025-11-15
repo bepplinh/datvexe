@@ -1,0 +1,309 @@
+.overlay {
+  display: flex;
+  position: relative;
+  align-items: center;
+  border-radius: 5px;
+  background: #7ba7ef26;
+  padding: 24px 20px 23px;
+  width: 903px;
+  height: 168px;
+  margin-bottom: 20px;
+
+  .vector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50px;
+    background: #ffffff;
+    overflow: hidden;
+    color: #0c1e51;
+    font-weight: 600;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 16px;
+    width: 206px;
+    row-gap: 8px;
+
+    .heading4 {
+      display: flex;
+      flex-shrink: 0;
+      align-items: flex-start;
+      padding-bottom: 1px;
+      width: 165px;
+      height: 28px;
+
+      .xeNgCsn {
+        display: flex;
+        align-items: center;
+        margin: -1px 0 0;
+        width: 118px;
+        height: 29px;
+        line-height: 28px;
+        letter-spacing: 0;
+        color: #2d2d2f;
+        font-family: Lexend, Arial, Helvetica, sans-serif;
+        font-size: 18px;
+      }
+
+      .background {
+        display: inline-flex;
+        align-items: flex-start;
+        justify-content: center;
+        margin-top: 1px;
+        margin-left: 5px;
+        border-radius: 4px;
+        background: #ed3800;
+        padding: 0 4px;
+
+        .a455 {
+          flex-shrink: 0;
+          line-height: 19px;
+          letter-spacing: 0;
+          color: #ffffff;
+          font-family: Lexend, Arial, Helvetica, sans-serif;
+          font-size: 12px;
+        }
+      }
+    }
+
+    .backgroundBorder {
+      display: inline-flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      align-items: flex-start;
+      align-self: stretch;
+      margin-right: 70px;
+      border: 1px solid #eaeaea;
+      border-radius: 3px;
+      background: #ffffff;
+      padding: 2px 10px;
+
+      .xe22PhNgVip {
+        flex-shrink: 0;
+        line-height: 19px;
+        letter-spacing: 0;
+        color: #000000d9;
+        font-family: Lexend, Arial, Helvetica, sans-serif;
+        font-size: 12px;
+      }
+    }
+
+    .heading6 {
+      display: inline-flex;
+      flex-shrink: 0;
+      align-items: center;
+      align-self: stretch;
+      column-gap: 4px;
+      margin-right: 63px;
+
+      .icClockSvg {
+        flex-shrink: 0;
+        width: 14px;
+        height: 14px;
+        overflow: hidden;
+      }
+
+      .khIhNh0230 {
+        flex-shrink: 0;
+        line-height: 22px;
+        letter-spacing: 0;
+        color: #000000d9;
+        font-family: Lexend, Arial, Helvetica, sans-serif;
+        font-size: 14px;
+      }
+    }
+
+    .aGiKhIhNhTNhTThXuN {
+      flex-shrink: 0;
+      line-height: 20px;
+      letter-spacing: 0;
+      color: #f6811c;
+      font-family: Lexend, Arial, Helvetica, sans-serif;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+  }
+
+  .container4 {
+    display: flex;
+    align-items: center;
+    padding-right: 4px;
+    padding-bottom: 1px;
+    height: 28px;
+
+    .a0230 {
+      width: 64px;
+      text-align: right;
+      line-height: 28px;
+      letter-spacing: 0;
+      color: #2d2d2f;
+      font-family: Lexend, Arial, Helvetica, sans-serif;
+      font-size: 18px;
+    }
+
+    .container3 {
+      position: relative;
+      margin-left: 1px;
+      width: 74px;
+      height: 24px;
+
+      .container2 {
+        display: flex;
+        position: absolute;
+        top: -10px;
+        left: 14px;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 46px;
+        height: 22px;
+
+        .a2H45M {
+          flex-shrink: 0;
+          line-height: 22px;
+          letter-spacing: 0;
+          color: #2d2d2f;
+          font-family: Lexend, Arial, Helvetica, sans-serif;
+          font-size: 14px;
+        }
+      }
+
+      .horizontalDivider {
+        position: absolute;
+        top: 12px;
+        left: 7px;
+        border-width: 1px 0 0;
+        border-style: solid;
+        border-color: #cccccc;
+        width: 59px;
+        height: 1px;
+      }
+    }
+
+    .a0515 {
+      margin: 0 0 0 1px;
+      width: 64px;
+      line-height: 28px;
+      letter-spacing: 0;
+      color: #2d2d2f;
+      font-family: Lexend, Arial, Helvetica, sans-serif;
+      font-size: 18px;
+    }
+  }
+
+  .verticalDivider {
+    margin-left: 1px;
+    background: #d7d7d7;
+    width: 1px;
+    height: 60px;
+  }
+
+  .verticalDivider2 {
+    margin-left: 164px;
+    background: #d7d7d7;
+    width: 1px;
+    height: 60px;
+  }
+
+  .container5 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 209px;
+    min-width: 209px;
+
+    .a180000 {
+      flex-grow: 1;
+      text-align: center;
+      line-height: 28px;
+      letter-spacing: 0;
+      color: #2d2d2f;
+      font-family: Lexend, Arial, Helvetica, sans-serif;
+      font-size: 18px;
+    }
+
+    .button {
+      display: inline-flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      background: #ed1925;
+      padding: 10px 15px;
+
+      .aTv {
+        flex-shrink: 0;
+        line-height: 24px;
+        letter-spacing: 0;
+        color: #ffffff;
+        font-family: Lexend, Arial, Helvetica, sans-serif;
+        font-size: 15px;
+      }
+    }
+  }
+
+  .container6 {
+    display: flex;
+    position: absolute;
+    top: 66px;
+    right: 230px;
+    left: 482px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 0 12px 8px;
+    width: 164px;
+    height: 35px;
+
+    .cN2222Ch3 {
+      flex-shrink: 0;
+      align-self: stretch;
+      text-align: center;
+      line-height: 22px;
+      letter-spacing: 0;
+      color: #000000;
+      font-family: Lexend, Arial, Helvetica, sans-serif;
+      font-size: 14px;
+
+      .cN2222Ch {
+        line-height: 22px;
+        letter-spacing: 0;
+        color: #000000d9;
+        font-family: Lexend, Arial, Helvetica, sans-serif;
+        font-size: 14px;
+      }
+
+      .cN2222Ch2 {
+        line-height: 22px;
+        letter-spacing: 0;
+        color: #ed1925;
+        font-family: Lexend, Arial, Helvetica, sans-serif;
+        font-size: 14px;
+      }
+    }
+
+    .background2 {
+      flex-shrink: 0;
+      align-self: stretch;
+      border-radius: 30px;
+      background: #cccccc;
+      height: 5px;
+      position: relative;
+
+      .backgroundFill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 5px;
+        border-radius: 30px;
+        background: #ed1925;
+      }
+    }
+  }
+}

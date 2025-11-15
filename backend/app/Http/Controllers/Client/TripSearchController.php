@@ -32,8 +32,10 @@ class TripSearchController extends Controller
             );
         }
 
-        if($data['outbound'] === [] ||
-           (isset($data['return']) && $data['return'] === [])) {
+        if (
+            $data['outbound'] === [] ||
+            (isset($data['return']) && $data['return'] === [])
+        ) {
             return response()->json([
                 'success' => false,
                 'message' => 'Không có chuyến xe nào'
@@ -45,5 +47,4 @@ class TripSearchController extends Controller
             'data' => $data
         ]);
     }
-
 }

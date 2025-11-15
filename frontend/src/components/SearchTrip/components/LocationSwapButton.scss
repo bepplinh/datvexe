@@ -1,0 +1,44 @@
+.location-swap-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-size: 18px;
+    user-select: none;
+    padding: 0;
+
+    transition: background-color 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                transform 0.1s ease;
+
+    &:hover {
+        border-color: #cccccc;
+        transform: translate(-50%, -50%) translateY(-1px);
+    }
+
+    &:active {
+        background-color: #f0f0f0;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        transform: translate(-50%, -50%);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: translate(-50%, -50%);
+    }
+}
+

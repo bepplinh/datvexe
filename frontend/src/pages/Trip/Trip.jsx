@@ -2,14 +2,27 @@ import MainLayout from "../../layout/MainLayout/MainLayout";
 import SearchTrip from "../../components/SearchTrip/SearchTrip";
 import TripFilter from "../../components/TripFilter/TripFilter";
 import TripDate from "../../components/TripDate/TripDate";
+import TripInfo from "../../components/TripInfo/TripInfo";
 import "./Trip.scss";
+import { useSearchTrip } from "../../contexts/SearchTripProvider";
+import { toast } from "react-toastify"
 
 function Trip() {
+    const { handleSearchTrip } = useSearchTrip();
+    const onSubmit = async () => {
+        const result = await handleSearchTrip();
+        if (!result.success) {
+            toast.warning(result.message);
+            return; 
+        }
+        console.log(result);
+    };
+    const { results } = useSearchTrip();
     return (
         <>
             <div className="search">
                 <MainLayout>
-                    <SearchTrip></SearchTrip>
+                    <SearchTrip onSubmit={onSubmit} />
                 </MainLayout>
             </div>
 
@@ -19,7 +32,8 @@ function Trip() {
                         <TripFilter />
                     </div>
                     <div className="trip-info">
-                        <div className="trip-date">
+                        {results && (
+                            <div className="trip-date">
                             <TripDate
                                 title="Chọn chiều đi"
                                 subtitle="Thọ Xuân - BX Giáp Bát | Ngày 16/11/2025"
@@ -32,8 +46,12 @@ function Trip() {
                                 dim
                             />
                         </div>
+                        )}
                         <div className="trip-way"></div>
                         <div className="trip-content"></div>
+                        <div className="trip-content">
+                            <TripInfo />
+                        </div>
                     </div>
                 </div>
             </MainLayout>

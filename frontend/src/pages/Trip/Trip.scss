@@ -4,16 +4,10 @@
     margin-bottom: 25px;
 }
 
-.trip-content {
+.trip-container {
     max-width: 1200px;
     display: flex;
     gap: 20px;
-}
-
-.trip-left {
-    width: 276px;
-    height: auto;
-    background-color: transparent;
 }
 
 .trip-right {
@@ -25,8 +19,8 @@
 .trip-date {
     display: flex;
     align-items: center;
-    justify-content: center;
-    column-gap: 20px;
-    width: 876px;
+    justify-content: space-between;
+    column-gap: 12px;
+    width: 904px;
     height: 58px;
 }

@@ -1,0 +1,19 @@
+.trip-type-selector {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 24px;
+
+    &__option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 15px;
+
+        input {
+            cursor: pointer;
+        }
+    }
+}
+

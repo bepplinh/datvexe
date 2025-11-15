@@ -9,6 +9,7 @@ import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 import AdminLayout from "./layout/AdminLayout";
 import RequireAdmin from "./router/RequireAdmin";
 import Trip from "./pages/Trip/Trip";
+import CheckoutPage from "./pages/Checkout/CheckoutPage";
 
 function App() {
     return (
@@ -20,6 +21,7 @@ function App() {
                     <Route path="/register" element={<Register />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/trip" element={<Trip />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
                 </Route>
 
                 <Route

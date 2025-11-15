@@ -5,7 +5,9 @@ function TripFilter() {
   const [giuongNam, setGiuongNam] = useState(false);
   const [limousineCabin, setLimousineCabin] = useState(false);
   const [timeMin, setTimeMin] = useState(0);
+  const [timeMax, setTimeMax] = useState(1439);
   const [seatMin, setSeatMin] = useState(0);
+  const [seatMax, setSeatMax] = useState(60);
 
   const formatTime = (m) => {
     const hh = Math.floor(m / 60).toString().padStart(2, "0");
@@ -17,7 +19,9 @@ function TripFilter() {
     setGiuongNam(false);
     setLimousineCabin(false);
     setTimeMin(0);
+    setTimeMax(1439);
     setSeatMin(0);
+    setSeatMax(60);
   };
 
   return (
@@ -45,12 +49,35 @@ function TripFilter() {
       <div className="trip-filter__section">
         <div className="trip-filter__section-title">Giờ chạy</div>
         <div className="trip-filter__range">
+          <div className="trip-filter__range-track" />
+          <div
+            className="trip-filter__range-fill"
+            style={{
+              left: `${(timeMin / 1439) * 100}%`,
+              width: `${((timeMax - timeMin) / 1439) * 100}%`,
+            }}
+          />
           <input
+            className="trip-filter__range-input"
             type="range"
             min="0"
             max="1439"
             value={timeMin}
-            onChange={(e) => setTimeMin(Number(e.target.value))}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              setTimeMin(Math.min(v, timeMax));
+            }}
+          />
+          <input
+            className="trip-filter__range-input"
+            type="range"
+            min="0"
+            max="1439"
+            value={timeMax}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              setTimeMax(Math.max(v, timeMin));
+            }}
           />
         </div>
         <div className="trip-filter__range-labels">
@@ -62,12 +89,35 @@ function TripFilter() {
       <div className="trip-filter__section">
         <div className="trip-filter__section-title">Lượng ghế trống</div>
         <div className="trip-filter__range">
+          <div className="trip-filter__range-track" />
+          <div
+            className="trip-filter__range-fill"
+            style={{
+              left: `${(seatMin / 60) * 100}%`,
+              width: `${((seatMax - seatMin) / 60) * 100}%`,
+            }}
+          />
           <input
+            className="trip-filter__range-input"
             type="range"
             min="0"
             max="60"
             value={seatMin}
-            onChange={(e) => setSeatMin(Number(e.target.value))}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              setSeatMin(Math.min(v, seatMax));
+            }}
+          />
+          <input
+            className="trip-filter__range-input"
+            type="range"
+            min="0"
+            max="60"
+            value={seatMax}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              setSeatMax(Math.max(v, seatMin));
+            }}
           />
         </div>
         <div className="trip-filter__range-labels">
@@ -80,4 +130,3 @@ function TripFilter() {
 }
 
 export default TripFilter;
-

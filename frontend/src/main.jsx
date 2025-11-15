@@ -5,23 +5,26 @@ import App from "./App.jsx";
 import { ToastContainer } from "react-toastify";
 import { AuthProvider } from "./contexts/AuthProvider";
 import { SearchTripProvider } from "./contexts/SearchTripProvider.jsx";
+import { LocationProvider } from "./contexts/LocationProvider";
 
 createRoot(document.getElementById("root")).render(
     <StrictMode>
         <AuthProvider>
-            <SearchTripProvider>
-                <App />
-                <ToastContainer
-                    position="top-right"
-                    autoClose={3000}
-                    hideProgressBar={false}
-                    newestOnTop
-                    closeOnClick
-                    pauseOnHover
-                    draggable
-                    theme="light"
-                />
-            </SearchTripProvider>
+            <LocationProvider>
+                <SearchTripProvider>
+                    <App />
+                    <ToastContainer
+                        position="top-right"
+                        autoClose={3000}
+                        hideProgressBar={false}
+                        newestOnTop
+                        closeOnClick
+                        pauseOnHover
+                        draggable
+                        theme="light"
+                    />
+                </SearchTripProvider>
+            </LocationProvider>
         </AuthProvider>
     </StrictMode>
 );
