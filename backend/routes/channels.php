@@ -2,6 +2,6 @@
 
 use Illuminate\Support\Facades\Broadcast;
 
-Broadcast::channel('trips.{tripId}', function ($user, int $tripId) {
+Broadcast::channel('trip.{tripId}', function ($user, $tripId) {
     return !is_null($user);
 });

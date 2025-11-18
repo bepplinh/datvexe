@@ -132,5 +132,6 @@ return [
     'aliases' => [
         'Socialite' => Laravel\Socialite\Facades\Socialite::class,
     ],
+    App\Providers\BroadcastServiceProvider::class,
 
 ];

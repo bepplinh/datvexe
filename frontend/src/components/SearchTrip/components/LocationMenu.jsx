@@ -24,6 +24,11 @@ export default function LocationMenu({ fieldType, excludedLocation, onSelect }) 
 
   // Debounce search
   useEffect(() => {
+    if (!search.trim()) {
+      // Don't clear searchResults here, let LocationProvider handle it
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
       searchLocations(search);
     }, 300);
@@ -31,9 +36,9 @@ export default function LocationMenu({ fieldType, excludedLocation, onSelect }) 
     return () => clearTimeout(timeoutId);
   }, [search, searchLocations]);
 
-  const handleLocationClick = useCallback((location) => {
-    // Only allow selection for wards (final level)
-    if (location.type === "ward") {
+  const handleLocationClick = useCallback((location, hasChildren) => {
+    // Only allow selection for locations without children (final level)
+    if (!hasChildren) {
       setSelectedId(location.id);
       // Auto set to SearchTripProvider
       if (fieldType === "from") {
@@ -81,11 +86,11 @@ export default function LocationMenu({ fieldType, excludedLocation, onSelect }) 
     const isExpanded = expandedIds.has(location.id);
     const isSelected = selectedId === location.id;
     
-    // Check if location has children (ward never has children)
-    const hasChildren = location.type !== "ward" && (node.children.length > 0 || !node.childrenLoaded);
+    // Check if location has children (all children are already loaded from API)
+    const hasChildren = node.children && node.children.length > 0;
     
-    // Only allow selection for wards (final level)
-    const canSelect = location.type === "ward";
+    // Only allow selection for locations without children (final level)
+    const canSelect = !hasChildren;
 
     // Determine styling based on type and state
     let itemClass = "location-menu__item";
@@ -104,7 +109,7 @@ export default function LocationMenu({ fieldType, excludedLocation, onSelect }) 
           onClick={(e) => {
             e.stopPropagation();
             if (canSelect) {
-              handleLocationClick(location);
+              handleLocationClick(location, hasChildren);
             } else {
               toggleExpand(location.id, location.type);
             }
@@ -141,9 +146,14 @@ export default function LocationMenu({ fieldType, excludedLocation, onSelect }) 
           type="text"
           placeholder="Tìm kiếm"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            e.stopPropagation();
+            const value = e.target.value;
+            setSearch(value);
+          }}
           onClick={(e) => e.stopPropagation()}
           onFocus={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
         />
       </div>
 
@@ -165,7 +175,12 @@ export default function LocationMenu({ fieldType, excludedLocation, onSelect }) 
             <div className="location-menu__empty">Không tìm thấy địa điểm nào</div>
           ) : (
             filteredSearchResults.map((item) => {
-              const canSelect = item.type === "ward";
+              // Check if location has children
+              // API now returns children in search results, so use that first
+              // Fallback to locationTree if children not in search result
+              const hasChildren = (item.children && item.children.length > 0) || 
+                                  (locationTree[item.id] && locationTree[item.id].children && locationTree[item.id].children.length > 0);
+              const canSelect = !hasChildren;
               return (
                 <div
                   key={item.id}

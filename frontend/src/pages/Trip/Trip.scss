@@ -8,19 +8,13 @@
     max-width: 1200px;
     display: flex;
     gap: 20px;
-}
-
-.trip-right {
-    width: 1000px;
-    height: 120px;
-    background-color: pink;
+    margin-bottom: 20px;
 }
 
 .trip-date {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    column-gap: 12px;
+    gap: 12px;
     width: 904px;
     height: 58px;
 }

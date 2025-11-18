@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use RuntimeException;
+use App\Models\Seat;
 use App\Models\DraftCheckout;
+use App\Models\TripSeatStatus;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use App\Services\DraftCheckoutService\DraftCheckoutService;
@@ -19,6 +21,62 @@ class SeatFlowService
   public function __construct(
     private DraftCheckoutService $drafts,
   ) {}
+  /**
+   * Load trạng thái sơ đồ ghế (booked từ DB + locked từ Redis)
+   */
+  public function loadStatus(int $tripId, array $seatIds): array
+  {
+    $seatIds = $this->normalizeSeatIds($seatIds);
+    if (empty($seatIds)) {
+      return [
+        'locked' => [],
+        'booked' => [],
+      ];
+    }
+
+    // 1. Ghế đã book (DB)
+    $bookedSeatIds = TripSeatStatus::query()
+      ->where('trip_id', $tripId)
+      ->whereIn('seat_id', $seatIds)
+      ->where('is_booked', true)
+      ->pluck('seat_id')
+      ->map(fn ($id) => (int)$id)
+      ->values()
+      ->all();
+
+    // 2. Ghế đang lock trên Redis
+    $lockedKey = "trip:{$tripId}:locked";
+    $lockedSeatIds = array_map('intval', Redis::smembers($lockedKey) ?: []);
+    $lockedSeatIds = array_values(array_intersect($lockedSeatIds, $seatIds));
+
+    $locked = [];
+    if (!empty($lockedSeatIds)) {
+      $seatNumberById = Seat::whereIn('id', $lockedSeatIds)
+        ->pluck('seat_number', 'id')
+        ->toArray();
+
+      foreach ($lockedSeatIds as $seatId) {
+        $ttl = (int) Redis::ttl("trip:{$tripId}:seat:{$seatId}:lock");
+        if ($ttl <= 0) {
+          // TTL hết hạn -> gỡ khỏi set locked để tránh hiển thị sai
+          Redis::srem($lockedKey, $seatId);
+          continue;
+        }
+
+        $locked[] = [
+          'seat_id'    => $seatId,
+          'seat_label' => $seatNumberById[$seatId] ?? (string)$seatId,
+          'ttl'        => $ttl,
+        ];
+      }
+    }
+
+    return [
+      'locked' => $locked,
+      'booked' => $bookedSeatIds,
+    ];
+  }
+
 
   /* ============================================================
      |  PUBLIC API

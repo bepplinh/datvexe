@@ -1,0 +1,207 @@
+.seat-map {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    &__header {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    &__title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1a202c;
+        margin-bottom: 16px;
+
+        span {
+            color: #e53e3e;
+        }
+    }
+
+    &__legend {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+    }
+
+    &__legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__legend-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &--available {
+            background: white;
+            border: 2px solid #cbd5e0;
+        }
+
+        &--locked {
+            background: #f6ad55; // cam nhạt cho ghế đang lock
+        }
+
+        &--selected {
+            background: #48bb78;
+        }
+
+        &--booked {
+            background: #718096;
+        }
+    }
+
+    &__legend-text {
+        font-size: 14px;
+        color: #4a5568;
+    }
+
+    &__floors {
+        display: flex;
+        gap: 32px;
+        justify-content: center;
+        flex-wrap: wrap;
+
+        @media (max-width: 768px) {
+            flex-direction: column;
+            gap: 24px;
+        }
+    }
+
+    &__floor {
+        background: #f7fafc;
+        padding: 20px;
+        border-radius: 12px;
+        min-width: 280px;
+    }
+
+    &__floor-title {
+        text-align: center;
+        color: #3182ce;
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 16px;
+    }
+
+    &__floor-seats {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    &__row {
+        display: flex;
+        gap: 24px;
+        justify-content: center;
+    }
+
+    &__seat-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    &__seat {
+        width: 56px;
+        height: 56px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+        background: white;
+        border: 2px solid #cbd5e0;
+
+        &--available {
+            background: white;
+            border-color: #cbd5e0;
+
+            &:hover {
+                border-color: #4299e1;
+                transform: scale(1.05);
+                box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+            }
+        }
+
+        &--selected {
+            background: #48bb78;
+            border-color: #48bb78;
+
+            &:hover {
+                background: #38a169;
+                transform: scale(1.05);
+                box-shadow: 0 2px 8px rgba(72, 187, 120, 0.4);
+            }
+        }
+
+        &--booked {
+            background: #718096;
+            border-color: #718096;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        &:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+    }
+
+    &__seat-icon {
+        width: 80%;
+        height: 80%;
+        object-fit: contain;
+        filter: brightness(0) saturate(100%);
+        transition: filter 0.2s;
+    }
+
+    &__seat--available {
+        .seat-map__seat-icon {
+            filter: brightness(0) saturate(100%) invert(40%);
+        }
+    }
+
+    &__seat--locked {
+        background: #f6ad55;
+        border-color: #f6ad55;
+        cursor: not-allowed;
+
+        .seat-map__seat-icon {
+            filter: brightness(0) saturate(100%) invert(20%);
+        }
+    }
+
+    &__seat--selected {
+        .seat-map__seat-icon {
+            filter: brightness(0) saturate(100%) invert(100%);
+        }
+    }
+
+    &__seat--booked {
+        .seat-map__seat-icon {
+            filter: brightness(0) saturate(100%) invert(50%);
+            opacity: 0.6;
+        }
+    }
+
+    &__seat-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #4a5568;
+        text-align: center;
+    }
+}
+

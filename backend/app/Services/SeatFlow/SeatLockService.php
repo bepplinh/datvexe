@@ -83,9 +83,13 @@ class SeatLockService
         $locksPayload = [];
         foreach ($seatsByTrip as $tripId => $seatIds) {
             $locksPayload[] = [
-                'trip_id'  => (int)$tripId,
-                'seat_ids' => array_values($seatIds),
-                'leg'      => $legsByTrip[$tripId] ?? null,
+                'trip_id'     => (int)$tripId,
+                'seat_ids'    => array_values($seatIds),
+                'seat_labels' => array_map(
+                    fn ($seatId) => $seatNumberById[$seatId] ?? (string) $seatId,
+                    $seatIds
+                ),
+                'leg'         => $legsByTrip[$tripId] ?? null,
             ];
         }
         SeatLocked::dispatch($sessionToken, $locksPayload);

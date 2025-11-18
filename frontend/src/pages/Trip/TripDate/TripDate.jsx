@@ -1,11 +1,21 @@
 import React from "react";
 import styles from "./TripDate.module.scss";
 
-export default function TripDate({ title, subtitle, arrow = "right", dim = false }) {
+export default function TripDate({
+    title,
+    subtitle,
+    arrow = "right",
+    dim = false,
+    onClick
+}) {
     return (
-        <div className={styles.container}>
+        <div className={styles.container} onClick={onClick}>
             <div className={`${styles.background} ${dim ? styles.dim : ""}`}>
-                <div className={`${styles.iconWrap} ${arrow === "left" ? styles.left : ""}`}>
+                <div
+                    className={`${styles.iconWrap} ${
+                        arrow === "left" ? styles.left : ""
+                    }`}
+                >
                     <svg
                         className={styles.iconSvg}
                         viewBox="0 0 26 27"
@@ -29,4 +39,3 @@ export default function TripDate({ title, subtitle, arrow = "right", dim = false
         </div>
     );
 }
-

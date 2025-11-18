@@ -15,7 +15,25 @@ export const LocationProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   /**
-   * Initialize location tree with cities
+   * Recursively build tree node from location data with children
+   */
+  const buildTreeNode = useCallback((location) => {
+    const children = location.children || [];
+    return {
+      location: {
+        id: location.id,
+        name: location.name,
+        type: location.type,
+        parent_id: location.parent_id,
+      },
+      children: children.map((child) => buildTreeNode(child)),
+      expanded: false,
+      childrenLoaded: true, // All children are already loaded from API
+    };
+  }, []);
+
+  /**
+   * Initialize location tree with cities (all children already included from API)
    */
   const initializeTree = useCallback(async () => {
     try {
@@ -25,18 +43,16 @@ export const LocationProvider = ({ children }) => {
 
       const tree = {};
       cities.forEach((city) => {
-        const children = city.children || [];
-        tree[city.id] = {
-          location: city,
-          children: children.map((child) => ({
-            location: child,
-            children: [],
-            expanded: false,
-            childrenLoaded: false,
-          })),
-          expanded: false,
-          childrenLoaded: children.length > 0,
+        const node = buildTreeNode(city);
+        tree[city.id] = node;
+        // Also add all nested children to tree for easy access
+        const addChildrenToTree = (node) => {
+          node.children.forEach((childNode) => {
+            tree[childNode.location.id] = childNode;
+            addChildrenToTree(childNode);
+          });
         };
+        addChildrenToTree(node);
       });
 
       setLocationTree(tree);
@@ -45,94 +61,14 @@ export const LocationProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [buildTreeNode]);
 
-  /**
-   * Load children for a parent location
-   */
-  const loadChildren = useCallback(async (parentId, parentType) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const children = await locationService.getChildren(parentId, parentType);
-
-      setLocationTree((prev) => {
-        // Deep clone function
-        const cloneNode = (node) => ({
-          ...node,
-          children: node.children ? node.children.map(cloneNode) : [],
-        });
-
-        // Clone all nodes
-        const updated = {};
-        Object.keys(prev).forEach((key) => {
-          updated[key] = cloneNode(prev[key]);
-        });
-
-        // Create child nodes
-        const childNodes = children.map((child) => {
-          const childNode = {
-            location: child,
-            children: [],
-            expanded: false,
-            childrenLoaded: false,
-          };
-          // Also add to root level for easy access
-          updated[child.id] = childNode;
-          return childNode;
-        });
-
-        // Helper function to recursively find and update node
-        const findAndUpdateNode = (nodes, targetId) => {
-          for (let i = 0; i < nodes.length; i++) {
-            const node = nodes[i];
-            if (node.location.id === targetId) {
-              // Found the node, create new node with updated children
-              nodes[i] = {
-                ...node,
-                children: childNodes,
-                childrenLoaded: true,
-              };
-              return true;
-            }
-            // Recursively search in children
-            if (node.children && node.children.length > 0) {
-              if (findAndUpdateNode(node.children, targetId)) {
-                return true;
-              }
-            }
-          }
-          return false;
-        };
-
-        // First check root level
-        if (updated[parentId]) {
-          updated[parentId] = {
-            ...updated[parentId],
-            children: childNodes,
-            childrenLoaded: true,
-          };
-        } else {
-          // Search in all root nodes' children recursively
-          const rootNodes = Object.values(updated);
-          findAndUpdateNode(rootNodes, parentId);
-        }
-
-        return updated;
-      });
-    } catch (err) {
-      setError(err.message || "Không thể tải danh sách con");
-      console.error("Error loading children:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   /**
    * Search locations by keyword
    */
   const searchLocations = useCallback(async (keyword) => {
-    if (!keyword.trim()) {
+    if (!keyword || !keyword.trim()) {
       setSearchResults([]);
       return;
     }
@@ -140,9 +76,12 @@ export const LocationProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
+      console.log("LocationProvider: Searching for:", keyword);
       const results = await locationService.searchLocations(keyword);
-      setSearchResults(results);
+      console.log("LocationProvider: Search results:", results);
+      setSearchResults(results || []);
     } catch (err) {
+      console.error("LocationProvider: Search error:", err);
       setError(err.message || "Không thể tìm kiếm địa điểm");
       setSearchResults([]);
     } finally {
@@ -152,6 +91,7 @@ export const LocationProvider = ({ children }) => {
 
   /**
    * Toggle expand/collapse for a location
+   * All children are already loaded from API, so we just toggle the expanded state
    */
   const toggleExpand = useCallback(
     (locationId, locationType) => {
@@ -161,33 +101,11 @@ export const LocationProvider = ({ children }) => {
           newSet.delete(locationId);
         } else {
           newSet.add(locationId);
-          // Load children if not loaded yet
-          let node = locationTree[locationId];
-
-          // If not found at root, search recursively in children
-          if (!node) {
-            for (const key in locationTree) {
-              const rootNode = locationTree[key];
-              if (rootNode.children) {
-                const found = rootNode.children.find(
-                  (child) => child.location.id === locationId
-                );
-                if (found) {
-                  node = found;
-                  break;
-                }
-              }
-            }
-          }
-
-          if (node && !node.childrenLoaded && locationType !== "ward") {
-            loadChildren(locationId, locationType);
-          }
         }
         return newSet;
       });
     },
-    [locationTree, loadChildren]
+    []
   );
 
   /**
@@ -214,7 +132,6 @@ export const LocationProvider = ({ children }) => {
 
     // Actions
     initializeTree,
-    loadChildren,
     searchLocations,
     toggleExpand,
     setError,

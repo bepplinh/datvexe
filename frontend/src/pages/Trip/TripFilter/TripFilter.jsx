@@ -1,27 +1,28 @@
-import React, { useState } from "react";
+import React from "react";
 import "./TripFilter.scss";
+import { useTripFilter } from "../../../contexts/TripFilterProvider";
 
 function TripFilter() {
-  const [giuongNam, setGiuongNam] = useState(false);
-  const [limousineCabin, setLimousineCabin] = useState(false);
-  const [timeMin, setTimeMin] = useState(0);
-  const [timeMax, setTimeMax] = useState(1439);
-  const [seatMin, setSeatMin] = useState(0);
-  const [seatMax, setSeatMax] = useState(60);
+  const {
+    giuongNam,
+    setGiuongNam,
+    limousineCabin,
+    setLimousineCabin,
+    timeMin,
+    setTimeMin,
+    timeMax,
+    setTimeMax,
+    seatMin,
+    setSeatMin,
+    seatMax,
+    setSeatMax,
+    reset,
+  } = useTripFilter();
 
   const formatTime = (m) => {
     const hh = Math.floor(m / 60).toString().padStart(2, "0");
     const mm = (m % 60).toString().padStart(2, "0");
     return `${hh}:${mm}`;
-  };
-
-  const reset = () => {
-    setGiuongNam(false);
-    setLimousineCabin(false);
-    setTimeMin(0);
-    setTimeMax(1439);
-    setSeatMin(0);
-    setSeatMax(60);
   };
 
   return (
@@ -81,8 +82,8 @@ function TripFilter() {
           />
         </div>
         <div className="trip-filter__range-labels">
-          <span className="trip-filter__label-left">00:00</span>
-          <span className="trip-filter__label-right">23:59</span>
+          <span className="trip-filter__label-left">{formatTime(timeMin)}</span>
+          <span className="trip-filter__label-right">{formatTime(timeMax)}</span>
         </div>
       </div>
 
@@ -121,8 +122,8 @@ function TripFilter() {
           />
         </div>
         <div className="trip-filter__range-labels">
-          <span className="trip-filter__label-left">0</span>
-          <span className="trip-filter__label-right">60</span>
+          <span className="trip-filter__label-left">{seatMin}</span>
+          <span className="trip-filter__label-right">{seatMax}</span>
         </div>
       </div>
     </div>

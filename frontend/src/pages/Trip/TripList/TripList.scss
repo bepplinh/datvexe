@@ -1,0 +1,20 @@
+.trip-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.trip-list-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+
+    p {
+        color: #666;
+        font-family: Lexend, Arial, Helvetica, sans-serif;
+        font-size: 16px;
+    }
+}

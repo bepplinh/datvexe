@@ -6,7 +6,9 @@
   display: flex;
   align-items: center;
   height: 58px;
-  flex: 1;
+  flex: 1 1 0; /* flex-grow: 1, flex-shrink: 1, flex-basis: 0 - chia đều */
+  min-width: 0; /* Cho phép flex item co lại nhỏ hơn content */
+  max-width: 100%; /* Đảm bảo không vượt quá container */
 }
 
 .background {
@@ -17,6 +19,8 @@
   border-radius: 8px;
   background: #555555;
   padding: 8px;
+  min-width: 0; /* Cho phép co lại */
+  width: 100%; /* Chiếm toàn bộ width của container */
 }
 
 .dim {
@@ -50,9 +54,11 @@
 .textBox {
   display: inline-flex;
   flex-direction: column;
-  flex-shrink: 0;
+  flex-shrink: 1; /* Cho phép co lại khi cần */
   align-items: flex-start;
-  min-width: 301px;
+  min-width: 0; /* Cho phép co nhỏ hơn 301px khi cần */
+  flex: 1 1 0; /* Chiếm không gian còn lại, có thể co lại */
+  overflow: hidden; /* Tránh text tràn ra ngoài */
 }
 
 .title {
@@ -61,6 +67,10 @@
   color: #ffffff;
   font-family: Lexend, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
   font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .subtitle {
@@ -69,4 +79,8 @@
   color: #ffffff;
   font-family: Lexend, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
   font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }

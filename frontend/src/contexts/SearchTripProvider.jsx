@@ -1,86 +1,84 @@
-// SearchTripContext.jsx
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import dayjs from "dayjs";
-import axiosClient from "../apis/axiosClient";
+import { saveToStorage, loadFromStorage } from "../utils/searchTripStorage";
+import { searchTripsApi } from "../services/tripService";
 
 const SearchTripContext = createContext(null);
 
 export const SearchTripProvider = ({ children }) => {
-    const [tripType, setTripType] = useState("oneway");
-    const [from, setFrom] = useState("");
-    const [to, setTo] = useState("");
-    const [departDate, setDepartDate] = useState(null);
-    const [returnDate, setReturnDate] = useState(null);
+    // 1. Khởi tạo State từ Storage
+    const savedState = loadFromStorage();
+    
+    const [tripType, setTripType] = useState(savedState?.tripType || "oneway");
+    const [from, setFrom] = useState(savedState?.from || "");
+    const [to, setTo] = useState(savedState?.to || "");
+    const [departDate, setDepartDate] = useState(savedState?.departDate || null);
+    const [returnDate, setReturnDate] = useState(savedState?.returnDate || null);
 
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState(null);
 
+    // 2. Effect: Tự động lưu Storage khi state thay đổi
+    useEffect(() => {
+        saveToStorage({ tripType, from, to, departDate, returnDate });
+    }, [tripType, from, to, departDate, returnDate]);
+
+    // 3. Logic xử lý Search
     const handleSearchTrip = async () => {
-        if (!from) {
-            return { ok: false, message: "Vui lòng chọn điểm đi" };
-        }
-        if (!to) {
-            return { ok: false, message: "Vui lòng chọn điểm đến" };
-        }
-        if (!departDate) {
-            return { ok: false, message: "Vui lòng chọn ngày đi" };
-        }
-        if (tripType === "roundtrip" && !returnDate) {
-            return { ok: false, message: "Vui lòng chọn ngày về" };
+        // --- Validation ---
+        if (!from) return { ok: false, message: "Vui lòng chọn điểm đi" };
+        if (!to) return { ok: false, message: "Vui lòng chọn điểm đến" };
+
+        // --- Logic mặc định ngày (Default Date Logic) ---
+        let finalDepartDate = departDate;
+        if (!finalDepartDate) {
+            finalDepartDate = dayjs().startOf('day');
+            setDepartDate(finalDepartDate);
         }
 
+        let finalReturnDate = returnDate;
+        if (tripType === "roundtrip" && !finalReturnDate) {
+            finalReturnDate = dayjs(finalDepartDate).add(1, 'day').startOf('day');
+            setReturnDate(finalReturnDate);
+        }
+
+        // --- Chuẩn bị Payload ---
         const payload = {
             from_location_id: from.id,
             to_location_id: to.id,
-            date: dayjs(departDate).format("YYYY-MM-DD"),
+            date: dayjs(finalDepartDate).format("YYYY-MM-DD"),
         };
 
-        if (tripType === "roundtrip" && returnDate) {
-            payload.return_date = (dayjs(returnDate).format("YYYY-MM-DD"));
+        if (tripType === "roundtrip" && finalReturnDate) {
+            payload.return_date = (dayjs(finalReturnDate).format("YYYY-MM-DD"));
         }
 
+        // --- Gọi API Service ---
         setLoading(true);
         try {
-            const res = await axiosClient.post("/client/trips/search", payload);
-            if (res.data?.success) {
-                setResults(res.data.data);
-                return { success: true, data: res.data.data };
+            const result = await searchTripsApi(payload);
+            
+            if (result.success) {
+                setResults(result.data);
             }
+            return result; // Trả về kết quả cho component gọi hàm này xử lý tiếp (nếu cần)
 
-            return {
-                success: false,
-                message: res.data?.message || "Có lỗi xảy ra khi tìm chuyến",
-            };
-        } catch (error) {
-            // 404: không có chuyến xe nào
-            if (error.response) {
-                const { status, data } = error.response;
-                if (status === 404 && data?.message) {
-                    return { success: false, message: data.message };
-                }
-                return {
-                    success: false,
-                    message: data?.message || "Có lỗi xảy ra khi tìm chuyến",
-                };
-            }
-            return { success: false, message: "Không thể kết nối tới máy chủ" };
         } finally {
             setLoading(false);
         }
     };
 
     const value = {
-        tripType,
-        setTripType,
-        from,
-        setFrom,
-        to,
-        setTo,
-        departDate,
-        setDepartDate,
-        returnDate,
-        setReturnDate,
-        loading, results, setResults, handleSearchTrip,
+        tripType, setTripType,
+        from, setFrom,
+        to, setTo,
+        departDate, setDepartDate,
+        returnDate, setReturnDate,
+        loading, 
+        results, setResults, 
+        handleSearchTrip,
+        // Trả về luôn payload hiện tại để dễ dùng ở nơi khác (như Route Guard)
+        payload: { pointStart: from, pointEnd: to, date: departDate } 
     };
 
     return (

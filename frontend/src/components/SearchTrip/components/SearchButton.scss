@@ -16,13 +16,17 @@
     white-space: nowrap;
     margin-left: auto;
 
-    transition: box-shadow 0.2s ease,
-                transform 0.1s ease;
+    // Giữ min-width để tránh việc button co lại nếu lỡ font chữ render khác nhau
+    min-width: 140px;
+    justify-content: center; // Canh giữa nội dung
 
+    transition: box-shadow 0.2s ease, transform 0.1s ease, opacity 0.2s ease;
+
+    // Quy định kích thước cứng cho icon
     svg {
         flex-shrink: 0;
-        width: 22px;
-        height: 22px;
+        width: 22px; // Kích thước chuẩn
+        height: 22px; // Kích thước chuẩn
     }
 
     &:hover {
@@ -36,10 +40,27 @@
     }
 
     &:disabled {
-        opacity: 0.6;
+        opacity: 0.8;
         cursor: not-allowed;
         box-shadow: none;
         transform: none;
     }
-}
 
+    // --- SPINNER ---
+    .spinner {
+        width: 22px;
+        height: 22px;
+
+        box-sizing: border-box; // Đảm bảo border không làm phình to kích thước
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+}

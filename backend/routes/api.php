@@ -27,6 +27,7 @@ use App\Http\Controllers\SeatLayoutTemplateController;
 use App\Http\Controllers\Client\ClientProfileController;
 use App\Http\Controllers\ScheduleTemplateTripController;
 use App\Http\Controllers\Client\ClientLocationController;
+use App\Http\Controllers\Client\ClientTripSeatController;
 use App\Http\Controllers\Client\Checkout\CheckoutController;
 use App\Http\Controllers\Client\Checkout\SeatLockController;
 use App\Http\Controllers\TripGenerateFromTemplateController;
@@ -108,6 +109,7 @@ Route::post('trips/generate-from-templates', [TripGenerateFromTemplateController
 Route::get('/client/locations', [ClientLocationController::class, 'index']);
 Route::get('/client/locations/search', [ClientLocationController::class, 'search']);
 Route::post('/client/trips/search', [TripSearchController::class, 'search']);
+Route::get('client/trips/{tripId}/seats', [ClientTripSeatController::class, 'show']);
 
 Route::post('/ai/chat', [GeminiChatController::class, 'chat']);
 

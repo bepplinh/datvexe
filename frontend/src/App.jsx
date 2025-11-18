@@ -10,6 +10,7 @@ import AdminLayout from "./layout/AdminLayout";
 import RequireAdmin from "./router/RequireAdmin";
 import Trip from "./pages/Trip/Trip";
 import CheckoutPage from "./pages/Checkout/CheckoutPage";
+import BookSeat from "./components/BookSeat/BookSeat";
 
 function App() {
     return (
@@ -22,6 +23,7 @@ function App() {
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/trip" element={<Trip />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route path="/book" element={<BookSeat />} />
                 </Route>
 
                 <Route

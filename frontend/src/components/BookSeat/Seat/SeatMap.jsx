@@ -1,0 +1,245 @@
+import { useState, useEffect } from "react";
+import seatSvgUrl from "../../../assets/seat.svg?url";
+import "./SeatMap.scss";
+import { useEcho } from "../../../contexts/EchoContext";
+import axiosClient from "../../../apis/axiosClient";
+
+export default function SeatMap({ trip, onSeatSelect }) {
+    const echo = useEcho();
+    const [seats, setSeats] = useState({});
+
+    useEffect(() => {
+        if (!trip?.trip_id) return;
+
+        async function loadSeatLayout() {
+            try {
+                const { data } = await axiosClient.get(
+                    `/client/trips/${trip.trip_id}/seats`
+                );
+                console.log(data);
+                if (!data.success) return;
+
+                const seatMap = {};
+                Object.values(data.data.seats || {}).forEach((deckSeats) => {
+                    deckSeats.forEach((seat) => {
+                        seatMap[seat.label] = {
+                            id: seat.seat_id,
+                            label: seat.label,
+                            status: seat.status,
+                            deck: seat.deck,
+                            column_group: seat.column_group,
+                            index: seat.index,
+                        };
+                    });
+                });
+                setSeats(seatMap);
+            } catch (error) {
+                console.error("Failed to load seat layout:", error);
+            }
+        }
+
+        loadSeatLayout();
+    }, [trip?.trip_id]);
+
+    useEffect(() => {
+        console.log(seats);
+    }, [seats])
+
+    const updateSeatStatus = (seatLabels = [], status) => {
+        setSeats((current) => {
+            const clone = { ...current };
+            seatLabels.forEach((label) => {
+                const seat = Object.values(clone).find(
+                    (s) => s.label === label
+                );
+                if (seat && seat.status !== "selected") {
+                    seat.status = status;
+                }
+            });
+            return { ...clone };
+        });
+    };
+
+    const handleSeatClick = (label) => {
+        const seat = seats[label];
+        if (!seat || seat.status === "booked" || seat.status === "locked")
+            return;
+
+        const newStatus =
+            seat.status === "available" ? "selected" : "available";
+        setSeats((prev) => ({
+            ...prev,
+            [label]: { ...seat, status: newStatus },
+        }));
+
+        const selected = Object.values(seats)
+            .map((s) => (s.label === label ? { ...s, status: newStatus } : s))
+            .filter((s) => s.status === "selected")
+            .map((s) => s.label);
+
+        onSeatSelect(selected);
+    };
+
+    useEffect(() => {
+        if (!trip?.trip_id || !echo) return;
+
+        const channelName = `trip.${trip.trip_id}`;
+        const channel = echo.private(channelName);
+
+        channel
+            .listen(".SeatLocked", ({ locks }) => {
+                const seatLabels = locks.flatMap(
+                    (lock) => lock.seat_labels ?? []
+                );
+                updateSeatStatus(seatLabels, "locked");
+            })
+            .listen(".SeatUnlocked", ({ seats }) => {
+                updateSeatStatus(seats, "available");
+            })
+            .listen(".SeatBooked", ({ booked }) => {
+                const seatLabels = booked.flatMap(
+                    (item) => item.seat_labels ?? []
+                );
+                updateSeatStatus(seatLabels, "booked");
+            });
+
+        return () => {
+            echo.leave(channelName);
+        };
+    }, [trip?.trip_id, echo]);
+
+    const getSeatClassName = (status) => {
+        const baseClass = "seat-map__seat";
+        switch (status) {
+            case "booked":
+                return `${baseClass} ${baseClass}--booked`;
+            case "selected":
+                return `${baseClass} ${baseClass}--selected`;
+            case "locked":
+                return `${baseClass} ${baseClass}--locked`;
+            default:
+                return `${baseClass} ${baseClass}--available`;
+        }
+    };
+
+    const groupedByDeck = Object.values(seats || {}).reduce((acc, seat) => {
+        const deckKey = `deck_${seat.deck}`;
+        if (!acc[deckKey]) acc[deckKey] = [];
+        acc[deckKey].push(seat);
+        return acc;
+    }, {});
+
+    const getSeatRowIndex = (seat = {}) => {
+        if (typeof seat.index === "number") return seat.index;
+        const numericPart = parseInt(
+            (seat.label || "").replace(/^\D+/g, "") || "0",
+            10
+        );
+        return Number.isNaN(numericPart) ? 0 : numericPart;
+    };
+
+    const getColumnPriority = (seat = {}) => {
+        const columnGroup =
+            (seat.column_group || seat.label || "").replace(/[0-9]/g, "") ||
+            "default";
+        const priorities = ["B", "C", "A", "D", "default"];
+        const index = priorities.indexOf(columnGroup);
+        return index === -1 ? priorities.length : index;
+    };
+
+    const groupSeatsByDeck = (deckSeats = []) => {
+        const rows = deckSeats.reduce((acc, seat) => {
+            const rowKey = getSeatRowIndex(seat);
+            if (!acc[rowKey]) acc[rowKey] = [];
+            acc[rowKey].push(seat);
+            return acc;
+        }, {});
+
+        return Object.entries(rows)
+            .sort(([rowA], [rowB]) => Number(rowA) - Number(rowB))
+            .map(([, rowSeats]) =>
+                rowSeats.sort((a, b) => {
+                    const priorityDiff =
+                        getColumnPriority(a) - getColumnPriority(b);
+                    if (priorityDiff !== 0) return priorityDiff;
+                    return (a.label || "").localeCompare(b.label || "");
+                })
+            );
+    };
+
+    const busName = trip?.bus?.name || "NHÀ XE";
+
+    return (
+        <div className="seat-map">
+            <div className="seat-map__header">
+                <h3 className="seat-map__title">{busName}</h3>
+
+                {/* Chú thích màu sắc */}
+                <div className="seat-map__legend">
+                    <div className="seat-map__legend-item">
+                        <div className="seat-map__legend-icon seat-map__legend-icon--available"></div>
+                        <span className="seat-map__legend-text">Ghế trống</span>
+                    </div>
+                    <div className="seat-map__legend-item">
+                        <div className="seat-map__legend-icon seat-map__legend-icon--locked"></div>
+                        <span className="seat-map__legend-text">Đang giữ chỗ</span>
+                    </div>
+                    <div className="seat-map__legend-item">
+                        <div className="seat-map__legend-icon seat-map__legend-icon--selected"></div>
+                        <span className="seat-map__legend-text">Đang chọn</span>
+                    </div>
+                    <div className="seat-map__legend-item">
+                        <div className="seat-map__legend-icon seat-map__legend-icon--booked"></div>
+                        <span className="seat-map__legend-text">Đã bán</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="seat-map__floors">
+                {Object.entries(groupedByDeck).map(([deckKey, deckSeats]) => (
+                    <div className="seat-map__floor" key={deckKey}>
+                        <h4 className="seat-map__floor-title">
+                            Tầng{" "}
+                            {Number(deckKey.replace("deck_", "")) || deckKey}
+                        </h4>
+                        <div className="seat-map__floor-seats">
+                            {groupSeatsByDeck(deckSeats).map((row, rowIdx) => (
+                                <div key={rowIdx} className="seat-map__row">
+                                    {row.map((seat) => (
+                                        <div
+                                            key={seat.label}
+                                            className="seat-map__seat-wrapper"
+                                        >
+                                            <button
+                                                onClick={() =>
+                                                    handleSeatClick(seat.label)
+                                                }
+                                                className={getSeatClassName(
+                                                    seat.status
+                                                )}
+                                                disabled={
+                                                    seat.status === "booked" ||
+                                                    seat.status === "locked"
+                                                }
+                                                aria-label={`Ghế ${seat.label}`}
+                                            >
+                                                <img
+                                                    src={seatSvgUrl}
+                                                    alt="Ghế"
+                                                    className="seat-map__seat-icon"
+                                                />
+                                            </button>
+                                            <span className="seat-map__seat-label">
+                                                {seat.label}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}

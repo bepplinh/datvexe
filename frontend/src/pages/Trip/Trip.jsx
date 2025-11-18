@@ -1,23 +1,31 @@
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import SearchTrip from "../../components/SearchTrip/SearchTrip";
-import TripFilter from "../../components/TripFilter/TripFilter";
-import TripDate from "../../components/TripDate/TripDate";
-import TripInfo from "../../components/TripInfo/TripInfo";
+import TripFilter from "./TripFilter/TripFilter";
+import TripDate from "./TripDate/TripDate";
+import TripList from "./TripList/TripList";
 import "./Trip.scss";
 import { useSearchTrip } from "../../contexts/SearchTripProvider";
-import { toast } from "react-toastify"
+import { toast } from "react-toastify";
+import { dataTripDate } from "./TripDate/data";
+import {
+    ActiveTabWayProvider,
+    useActiveTabWay,
+} from "../../contexts/ActiveTabWayProvider";
+import { TripFilterProvider } from "../../contexts/TripFilterProvider";
 
-function Trip() {
-    const { handleSearchTrip } = useSearchTrip();
+function TripContent() {
+    const { results, handleSearchTrip } = useSearchTrip();
+
+    const { isActiveTabWay, setIsActiveTabWay } = useActiveTabWay();
+
     const onSubmit = async () => {
         const result = await handleSearchTrip();
         if (!result.success) {
             toast.warning(result.message);
-            return; 
+            return;
         }
-        console.log(result);
     };
-    const { results } = useSearchTrip();
+
     return (
         <>
             <div className="search">
@@ -34,28 +42,59 @@ function Trip() {
                     <div className="trip-info">
                         {results && (
                             <div className="trip-date">
-                            <TripDate
-                                title="Chọn chiều đi"
-                                subtitle="Thọ Xuân - BX Giáp Bát | Ngày 16/11/2025"
-                                arrow="right"
-                            />
-                            <TripDate
-                                title="Chọn chiều về"
-                                subtitle="BX Giáp Bát - Thọ Xuân | Ngày 18/11/2025"
-                                arrow="left"
-                                dim
-                            />
-                        </div>
+                                {dataTripDate
+                                    .filter((item) => {
+                                        if (item.id === "outboundTrip") {
+                                            return (
+                                                results.outbound &&
+                                                results.outbound.length > 0
+                                            );
+                                        }
+                                        if (item.id === "returnTrip") {
+                                            return (
+                                                results.return &&
+                                                results.return.length > 0
+                                            );
+                                        }
+                                        return false;
+                                    })
+                                    .map((item, index, array) => {
+                                        return (
+                                            <TripDate
+                                                key={item.id || index}
+                                                title={item.title}
+                                                subtitle={item.subtitle}
+                                                arrow={item.arrow}
+                                                dim={
+                                                    array.length > 1 &&
+                                                    isActiveTabWay !== item.id
+                                                }
+                                                onClick={() => {
+                                                    setIsActiveTabWay(item.id);
+                                                }}
+                                            />
+                                        );
+                                    })}
+                            </div>
                         )}
-                        <div className="trip-way"></div>
-                        <div className="trip-content"></div>
+
                         <div className="trip-content">
-                            <TripInfo />
+                            <TripList activeTab={isActiveTabWay} />
                         </div>
                     </div>
                 </div>
             </MainLayout>
         </>
+    );
+}
+
+function Trip() {
+    return (
+        <ActiveTabWayProvider>
+            <TripFilterProvider>
+                <TripContent />
+            </TripFilterProvider>
+        </ActiveTabWayProvider>
     );
 }
 

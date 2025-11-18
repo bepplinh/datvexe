@@ -1,0 +1,181 @@
+.bus-info {
+    background: white;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    @media (max-width: 768px) {
+        padding: 24px;
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    &__title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1a202c;
+    }
+
+    &__rating {
+        background: #e53e3e;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &__type {
+        background: #f7fafc;
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 6px;
+        margin-bottom: 16px;
+        
+        span {
+            color: #4a5568;
+        }
+    }
+
+    &__route {
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 12px;
+    }
+
+    &__time-section {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+    }
+
+    &__time {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1a202c;
+    }
+
+    &__duration {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        
+        svg {
+            width: 16px;
+            height: 16px;
+            color: #a0aec0;
+            margin-bottom: 4px;
+        }
+        
+        span {
+            color: #4a5568;
+        }
+    }
+
+    &__services {
+        border-top: 1px solid #e2e8f0;
+        padding-top: 16px;
+    }
+
+    &__services-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        
+        svg {
+            width: 20px;
+            height: 20px;
+            color: #3182ce;
+        }
+        
+        h4 {
+            font-weight: 600;
+            color: #1a202c;
+        }
+    }
+
+    &__services-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        
+        li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            
+            &:last-child {
+                margin-bottom: 0;
+            }
+            
+            span:first-child {
+                width: 6px;
+                height: 6px;
+                background: #1a202c;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+            
+            span:last-child {
+                color: #4a5568;
+            }
+        }
+    }
+
+    &__price-summary {
+        margin-top: 24px;
+        border: 1px solid #38bdf8;
+        border-radius: 12px;
+        padding: 16px 20px;
+        background: #f8fbff;
+    }
+
+    &__price-title {
+        font-weight: 600;
+        color: #1f2933;
+        margin-bottom: 12px;
+    }
+
+    &__price-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 8px 0;
+
+        .bus-info__price-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #1f2933;
+            padding: 4px 0;
+        }
+    }
+
+    &__price-value {
+        color: #1f2933;
+    }
+
+    &__price-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 8px;
+        margin-top: 8px;
+        border-top: 1px dashed #94a3b8;
+        font-weight: 600;
+    }
+
+    &__price-total-value {
+        color: #0ea5e9;
+        font-size: 18px;
+    }
+}
+
