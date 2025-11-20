@@ -24,11 +24,6 @@ class DraftCheckoutLeg extends Model
         'dropoff_address',
     ];
 
-    protected $casts = [
-        'pickup_snapshot' => 'array',
-        'dropoff_snapshot' => 'array',
-    ];
-
     /* ================== Relationships ================== */
 
     /**

@@ -32,13 +32,13 @@ class SeatLockController extends Controller
             ],
             'from_location' => ['required'],
             'to_location' => ['required', 'different:from_location'],
-        
+
             'trips' => ['required', 'array', 'min:1'],
-        
+
             'trips.*.trip_id'  => ['required', 'integer', 'exists:trips,id'],
             'trips.*.seat_ids' => ['required', 'array', 'min:1'],
             'trips.*.seat_ids.*' => ['required', 'integer', 'min:1'],
-        
+
             'trips.*.leg' => ['nullable', 'string', Rule::in(['OUT', 'RETURN'])],
         ]);
 
@@ -57,7 +57,16 @@ class SeatLockController extends Controller
             to_location: $data['to_location']
         );
 
-        return response()->json($result);
+        // ✅ Trả về session_token trong response để frontend lưu vào cookie
+        return response()->json([
+            'success' => true,
+            'session_token' => $token,
+            'draft_id' => $result['draft_id'] ?? null,
+            'status' => $result['status'] ?? null,
+            'expires_at' => $result['expires_at'] ?? null,
+            'totals' => $result['totals'] ?? null,
+            'items' => $result['items'] ?? [],
+        ]);
     }
 
     public function unlock(Request $request)

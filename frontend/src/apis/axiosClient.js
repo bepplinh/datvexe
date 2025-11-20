@@ -27,9 +27,16 @@ axiosClient.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // ✅ Thêm X-Session-Token từ cookie (thống nhất với backend: x_session_token)
+        const sessionToken = Cookies.get("x_session_token");
+        if (sessionToken) {
+            config.headers["X-Session-Token"] = sessionToken;
+        }
+
         return config;
     },
-    (error) => Promise.reject(error),
+    (error) => Promise.reject(error)
 );
 
 axiosClient.interceptors.response.use(
@@ -92,7 +99,7 @@ axiosClient.interceptors.response.use(
         }
 
         return Promise.reject(error);
-    },
+    }
 );
 
 export default axiosClient;

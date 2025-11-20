@@ -33,6 +33,7 @@ use App\Http\Controllers\Client\Checkout\SeatLockController;
 use App\Http\Controllers\TripGenerateFromTemplateController;
 use App\Http\Controllers\Client\Payment\PayOSWebhookController;
 use App\Http\Controllers\Client\Payment\PayOSRedirectController;
+use App\Http\Controllers\Client\Checkout\DraftCheckoutController;
 
 
 Route::post('/login',    [AuthController::class, 'login']);
@@ -60,6 +61,7 @@ Route::get('/payos/redirect/success', [PayOSRedirectController::class, 'success'
 Route::get('/payos/redirect/cancel', [PayOSRedirectController::class, 'cancel']);
 
 Route::middleware(['auth:api', 'x-session-token'])->group(function () {
+    Route::get('checkout/drafts/{draftId}', [DraftCheckoutController::class, 'show']);
     Route::put('drafts/{draftId}/payment', [CheckoutController::class, 'updateDraftPayment']);
     Route::post('checkout/lock-seats', [SeatLockController::class, 'lock']);
     Route::post('checkout/unlock-seats', [SeatLockController::class, 'unlock']);

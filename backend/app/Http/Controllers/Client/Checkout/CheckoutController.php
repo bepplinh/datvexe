@@ -40,6 +40,7 @@ class CheckoutController extends Controller
 
         if (!in_array($draft->status, ['pending', 'paying'], true)) {
             return response()->json([
+                'success' => false,
                 'message' => 'Đơn đặt này đã hết hiệu lực hoặc đã được xử lý. Vui lòng tạo đơn mới.'
             ], 422);
         }
@@ -224,6 +225,7 @@ class CheckoutController extends Controller
                     ]);
                 } catch (Throwable $e) {
                     return response()->json([
+                        'success' => false,
                         'message' => 'Co loi khi tao link thanh toan PayOS, vui long thu lai',
                         'error'   => $e->getMessage(),
                     ], 500);
@@ -231,6 +233,7 @@ class CheckoutController extends Controller
             }
         } catch (Throwable $e) {
             return response()->json([
+                'success' => false,
                 'message' => 'Đã có lỗi xảy ra khi thanh toán, vui lòng thử lại.',
                 'error'   => $e->getMessage(),
             ], 500);

@@ -1,117 +1,172 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { toast } from "react-toastify";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import "./CheckoutPage.scss";
 import Steps from "./Steps/Steps";
+import TicketSummary from "./components/TicketSummary";
+import CheckoutActions from "./components/CheckoutActions";
+import { useCheckout } from "../../contexts/CheckoutProvider";
+import ContactStep from "./components/steps/ContactStep";
+import PaymentStep from "./components/steps/PaymentStep";
+import ConfirmationStep from "./components/steps/ConfirmationStep";
+import { updateDraftPayment as updateDraftPaymentService } from "../../services/draftService";
+import { mapContactFormToDraftPayload } from "./utils/contactMapper";
 
-export default function CheckoutPage() {
-  const [name, setName] = useState("Lê Đức Anh");
-  const [country, setCountry] = useState("+84");
-  const [phone, setPhone] = useState("0849568136");
-  const [note, setNote] = useState("");
-  const [pickup, setPickup] = useState("tòa nhà sóng đà, đường phạm hùng");
-  const [dropoff, setDropoff] = useState("");
+function CheckoutPage() {
+    const {
+        draftId,
+        draftData,
+        isLoadingDraft,
+        contactInfo,
+        updateContactInfo,
+        currentStep,
+        nextStep,
+        paymentMethod,
+        selectPaymentMethod,
+        setResultBooking,
+    } = useCheckout();
 
-  return (
-    <MainLayout>
-      <div className="checkout">
-        <div className="checkout__grid">
-          <aside className="checkout__summary">
-            <div className="summary__card">
-              <div className="summary__title">Vé của bạn</div>
-              <div className="summary__section">
-                <div className="summary__label" style={{ fontWeight: 600 }}>Chiều đi</div>
-                <div className="summary__date">15/11/2025</div>
-              </div>
-              <div className="summary__route">BX Giáp Bát - Thọ Xuân</div>
-              <div className="summary__details">
-                <div className="summary__row">
-                  <span>Khởi hành</span>
-                  <span>05:30</span>
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const validateContactInfo = () => {
+        if (!contactInfo.name?.trim()) {
+            return "Vui lòng nhập họ tên hành khách.";
+        }
+        if (!contactInfo.phone?.trim()) {
+            return "Vui lòng nhập số điện thoại hành khách.";
+        }
+        if (contactInfo.isProxyBooking) {
+            if (!contactInfo.bookerName?.trim()) {
+                return "Vui lòng nhập họ tên người đặt hộ.";
+            }
+            if (!contactInfo.bookerPhone?.trim()) {
+                return "Vui lòng nhập số điện thoại người đặt hộ.";
+            }
+        }
+        return null;
+    };
+
+    const handleContinue = async () => {
+        if (isSubmitting) return;
+
+        if (currentStep === 1) {
+            const validationError = validateContactInfo();
+            if (validationError) {
+                toast.error(validationError);
+                return;
+            }
+            nextStep();
+            return;
+        }
+
+        if (currentStep === 2) {
+            if (!paymentMethod) {
+                toast.error("Vui lòng chọn phương thức thanh toán.");
+                return;
+            }
+
+            if (!draftId) {
+                toast.error("Không tìm thấy draft đặt vé. Vui lòng thử lại.");
+                return;
+            }
+
+            try {
+                setIsSubmitting(true);
+                const payload = mapContactFormToDraftPayload(contactInfo, {
+                    paymentMethod,
+                    draftTrips: draftData?.trips ?? [],
+                });
+                const result = await updateDraftPaymentService(
+                    draftId,
+                    payload
+                );
+
+                setResultBooking(result);
+
+                if (result.success) {
+                    toast.success("Thanh toán thành công.");
+                    nextStep();
+                } else {
+                    toast.error(
+                        result.message ||
+                            "Không thể lưu thông tin thanh toán. Vui lòng thử lại."
+                    );
+                }
+            } catch (error) {
+                console.error(error);
+                toast.error("Không thể cập nhật thông tin. Vui lòng thử lại.");
+            } finally {
+                setIsSubmitting(false);
+            }
+            return;
+        }
+    };
+
+    const renderStepContent = () => {
+        switch (currentStep) {
+            case 1:
+                return (
+                    <ContactStep
+                        contactInfo={contactInfo}
+                        onChange={updateContactInfo}
+                    />
+                );
+            case 2:
+                return (
+                    <PaymentStep
+                        selectedMethod={paymentMethod}
+                        onSelect={selectPaymentMethod}
+                    />
+                );
+            case 3:
+                return (
+                    <ConfirmationStep
+                        contactInfo={contactInfo}
+                        paymentMethod={paymentMethod}
+                    />
+                );
+            default:
+                return null;
+        }
+    };
+
+    const actionLabel =
+        currentStep === 1
+            ? "Tiếp tục"
+            : currentStep === 2
+            ? "Đặt vé"
+            : "Hoàn tất";
+
+    return (
+        <MainLayout>
+            <div className="checkout">
+                <div className="checkout__grid">
+                    <aside className="checkout__summary">
+                        <TicketSummary
+                            ticket={draftData}
+                            isLoading={isLoadingDraft}
+                        />
+                    </aside>
+
+                    <section className="checkout__content">
+                        <div className="stepContainer">
+                            <Steps />
+                        </div>
+
+                        {renderStepContent()}
+
+                        {currentStep < 3 && (
+                            <CheckoutActions
+                                onContinue={handleContinue}
+                                isSubmitting={isSubmitting}
+                                label={actionLabel}
+                            />
+                        )}
+                    </section>
                 </div>
-                <div className="summary__row">
-                  <span>Biển số xe</span>
-                  <span>36C-24519</span>
-                </div>
-                <div className="summary__row">
-                  <span>Số ghế/giường</span>
-                  <span className="seat_label">A8,A9</span>
-                </div>
-                <div className="summary__row">
-                  <span style={{ fontWeight: 600 }}>Giá vé:</span>
-                  <span>
-                    <span className="price">A8: 180.000 đ</span>
-                  </span>
-                </div>
-                <div className="summary__row">
-                  <span />
-                  <span className="price">A9: 180.000 đ</span>
-                </div>
-              </div>
-              <div className="summary__total">
-                <div className="summary__row">
-                  <span>Tổng thanh toán</span>
-                  <span className="price">360.000 đ</span>
-                </div>
-                <div className="summary__row">
-                  <span style={{ fontWeight: 600 }}>Tổng tiền</span>
-                  <span className="price">360.000 đ</span>
-                </div>
-              </div>
             </div>
-          </aside>
-
-          <section className="checkout__content">
-            <div className="stepContainer">
-              <Steps></Steps>
-            </div>
-
-            <div className="card">
-              <div className="card__title">Thông tin liên hệ</div>
-              <div className="form">
-                <div className="form__row">
-                  <div className="form__field form__field--half">
-                    <label>Họ tên *</label>
-                    <input value={name} onChange={(e) => setName(e.target.value)} />
-                  </div>
-                </div>
-                <div className="form__row">
-                  <div className="form__field form__field--half">
-                    <label>Số điện thoại *</label>
-                    <div className="phone">
-                      <select value={country} onChange={(e) => setCountry(e.target.value)}>
-                        <option value="+84">(VN) +84</option>
-                        <option value="+1">+1</option>
-                        <option value="+65">+65</option>
-                      </select>
-                      <input value={phone} onChange={(e) => setPhone(e.target.value)} />
-                    </div>
-                  </div>
-                  <div className="form__field form__field--half">
-                    <label>Ghi chú</label>
-                    <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ghi chú" />
-                  </div>
-                </div>
-                <div className="form__row">
-                  <div className="form__field form__field--half">
-                    <label>NHẬP ĐIỂM ĐÓN CHI TIẾT</label>
-                    <input value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder="tòa nhà sóng đà, đường phạm hùng" />
-                  </div>
-                  <div className="form__field form__field--half">
-                    <label>NHẬP ĐIỂM TRẢ CHI TIẾT</label>
-                    <input value={dropoff} onChange={(e) => setDropoff(e.target.value)} placeholder="Điểm trả chi tiết" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="checkout__actions">
-              <div className="checkout__button">
-                <button type="button" className="btn btn--primary">Tiếp tục →</button>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-    </MainLayout>
-  );
+        </MainLayout>
+    );
 }
+
+export default CheckoutPage;

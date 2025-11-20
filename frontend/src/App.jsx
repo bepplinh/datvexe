@@ -11,6 +11,7 @@ import RequireAdmin from "./router/RequireAdmin";
 import Trip from "./pages/Trip/Trip";
 import CheckoutPage from "./pages/Checkout/CheckoutPage";
 import BookSeat from "./components/BookSeat/BookSeat";
+import { CheckoutProvider } from "./contexts/CheckoutProvider";
 
 function App() {
     return (
@@ -22,7 +23,14 @@ function App() {
                     <Route path="/register" element={<Register />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/trip" element={<Trip />} />
-                    <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route
+                        path="/checkout"
+                        element={
+                            <CheckoutProvider>
+                                <CheckoutPage />
+                            </CheckoutProvider>
+                        }
+                    />
                     <Route path="/book" element={<BookSeat />} />
                 </Route>
 

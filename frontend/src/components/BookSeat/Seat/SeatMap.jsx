@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import seatSvgUrl from "../../../assets/seat.svg?url";
 import "./SeatMap.scss";
 import { useEcho } from "../../../contexts/EchoContext";
 import axiosClient from "../../../apis/axiosClient";
 
-export default function SeatMap({ trip, onSeatSelect }) {
+export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
     const echo = useEcho();
     const [seats, setSeats] = useState({});
+    const onSeatSelectRef = useRef(onSeatSelect);
+    const onSeatsLoadedRef = useRef(onSeatsLoaded);
 
     useEffect(() => {
         if (!trip?.trip_id) return;
@@ -33,6 +35,8 @@ export default function SeatMap({ trip, onSeatSelect }) {
                     });
                 });
                 setSeats(seatMap);
+                // ✅ Notify parent component về seats data
+                onSeatsLoadedRef.current?.(seatMap);
             } catch (error) {
                 console.error("Failed to load seat layout:", error);
             }
@@ -42,43 +46,47 @@ export default function SeatMap({ trip, onSeatSelect }) {
     }, [trip?.trip_id]);
 
     useEffect(() => {
-        console.log(seats);
-    }, [seats])
+        onSeatSelectRef.current = onSeatSelect;
+        onSeatsLoadedRef.current = onSeatsLoaded;
+    }, [onSeatSelect, onSeatsLoaded]);
 
     const updateSeatStatus = (seatLabels = [], status) => {
         setSeats((current) => {
-            const clone = { ...current };
+            const next = { ...current };
+            let hasChange = false;
+
             seatLabels.forEach((label) => {
-                const seat = Object.values(clone).find(
-                    (s) => s.label === label
-                );
-                if (seat && seat.status !== "selected") {
-                    seat.status = status;
+                const seat = next[label];
+                if (seat && seat.status !== status) {
+                    next[label] = { ...seat, status };
+                    hasChange = true;
                 }
             });
-            return { ...clone };
+
+            return next;
         });
     };
 
     const handleSeatClick = (label) => {
-        const seat = seats[label];
-        if (!seat || seat.status === "booked" || seat.status === "locked")
-            return;
+        setSeats((prev) => {
+            const seat = prev[label];
+            if (!seat || seat.status === "booked" || seat.status === "locked")
+                return prev;
 
-        const newStatus =
-            seat.status === "available" ? "selected" : "available";
-        setSeats((prev) => ({
-            ...prev,
-            [label]: { ...seat, status: newStatus },
-        }));
+            const newStatus =
+                seat.status === "available" ? "selected" : "available";
+            const next = { ...prev, [label]: { ...seat, status: newStatus } };
 
+            return next;
+        });
+    };
+
+    useEffect(() => {
         const selected = Object.values(seats)
-            .map((s) => (s.label === label ? { ...s, status: newStatus } : s))
             .filter((s) => s.status === "selected")
             .map((s) => s.label);
-
-        onSeatSelect(selected);
-    };
+        onSeatSelectRef.current?.(selected);
+    }, [seats]);
 
     useEffect(() => {
         if (!trip?.trip_id || !echo) return;
@@ -182,7 +190,9 @@ export default function SeatMap({ trip, onSeatSelect }) {
                     </div>
                     <div className="seat-map__legend-item">
                         <div className="seat-map__legend-icon seat-map__legend-icon--locked"></div>
-                        <span className="seat-map__legend-text">Đang giữ chỗ</span>
+                        <span className="seat-map__legend-text">
+                            Đang giữ chỗ
+                        </span>
                     </div>
                     <div className="seat-map__legend-item">
                         <div className="seat-map__legend-icon seat-map__legend-icon--selected"></div>
