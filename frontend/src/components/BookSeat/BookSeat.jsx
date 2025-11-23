@@ -89,7 +89,6 @@ function BookSeat({ trip, onClose }) {
             );
 
             if (data.success) {
-                // ✅ Lưu session_token vào cookie (hỗ trợ cả snake_case và camelCase)
                 const sessionToken = data.session_token || data.sessionToken;
                 if (sessionToken) {
                     Cookies.set("x_session_token", sessionToken, {
@@ -97,7 +96,6 @@ function BookSeat({ trip, onClose }) {
                         expires: 30,
                     });
                 }
-                // Một chiều: giữ chỗ thành công thì chuyển sang checkout ngay
                 toast.success("Đã giữ chỗ thành công!");
                 navigate(`/checkout?draft_id=${data.draft_id}`);
                 onClose?.();

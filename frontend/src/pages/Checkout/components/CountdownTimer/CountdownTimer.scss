@@ -1,0 +1,44 @@
+.countdown-timer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    margin-bottom: 16px;
+
+    &__icon {
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    &__text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__label {
+        font-size: 13px;
+        color: #856404;
+        font-weight: 500;
+    }
+
+    &__time {
+        font-size: 20px;
+        font-weight: 700;
+        color: #ed1925;
+        font-family: "Courier New", monospace;
+        letter-spacing: 1px;
+    }
+
+    &--expired {
+        background: #f8d7da;
+        border-color: #dc3545;
+
+        .countdown-timer__label {
+            color: #721c24;
+        }
+    }
+}

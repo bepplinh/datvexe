@@ -266,7 +266,8 @@
 
 .checkout__actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .btn {
@@ -277,6 +278,8 @@
     cursor: pointer;
     transition: background-color 0.2s;
     font-size: 14px;
+    white-space: nowrap;
+    max-width: fit-content;
 }
 
 .btn--primary {
@@ -290,6 +293,33 @@
     &:active {
         background: #b8121a;
     }
+}
+
+.btn--secondary {
+    background: #ffffff;
+    color: #0c1e51;
+    border: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &:hover {
+        background: #f8f9fa;
+        border-color: #0c1e51;
+    }
+
+    &:active {
+        background: #e9ecef;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+.btn__icon {
+    flex-shrink: 0;
 }
 
 .stepContainer {
@@ -320,7 +350,7 @@
     transition: border-color 0.2s, box-shadow 0.2s;
 
     &--active {
-        border-color: #ed1925;
+        border-color: #144a7f;
         box-shadow: 0 4px 12px rgba(237, 25, 37, 0.15);
     }
 

@@ -89,20 +89,52 @@ export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
     }, [seats]);
 
     useEffect(() => {
-        if (!trip?.trip_id || !echo) return;
+        if (!trip?.trip_id || !echo) {
+            console.warn("SeatMap: Missing trip_id or echo", {
+                trip_id: trip?.trip_id,
+                echo: !!echo,
+            });
+            return;
+        }
 
         const channelName = `trip.${trip.trip_id}`;
         const channel = echo.private(channelName);
 
         channel
+            .error((error) => {
+                console.error("SeatMap: Channel subscription error", error);
+            })
             .listen(".SeatLocked", ({ locks }) => {
                 const seatLabels = locks.flatMap(
                     (lock) => lock.seat_labels ?? []
                 );
                 updateSeatStatus(seatLabels, "locked");
             })
-            .listen(".SeatUnlocked", ({ seats }) => {
-                updateSeatStatus(seats, "available");
+            .listen(".SeatUnlocked", (payload) => {
+                const { unlocks } = payload || {};
+                const currentTripId = trip?.trip_id;
+
+                if (!currentTripId || !unlocks || !Array.isArray(unlocks)) {
+                    return;
+                }
+
+                const tripUnlock = unlocks.find(
+                    (u) => parseInt(u.trip_id) === parseInt(currentTripId)
+                );
+
+                if (!tripUnlock || !tripUnlock.seat_labels) {
+                    return;
+                }
+
+                const seatLabels = Array.isArray(tripUnlock.seat_labels)
+                    ? tripUnlock.seat_labels
+                    : [tripUnlock.seat_labels];
+
+                if (seatLabels.length === 0) {
+                    return;
+                }
+
+                updateSeatStatus(seatLabels, "available");
             })
             .listen(".SeatBooked", ({ booked }) => {
                 const seatLabels = booked.flatMap(

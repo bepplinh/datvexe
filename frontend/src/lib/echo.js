@@ -2,7 +2,7 @@ import Echo from "laravel-echo";
 import Pusher from "pusher-js";
 import Cookies from "js-cookie";
 import axiosClient from "../apis/axiosClient";
-Pusher.logToConsole = false;
+Pusher.logToConsole = true;
 
 export const createEchoInstance = () => {
     return new Echo({

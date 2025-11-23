@@ -1,23 +1,44 @@
+import { useSearchParams } from "react-router-dom";
 import { useCheckout } from "../../../../contexts/CheckoutProvider";
 
 function ConfirmationStep({ contactInfo, paymentMethod }) {
-    const { resultBooking } = useCheckout();
+    const [searchParams] = useSearchParams();
+    const { resultBooking, draftData } = useCheckout();
 
     const paymentLabel =
         paymentMethod === "payos"
-            ? "Thanh toán PayOS"
+            ? "PayOS"
             : paymentMethod === "cash"
             ? "Thanh toán tiền mặt"
             : "Chưa chọn";
 
-    const isSuccess = resultBooking?.success === true || resultBooking == null;
+    // Kiểm tra trạng thái từ query params (PayOS redirect) hoặc draftData
+    const paymentStatus = searchParams.get("payment_status");
+    const draftStatus = draftData?.status;
+
+    // Xác định trạng thái thành công/thất bại
+    let isSuccess = false;
+    if (paymentStatus) {
+        // Từ PayOS redirect
+        isSuccess = paymentStatus === "success";
+    } else if (draftStatus) {
+        // Từ draftData
+        isSuccess = draftStatus === "paid";
+    } else {
+        // Fallback về resultBooking
+        isSuccess = resultBooking?.success === true || resultBooking == null;
+    }
+
     const statusVariant = isSuccess ? "success" : "error";
 
-    const resolvedMessage =
-        resultBooking?.message ||
-        (isSuccess
-            ? "Đặt vé thành công! Chúng tôi sẽ liên hệ bạn trong thời gian sớm nhất."
-            : "Đặt vé không thành công. Vui lòng thử lại hoặc liên hệ hỗ trợ.");
+    // Lấy message từ query params hoặc resultBooking
+    const messageFromParams = searchParams.get("message");
+    const resolvedMessage = messageFromParams
+        ? decodeURIComponent(messageFromParams)
+        : resultBooking?.message ||
+          (isSuccess
+              ? "Đặt vé thành công! Chúng tôi sẽ liên hệ bạn trong thời gian sớm nhất."
+              : "Đặt vé không thành công. Vui lòng thử lại hoặc liên hệ hỗ trợ.");
 
     return (
         <div className="card confirmationCard">

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import "./CheckoutPage.scss";
@@ -9,10 +10,15 @@ import { useCheckout } from "../../contexts/CheckoutProvider";
 import ContactStep from "./components/steps/ContactStep";
 import PaymentStep from "./components/steps/PaymentStep";
 import ConfirmationStep from "./components/steps/ConfirmationStep";
-import { updateDraftPayment as updateDraftPaymentService } from "../../services/draftService";
+import {
+    updateDraftPayment as updateDraftPaymentService,
+    unlockSeats,
+} from "../../services/draftService";
 import { mapContactFormToDraftPayload } from "./utils/contactMapper";
+import CountdownTimer from "./components/CountdownTimer/CountdownTimer";
 
 function CheckoutPage() {
+    const [searchParams, setSearchParams] = useSearchParams();
     const {
         draftId,
         draftData,
@@ -21,12 +27,48 @@ function CheckoutPage() {
         updateContactInfo,
         currentStep,
         nextStep,
+        prevStep,
+        goToStep,
         paymentMethod,
         selectPaymentMethod,
         setResultBooking,
     } = useCheckout();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Xử lý redirect từ PayOS
+    useEffect(() => {
+        const paymentStatus = searchParams.get("payment_status");
+        const message = searchParams.get("message");
+        const step = searchParams.get("step");
+
+        if (step === "3") {
+            goToStep(3);
+        }
+
+        if (paymentStatus && message) {
+            // Decode message
+            const decodedMessage = decodeURIComponent(message);
+
+            if (paymentStatus === "success") {
+                toast.success(decodedMessage);
+            } else if (
+                paymentStatus === "failed" ||
+                paymentStatus === "cancelled"
+            ) {
+                toast.error(decodedMessage);
+            } else if (paymentStatus === "processing") {
+                toast.info(decodedMessage);
+            }
+
+            // Xóa query params sau khi hiển thị thông báo
+            const newParams = new URLSearchParams(searchParams);
+            newParams.delete("payment_status");
+            newParams.delete("message");
+            newParams.delete("step");
+            setSearchParams(newParams, { replace: true });
+        }
+    }, [searchParams, goToStep, setSearchParams]);
 
     const validateContactInfo = () => {
         if (!contactInfo.name?.trim()) {
@@ -84,6 +126,15 @@ function CheckoutPage() {
                 setResultBooking(result);
 
                 if (result.success) {
+                    if (paymentMethod === "payos" && result.data?.payment_url) {
+                        toast.success(
+                            "Đang chuyển hướng đến trang thanh toán..."
+                        );
+                        window.location.href = result.data.payment_url;
+                        return;
+                    }
+
+                    // Các payment method khác (cash, etc.)
                     toast.success("Thanh toán thành công.");
                     nextStep();
                 } else {
@@ -100,6 +151,13 @@ function CheckoutPage() {
             }
             return;
         }
+    };
+
+    const handleExpired = () => {
+        // Không gọi API unlock ở đây vì job ReleaseSeatAfterExpired sẽ tự động xử lý
+        // khi TTL hết. Việc gọi API unlock đồng thời có thể gây race condition
+        // và conflict với job đang chạy.
+        toast.error("Thời gian giữ chỗ đã hết hạn. Ghế sẽ được tự động giải phóng.");
     };
 
     const renderStepContent = () => {
@@ -153,13 +211,22 @@ function CheckoutPage() {
                             <Steps />
                         </div>
 
+                        {draftData?.expires_at && currentStep < 3 && (
+                            <CountdownTimer
+                                expiresAt={draftData.expires_at}
+                                onExpired={handleExpired}
+                            />
+                        )}
+
                         {renderStepContent()}
 
                         {currentStep < 3 && (
                             <CheckoutActions
                                 onContinue={handleContinue}
+                                onBack={prevStep}
                                 isSubmitting={isSubmitting}
                                 label={actionLabel}
+                                showBack={currentStep > 1}
                             />
                         )}
                     </section>

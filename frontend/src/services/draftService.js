@@ -64,3 +64,40 @@ export const updateDraftPayment = async (draftId, payload) => {
         };
     }
 };
+
+export const unlockSeats = async () => {
+    try {
+        const sessionToken = Cookies.get("x_session_token");
+        if (!sessionToken) {
+            return {
+                success: false,
+                message: "Không tìm thấy session token",
+            };
+        }
+
+        const res = await axiosClient.post("/checkout/unlock-seats", null, {
+            headers: {
+                "X-Session-Token": sessionToken,
+            },
+        });
+
+        return {
+            success: true,
+            data: res.data,
+        };
+    } catch (error) {
+        if (error.response) {
+            const { status, data } = error.response;
+            return {
+                success: false,
+                message:
+                    data?.message || "Không thể giải phóng ghế. Vui lòng thử lại.",
+                status,
+            };
+        }
+        return {
+            success: false,
+            message: "Không thể kết nối tới máy chủ",
+        };
+    }
+};

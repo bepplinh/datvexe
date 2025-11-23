@@ -22,15 +22,22 @@ function Steps() {
 
     return (
         <div className="steps">
-            {dataSteps.map((item) => (
-                <Stepper
-                    key={item.id}
-                    id={item.id}
-                    label={item.label}
-                    isActive={item.id === currentStep}
-                    isCompleted={item.id < currentStep}
-                />
-            ))}
+            {dataSteps.map((item, index) => {
+                const isActive = item.id === currentStep;
+                const isCompleted = item.id < currentStep;
+                const prevStepCompleted = index > 0 && dataSteps[index - 1].id < currentStep;
+
+                return (
+                    <Stepper
+                        key={item.id}
+                        id={item.id}
+                        label={item.label}
+                        isActive={isActive}
+                        isCompleted={isCompleted}
+                        prevStepCompleted={prevStepCompleted}
+                    />
+                );
+            })}
         </div>
     );
 }

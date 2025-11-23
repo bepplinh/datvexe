@@ -129,6 +129,17 @@ export default function Header() {
                         <button
                             type="button"
                             className="site-header__profile-menu-item"
+                            onClick={() => {
+                                closeMobileMenu();
+                                closeProfileMenu();
+                                navigate("/tickets");
+                            }}
+                        >
+                            Vé của tôi
+                        </button>
+                        <button
+                            type="button"
+                            className="site-header__profile-menu-item"
                             onClick={handleNavigateToProfile}
                         >
                             Chỉnh sửa thông tin
