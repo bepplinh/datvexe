@@ -1,0 +1,66 @@
+.location-datagrid-wrapper {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 16px rgba(13, 110, 253, 0.08);
+    border: 1px solid rgba(13, 110, 253, 0.1);
+    margin-bottom: 2rem;
+
+    .MuiDataGrid-root {
+        border: none;
+        font-family: inherit;
+    }
+
+    .MuiDataGrid-columnHeaders {
+        background: linear-gradient(135deg, #f8fbff 0%, #eef3ff 100%);
+        border-bottom: 2px solid rgba(13, 110, 253, 0.2);
+        font-weight: 700;
+        color: #0c1d4a;
+    }
+
+    .MuiDataGrid-cell {
+        border-bottom: 1px solid #e9ecef;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        vertical-align: middle;
+    }
+
+    .MuiDataGrid-cell[data-field="actions"] {
+        justify-content: center;
+    }
+
+    .MuiDataGrid-row {
+        &:hover {
+            background-color: rgba(13, 110, 253, 0.04) !important;
+        }
+    }
+
+    .MuiDataGrid-footerContainer {
+        border-top: 1px solid #e9ecef;
+    }
+}
+
+.location-datagrid-type {
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+
+    &.type-city {
+        background: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+
+    &.type-district {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+
+    &.type-ward {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+}
+

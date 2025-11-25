@@ -21,7 +21,6 @@ function HomePage() {
             toast.warning(result.message);
             return;
         }
-        console.log(result);
         navigate("/trip");
     }
     return (

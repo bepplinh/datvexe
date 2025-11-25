@@ -1,0 +1,41 @@
+.route-datagrid-wrapper {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 16px rgba(13, 110, 253, 0.08);
+    border: 1px solid rgba(13, 110, 253, 0.1);
+
+    .MuiDataGrid-root {
+        border: none;
+        font-family: inherit;
+    }
+
+    .MuiDataGrid-columnHeaders {
+        background: linear-gradient(135deg, #f8fbff 0%, #eef3ff 100%);
+        border-bottom: 2px solid rgba(13, 110, 253, 0.2);
+        font-weight: 700;
+        color: #0c1d4a;
+    }
+
+    .MuiDataGrid-cell {
+        border-bottom: 1px solid #e9ecef;
+        color: #495057;
+        display: flex;
+        align-items: center;
+    }
+
+    .MuiDataGrid-cell[data-field="actions"] {
+        justify-content: center;
+    }
+}
+
+.route-datagrid__city {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    span {
+        font-weight: 600;
+        color: #0c1d4a;
+    }
+}

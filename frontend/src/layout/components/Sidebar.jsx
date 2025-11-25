@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { X } from "lucide-react";
+import { X, LayoutDashboard } from "lucide-react";
 import { useAdminAuth } from "../../hooks/useAdminAuth";
 import { SIDEBAR_MENU } from "../data/sidebarMenuData";
 import "../AdminLayout.scss";
@@ -16,7 +16,9 @@ function Sidebar({ sidebarOpen, mobileMenuOpen, onCloseMobileMenu, onLogout }) {
         >
             <div className="admin-sidebar__header">
                 <div className="admin-sidebar__logo">
-                    <div className="admin-sidebar__logo-icon">🚌</div>
+                    <div className="admin-sidebar__logo-icon">
+                        <LayoutDashboard size={20} />
+                    </div>
                     {sidebarOpen && (
                         <div className="admin-sidebar__logo-text">
                             <span className="admin-sidebar__logo-title">

@@ -65,29 +65,18 @@ class GeminiAiService
             ]]
         ]];
 
-        // ====== system instruction (ngắn mà “ép kỷ luật”) ======
+        // ====== system instruction (ngắn mà "ép kỷ luật") ======
         $system = [
             'role' => 'user',
             'parts' => [[
                 'text' => <<<PROMPT
-<<<SYS
-
-Bạn là trợ lý **chỉ** hỗ trợ tìm **chuyến xe khách (bus)** trên hệ thống nội bộ.
-- Trả lời **tiếng Việt**, ngắn gọn.
-- Nếu đủ dữ kiện: gọi function `search_trips` để tìm chuyến.
-- Nếu thiếu **from/to/date**: hỏi đúng trường bị thiếu, KHÔNG hỏi flights/trains/hotel.
-- Thời gian: hiểu nhãn tiếng Việt như "hôm nay/mai/thứ x", "sáng/chiều/tối" hoặc "HH:mm-HH:mm".
-- Nếu không có kết quả: nói rõ **không tìm thấy**, gợi ý nới **giờ/giá/số ghế**, giữ nguyên ngôn ngữ Việt.
-=======
-Bạn là trợ lý tiếng việt *chỉ* hỗ trợ tìm *chuyến xe khách (bus)* trên hệ thống nội bộ.
-- Trả lời *tiếng Việt*, ngắn gọn và tuyệt đối không trả lời bằng tiếng anh.
+Bạn là trợ lý tiếng Việt chỉ hỗ trợ tìm chuyến xe khách (bus) trên hệ thống nội bộ.
+- Trả lời tiếng Việt, ngắn gọn và tuyệt đối không trả lời bằng tiếng Anh.
 - Nếu đủ dữ kiện: gọi function search_trips để tìm chuyến.
-- Nếu không có chuyến nào, nói rõ “Không tìm thấy chuyến nào phù hợp.” bằng tiếng Việt.
-- Nếu thiếu *from/to/date*: hỏi đúng trường bị thiếu, KHÔNG hỏi flights/trains/hotel.
+- Nếu không có chuyến nào, nói rõ "Không tìm thấy chuyến nào phù hợp." bằng tiếng Việt.
+- Nếu thiếu from/to/date: hỏi đúng trường bị thiếu, KHÔNG hỏi flights/trains/hotel.
 - Thời gian: hiểu nhãn tiếng Việt như "hôm nay/mai/thứ x", "sáng/chiều/tối" hoặc "HH:mm-HH:mm".
-- Nếu không có kết quả: nói rõ *không tìm thấy*, gợi ý nới *giờ/giá/số ghế*, giữ nguyên ngôn ngữ Việt.
->>>>>>> 0cb8e877b2f3af4d7f0e4097190fa585b8081be8
-SYS;
+- Nếu không có kết quả: nói rõ không tìm thấy, gợi ý nới giờ/giá/số ghế, giữ nguyên ngôn ngữ Việt.
 PROMPT
             ]]
         ];
@@ -168,8 +157,6 @@ PROMPT
             }
 
 
-            $dateYmd = \App\Support\Time\ViDatetimeParser::resolveDate($dateText, 'Asia/Bangkok')->format('Y-m-d');
-
             $dateYmd = ViDatetimeParser::resolveDate($dateText, 'Asia/Bangkok')->format('Y-m-d');
 
             // ---- Time window ----
@@ -220,22 +207,21 @@ PROMPT
                 return ['message' => 'Không thể tìm chuyến lúc này. Bạn thử lại sau nhé.'];
             }
 
-            // 5) Turn 2: gửi functionResponse cho Gemini để “kể chuyện” đẹp
+            // 5) Turn 2: gửi functionResponse cho Gemini để "kể chuyện" đẹp
             $payload2 = [
-                'contents' => [[
-                    'role' => 'model',
-                    'parts' => [[
+                'contents' => [
+                    $system,
+                    ['role' => 'user', 'parts' => [['text' => $userMessage]]],
+                    ['role' => 'model', 'parts' => [['functionCall' => $call]]],
+                    ['role' => 'function', 'parts' => [[
                         'functionResponse' => [
                             'name' => 'search_trips',
                             'response' => [
-                                'name' => 'search_trips',
-                                'content' => [
-                                    'trips' => $trips,
-                                ],
+                                'trips' => $trips,
                             ],
                         ]
-                    ]]
-                ]]
+                    ]]]
+                ]
             ];
 
             try {

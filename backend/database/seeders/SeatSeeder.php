@@ -2,32 +2,32 @@
 
 namespace Database\Seeders;
 
+use App\Models\Bus;
+use App\Services\SeatMaterializerService;
 use Illuminate\Database\Seeder;
-use App\Models\Seat;
 
 class SeatSeeder extends Seeder
 {
     public function run(): void
     {
-        for ($i = 1; $i <= 12; $i++) {
-            $deck = $i <= 6 ? 1 : 2;
-            $indexInColumn = $i <= 6 ? $i : $i - 6;
+        $materializer = app(SeatMaterializerService::class);
 
-            Seat::create([
-                'bus_id' => 1,
-                'seat_number' => 'A' . $i,
-                'deck' => $deck,
-                'column_group' => 'left',
-                'index_in_column' => $indexInColumn,
-            ]);
+        Bus::query()
+            ->orderBy('id')
+            ->get()
+            ->each(function (Bus $bus) use ($materializer) {
+                if (!$bus->seat_layout_template_id) {
+                    return;
+                }
 
-            Seat::create([
-                'bus_id' => 1,
-                'seat_number' => 'B' . $i,
-                'deck' => $deck,
-                'column_group' => 'right',
-                'index_in_column' => $indexInColumn,
-            ]);
-        }
+                $count = $materializer->materialize($bus, overwrite: true);
+
+                if ($count === 0) {
+                    $this->command?->warn("No template seats found for bus {$bus->code}.");
+                    return;
+                }
+
+                $this->command?->info("Materialized {$count} seats for bus {$bus->code}.");
+            });
     }
 }

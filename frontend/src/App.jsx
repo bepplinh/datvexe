@@ -16,6 +16,8 @@ import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 import AdminLogin from "./pages/AdminLogin/AdminLogin";
 import { AdminAuthProvider } from "./contexts/AdminAuthProvider";
 import User from "./pages/AdminDashboard/User/User";
+import Location from "./pages/AdminDashboard/Location/Location";
+import AdminRoutePage from "./pages/AdminDashboard/Route/Route";
 
 function App() {
     return (
@@ -66,6 +68,8 @@ function App() {
                 >
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/admin/users" element={<User />} />
+                    <Route path="/admin/locations" element={<Location />} />
+                    <Route path="/admin/routes" element={<AdminRoutePage />} />
                 </Route>
             </Routes>
         </BrowserRouter>

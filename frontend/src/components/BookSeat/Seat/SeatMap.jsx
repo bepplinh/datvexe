@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
 import seatSvgUrl from "../../../assets/seat.svg?url";
 import "./SeatMap.scss";
 import { useEcho } from "../../../contexts/EchoContext";
@@ -7,6 +8,7 @@ import axiosClient from "../../../apis/axiosClient";
 export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
     const echo = useEcho();
     const [seats, setSeats] = useState({});
+    const [loading, setLoading] = useState(false);
     const onSeatSelectRef = useRef(onSeatSelect);
     const onSeatsLoadedRef = useRef(onSeatsLoaded);
 
@@ -15,10 +17,10 @@ export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
 
         async function loadSeatLayout() {
             try {
+                setLoading(true);
                 const { data } = await axiosClient.get(
                     `/client/trips/${trip.trip_id}/seats`
                 );
-                console.log(data);
                 if (!data.success) return;
 
                 const seatMap = {};
@@ -39,6 +41,8 @@ export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
                 onSeatsLoadedRef.current?.(seatMap);
             } catch (error) {
                 console.error("Failed to load seat layout:", error);
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -208,6 +212,14 @@ export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
     };
 
     const busName = trip?.bus?.name || "NHÀ XE";
+
+    if (loading) {
+        return (
+            <div className="seat-map seat-map--loading">
+                <CircularProgress />
+            </div>
+        );
+    }
 
     return (
         <div className="seat-map">

@@ -33,6 +33,11 @@ class DraftCheckout extends Model
         'completed_at',
     ];
 
+    protected $casts = [
+        'expires_at' => 'datetime',
+        'completed_at' => 'datetime',
+    ];
+
     public function legs()
     {
         return $this->hasMany(DraftCheckoutLeg::class, 'draft_checkout_id');

@@ -1,0 +1,130 @@
+.location-form-dialog {
+    .MuiDialog-paper {
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+}
+
+.location-form {
+    &__title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 24px 16px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0c1d4a;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    &__close-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: #f8f9fa;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #6c757d;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: #e9ecef;
+            color: #0d6efd;
+        }
+    }
+
+    &__content {
+        padding: 24px;
+    }
+
+    &__fields {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    &__field {
+        .MuiOutlinedInput-root {
+            border-radius: 8px;
+        }
+    }
+
+    &__error {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    &__parent-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+
+    &__parent-label {
+        font-size: 14px;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    &__parent-name {
+        font-size: 14px;
+        color: #0d6efd;
+        font-weight: 600;
+    }
+
+    &__submit-error {
+        padding: 12px;
+        background: #f8d7da;
+        border: 1px solid #f5c2c7;
+        border-radius: 8px;
+        color: #842029;
+        font-size: 14px;
+    }
+
+    &__actions {
+        padding: 16px 24px;
+        border-top: 1px solid #e9ecef;
+        gap: 12px;
+    }
+
+    &__cancel-btn {
+        border-radius: 8px;
+        text-transform: none;
+        font-weight: 600;
+        padding: 10px 24px;
+        color: #6c757d;
+
+        &:hover {
+            background: #f8f9fa;
+        }
+    }
+
+    &__submit-btn {
+        border-radius: 8px;
+        text-transform: none;
+        font-weight: 600;
+        padding: 10px 24px;
+        background: linear-gradient(135deg, #0d6efd, #00aefd);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+
+        &:hover {
+            background: linear-gradient(135deg, #0b5ed7, #0099e6);
+            box-shadow: 0 6px 16px rgba(13, 110, 253, 0.4);
+        }
+
+        &:disabled {
+            background: #e9ecef;
+            color: #adb5bd;
+        }
+    }
+}
+

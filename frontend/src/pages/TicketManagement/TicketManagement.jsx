@@ -34,7 +34,6 @@ const TicketManagement = () => {
         try {
             setLoading(true);
             const response = await axiosClient.get("/bookings");
-            console.log(response);
 
             const bookings = response.data?.data?.data || [];
 
@@ -76,7 +75,6 @@ const TicketManagement = () => {
 
             setTickets(formattedTickets);
             setFilteredTickets(formattedTickets);
-            console.log("Tickets:", formattedTickets);
         } catch (error) {
             console.error("Error fetching tickets:", error);
             toast.error("Không thể tải danh sách vé. Vui lòng thử lại!");

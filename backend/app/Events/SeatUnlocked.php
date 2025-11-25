@@ -17,15 +17,19 @@ class SeatUnlocked implements ShouldBroadcastNow
         public array $unlocks
     ) {}
 
-    public function broadcastOn()
+    public function broadcastOn(): array
     {
         $channels = [];
 
         foreach ($this->unlocks as $unlock) {
-            $tripId = (int) $unlock['trip_id'];
-            $channels[] = new PrivateChannel("trip.{$tripId}");
+            $tripId = (int) ($unlock['trip_id'] ?? 0);
+            // Chỉ thêm channel nếu trip_id hợp lệ
+            if ($tripId > 0) {
+                $channels[] = new PrivateChannel("trip.{$tripId}");
+            }
         }
 
+        // Luôn thêm channel cho client session (giống SeatLocked và SeatBooked)
         if (!empty($this->sessionToken)) {
             $channels[] = new PrivateChannel("client.session.{$this->sessionToken}");
         }
@@ -33,12 +37,12 @@ class SeatUnlocked implements ShouldBroadcastNow
         return $channels;
     }
 
-    public function broadcastAs()
+    public function broadcastAs(): string
     {
         return 'SeatUnlocked';
     }
 
-    public function broadcastWith()
+    public function broadcastWith(): array
     {
         return [
             'session_token' => $this->sessionToken,

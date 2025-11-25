@@ -1,4 +1,12 @@
-import { LayoutDashboard, Users, Ticket, Bus, Settings } from "lucide-react";
+import {
+    LayoutDashboard,
+    Users,
+    Ticket,
+    Bus,
+    Settings,
+    MapPin,
+    Route,
+} from "lucide-react";
 
 export const SIDEBAR_MENU = [
     {
@@ -24,6 +32,18 @@ export const SIDEBAR_MENU = [
         label: "Quản lý chuyến xe",
         icon: Bus,
         path: "/admin/trips",
+    },
+    {
+        id: "locations",
+        label: "Quản lý địa điểm",
+        icon: MapPin,
+        path: "/admin/locations",
+    },
+    {
+        id: "routes",
+        label: "Quản lý tuyến",
+        icon: Route,
+        path: "/admin/routes",
     },
     {
         id: "settings",

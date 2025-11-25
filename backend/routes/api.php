@@ -23,7 +23,9 @@ use App\Http\Controllers\Auth\OtpAuthController;
 use App\Http\Controllers\Client\GeminiChatController;
 use App\Http\Controllers\Client\TripSearchController;
 use App\Http\Controllers\Admin\AdminBookingController;
+use App\Http\Controllers\Admin\RouteOptimizationController;
 use App\Http\Controllers\SeatLayoutTemplateController;
+use App\Http\Controllers\Client\ClientBookingController;
 use App\Http\Controllers\Client\ClientProfileController;
 use App\Http\Controllers\ScheduleTemplateTripController;
 use App\Http\Controllers\Client\ClientLocationController;
@@ -60,11 +62,17 @@ Route::post('payos/webhook', [PayOSWebhookController::class, 'handle']);
 Route::get('/payos/redirect/success', [PayOSRedirectController::class, 'success']);
 Route::get('/payos/redirect/cancel', [PayOSRedirectController::class, 'cancel']);
 
+// Test route để kiểm tra ngrok
+Route::get('/payos/test', function () {
+    return response()->json(['message' => 'PayOS route is working', 'time' => now()]);
+});
+
 Route::middleware(['auth:api', 'x-session-token'])->group(function () {
     Route::get('checkout/drafts/{draftId}', [DraftCheckoutController::class, 'show']);
     Route::put('drafts/{draftId}/payment', [CheckoutController::class, 'updateDraftPayment']);
     Route::post('checkout/lock-seats', [SeatLockController::class, 'lock']);
     Route::post('checkout/unlock-seats', [SeatLockController::class, 'unlock']);
+    Route::apiResource('bookings', ClientBookingController::class);
 
     Route::prefix('trips/{tripId}')->group(function () {
         Route::post('seats/select',   [SeatFlowController::class, 'select']);
@@ -79,6 +87,12 @@ Route::middleware(['auth:api', 'role:admin'])
     ->prefix('admin')
     ->group(function () {
         Route::post('bookings', [AdminBookingController::class, 'store']);
+
+        // Route optimization
+        Route::prefix('route-optimization')->group(function () {
+            Route::get('/trip/{tripId}', [RouteOptimizationController::class, 'optimizeTrip']);
+            Route::post('/trips', [RouteOptimizationController::class, 'optimizeMultipleTrips']);
+        });
     });
 
 Route::apiResource('/users', UserController::class);
@@ -127,7 +141,7 @@ Route::get('test', function () {
 Route::get('/test-send-mail', function () {
     // 1. Chỉ cần findOrFail. 
     // Mailable sẽ tự lo phần load relations.
-    $booking = Booking::findOrFail(1);
+    $booking = Booking::findOrFail(2);
 
     // 2. Gửi mail
     Mail::to('bep2702@gmail.com')->send(new BookingSuccessMail($booking));

@@ -7,22 +7,44 @@
     border: 1px solid #ffc107;
     border-radius: 8px;
     margin-bottom: 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+
+    @media (max-width: 768px) {
+        padding: 10px 12px;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
 
     &__icon {
         font-size: 24px;
         flex-shrink: 0;
+
+        @media (max-width: 768px) {
+            font-size: 20px;
+        }
     }
 
     &__text {
         display: flex;
         flex-direction: column;
         gap: 4px;
+        min-width: 0;
+        flex: 1;
     }
 
     &__label {
         font-size: 13px;
         color: #856404;
         font-weight: 500;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+
+        @media (max-width: 768px) {
+            font-size: 12px;
+        }
     }
 
     &__time {
@@ -31,6 +53,12 @@
         color: #ed1925;
         font-family: "Courier New", monospace;
         letter-spacing: 1px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+
+        @media (max-width: 768px) {
+            font-size: 18px;
+        }
     }
 
     &--expired {

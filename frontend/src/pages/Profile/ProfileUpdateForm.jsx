@@ -69,11 +69,9 @@ function ProfileUpdateForm({ initialData = {}, onSuccess }) {
                     });
                 });
             } else {
-                console.log(e);
                 toast.error("Đã có lỗi xảy ra, vui lòng thử lại !");
             }
         }
-        
     };
 
     return (

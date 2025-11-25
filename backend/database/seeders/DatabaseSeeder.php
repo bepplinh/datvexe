@@ -3,10 +3,9 @@
 namespace Database\Seeders;
 
 
-use App\Models\User;
+
 use Database\Seeders\BusSeeder;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 
 class DatabaseSeeder extends Seeder
@@ -26,7 +25,8 @@ class DatabaseSeeder extends Seeder
             SeatSeeder::class,
             TripSeeder::class,
             ScheduleTemplateTripSeeder::class,
-            CouponSeeder::class
+            CouponSeeder::class,
+            BookingSeeder::class,
         ]);
     }
 }

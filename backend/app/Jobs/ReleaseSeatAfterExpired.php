@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Events\SeatUnlocked;
 use App\Models\DraftCheckout;
+use App\Models\Seat;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -24,42 +25,85 @@ class ReleaseSeatAfterExpired implements ShouldQueue
 
     public function handle(): void
     {
-        Log::info('[ReleaseSeatAfterExpired] HANDLE START', [
-            'key' => $this->key,
-        ]);
-
         // Key mong đợi: session:{sessionToken}:ttl
         $parts = explode(':', $this->key);
 
         if (count($parts) !== 3 || $parts[0] !== 'session' || $parts[2] !== 'ttl') {
-            Log::info('[ReleaseSeatAfterExpired] Skip key (not session TTL)', [
-                'key'   => $this->key,
-                'parts' => $parts,
-            ]);
             return;
         }
 
         $sessionToken = $parts[1] ?? '';
         if ($sessionToken === '') {
-            Log::warning('[ReleaseSeatAfterExpired] Empty session token after parse', [
-                'key' => $this->key,
-            ]);
             return;
         }
 
         $redis    = Redis::connection('default');
         $tripsKey = "sess:{$sessionToken}:trips";
+        $sessionSeatsKey = "session:{$sessionToken}:seats";
 
-        // Lấy tất cả trip mà session này có ghế
-        $tripIds = $redis->smembers($tripsKey);
+        // ✅ ƯU TIÊN: Lấy thông tin từ DRAFT (database) trước vì Redis có thể đã expire
+        $legsByTrip = [];
+        $seatsByTripFromDraft = [];
 
-        Log::info('[ReleaseSeatAfterExpired] Trips for session', [
-            'session'  => $sessionToken,
-            'trip_key' => $tripsKey,
-            'trip_ids' => $tripIds,
-        ]);
+        $draft = DraftCheckout::query()
+            ->with(['legs.items', 'items'])
+            ->where('session_token', $sessionToken)
+            ->whereIn('status', ['pending', 'paying'])
+            ->first();
+
+        if ($draft && !$draft->relationLoaded('legs')) {
+            $draft->load('legs.items');
+        }
+
+        if ($draft && $draft->legs) {
+            foreach ($draft->legs as $leg) {
+                $tripId = (int) $leg->trip_id;
+                if ($tripId > 0) {
+                    $legsByTrip[$tripId] = $leg->leg;
+
+                    if ($leg->items && $leg->items->isNotEmpty()) {
+                        $seatIds = $leg->items->pluck('seat_id')
+                            ->filter(fn($id) => $id > 0)
+                            ->unique()
+                            ->values()
+                            ->toArray();
+
+                        if (!empty($seatIds)) {
+                            $seatsByTripFromDraft[$tripId] = $seatIds;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Lấy trips từ draft (ưu tiên) hoặc từ Redis (fallback)
+        $tripIds = [];
+
+        if (!empty($legsByTrip)) {
+            $tripIds = array_keys($legsByTrip);
+        } else {
+            $tripIds = $redis->smembers($tripsKey);
+
+            if (empty($tripIds)) {
+                $sessionSeats = $redis->smembers($sessionSeatsKey);
+                $tripIdsFromSeats = [];
+
+                foreach ($sessionSeats as $pair) {
+                    $parts = explode(':', $pair, 2);
+                    if (count($parts) === 2) {
+                        $tripId = (int) $parts[0];
+                        if ($tripId > 0 && !in_array($tripId, $tripIdsFromSeats, true)) {
+                            $tripIdsFromSeats[] = $tripId;
+                        }
+                    }
+                }
+
+                $tripIds = $tripIdsFromSeats;
+            }
+        }
 
         $unlocks = [];
+        $allSeatIds = [];
 
         if (!empty($tripIds)) {
             foreach ($tripIds as $tripId) {
@@ -68,22 +112,50 @@ class ReleaseSeatAfterExpired implements ShouldQueue
                     continue;
                 }
 
-                // Set chứa các seat mà session này lock trên trip này
-                $sessSeatsKey = "trip:{$tripId}:sess:{$sessionToken}:s";
-                $seatIds      = $redis->smembers($sessSeatsKey);
+                // ✅ ƯU TIÊN: Lấy seats từ draft (database) trước
+                $seatIds = [];
+                // Tạo key Redis - tạo lại ở mỗi chỗ để tránh vấn đề scope
+                $sessSeatsKeyForTrip = "trip:{$tripId}:sess:{$sessionToken}:s";
+
+                if (isset($seatsByTripFromDraft[$tripId]) && !empty($seatsByTripFromDraft[$tripId])) {
+                    $seatIds = $seatsByTripFromDraft[$tripId];
+                } else {
+                    $seatIds = $redis->smembers($sessSeatsKeyForTrip);
+                    $seatIds = array_map('intval', $seatIds);
+                    $seatIds = array_values(array_filter($seatIds, fn($id) => $id > 0));
+
+                    if (empty($seatIds)) {
+                        $sessionSeats = $redis->smembers($sessionSeatsKey);
+
+                        foreach ($sessionSeats as $pair) {
+                            $parts = explode(':', $pair, 2);
+                            if (count($parts) === 2 && (int)$parts[0] === $tripId) {
+                                $seatId = (int) $parts[1];
+                                if ($seatId > 0) {
+                                    $seatIds[] = $seatId;
+                                }
+                            }
+                        }
+
+                        $seatIds = array_values(array_unique($seatIds));
+                    }
+                }
 
                 if (empty($seatIds)) {
                     // Không còn ghế cho trip này -> xoá set và tiếp
-                    $redis->del($sessSeatsKey);
+                    $redis->del($sessSeatsKeyForTrip);
                     continue;
                 }
+
+                // Thu thập tất cả seat IDs để query một lần
+                $allSeatIds = array_merge($allSeatIds, array_map('intval', $seatIds));
 
                 // 1) Xoá ghế khỏi set locked chung của trip
                 $lockedKey = "trip:{$tripId}:locked";
                 $redis->srem($lockedKey, ...$seatIds);
 
                 // 2) Xoá set ghế theo session
-                $redis->del($sessSeatsKey);
+                $redis->del($sessSeatsKeyForTrip);
 
                 // 3) Xoá từng key lock ghế
                 foreach ($seatIds as $seatId) {
@@ -91,13 +163,38 @@ class ReleaseSeatAfterExpired implements ShouldQueue
                     $redis->del($lockKey);
                 }
 
-                // Gom vào payload để bắn event realtime
+                // Gom vào payload để bắn event realtime (tạm thời chưa có seat_labels)
                 $unlocks[] = [
                     'trip_id' => $tripId,
                     'seat_id' => array_map('intval', $seatIds),
                 ];
             }
         }
+
+        // Query seat_labels từ database nếu có seat IDs
+        $seatLabelsById = [];
+        if (!empty($allSeatIds)) {
+            $seatLabelsById = Seat::whereIn('id', array_unique($allSeatIds))
+                ->pluck('seat_number', 'id')
+                ->toArray();
+        }
+
+        // Cập nhật unlocks với seat_labels và leg
+        foreach ($unlocks as &$unlock) {
+            $tripId = (int) ($unlock['trip_id'] ?? 0);
+            $seatIds = $unlock['seat_id'] ?? [];
+
+            $unlock['seat_labels'] = array_map(
+                fn($seatId) => $seatLabelsById[$seatId] ?? (string) $seatId,
+                $seatIds
+            );
+
+            // Thêm leg nếu có
+            if (isset($legsByTrip[$tripId])) {
+                $unlock['leg'] = $legsByTrip[$tripId];
+            }
+        }
+        unset($unlock);
 
         // Xoá danh sách trip của session này (vì session TTL đã hết)
         $redis->del($tripsKey);
@@ -107,58 +204,38 @@ class ReleaseSeatAfterExpired implements ShouldQueue
 
         // Nếu có ghế thực sự được giải phóng -> bắn event realtime
         if (!empty($unlocks)) {
-            Log::info('[ReleaseSeatAfterExpired] Dispatch SeatUnlocked event', [
-                'session' => $sessionToken,
-                'unlocks' => $unlocks,
-            ]);
+            try {
+                $event = new SeatUnlocked(
+                    sessionToken: $sessionToken,
+                    unlocks: $unlocks
+                );
 
-            event(new SeatUnlocked(
-                sessionToken: $sessionToken,
-                unlocks:      $unlocks
-            ));
+                broadcast($event);
+            } catch (\Throwable $e) {
+                Log::error('[ReleaseSeatAfterExpired] Failed to broadcast SeatUnlocked event', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
         }
-
-        Log::info('[ReleaseSeatAfterExpired] HANDLE DONE', [
-            'session'       => $sessionToken,
-            'unlock_count'  => count($unlocks),
-        ]);
     }
 
     protected function expireDraftsBySession(string $sessionToken): void
     {
-        Log::info('[ReleaseSeatAfterExpired] expire drafts for session', [
-            'session' => $sessionToken,
-        ]);
-
         DraftCheckout::query()
             ->where('session_token', $sessionToken)
-            ->whereIn('status', ['pending', 'paying']) // chỉnh theo enum status của bạn
-            ->chunkById(50, function ($drafts) use ($sessionToken) {
-                Log::info('[ReleaseSeatAfterExpired] drafts found', [
-                    'session' => $sessionToken,
-                    'count'   => $drafts->count(),
-                ]);
-
+            ->whereIn('status', ['pending', 'paying'])
+            ->chunkById(50, function ($drafts) {
                 foreach ($drafts as $draft) {
                     DB::transaction(function () use ($draft) {
                         $draft->refresh();
 
                         if (!in_array($draft->status, ['pending', 'paying'], true)) {
-                            Log::info('[ReleaseSeatAfterExpired] skip draft, status now', [
-                                'draft_id' => $draft->id,
-                                'status'   => $draft->status,
-                            ]);
                             return;
                         }
 
                         $draft->update([
                             'status' => 'expired',
-                            // 'expired_at' => now(), // nếu có
-                        ]);
-
-                        Log::info('[ReleaseSeatAfterExpired] draft expired', [
-                            'draft_id' => $draft->id,
-                            'status'   => $draft->status,
                         ]);
                     });
                 }

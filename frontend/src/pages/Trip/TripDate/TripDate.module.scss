@@ -9,6 +9,15 @@
   flex: 1 1 0; /* flex-grow: 1, flex-shrink: 1, flex-basis: 0 - chia đều */
   min-width: 0; /* Cho phép flex item co lại nhỏ hơn content */
   max-width: 100%; /* Đảm bảo không vượt quá container */
+
+  @media (max-width: 768px) {
+    height: auto;
+    min-height: 50px;
+  }
+
+  @media (max-width: 480px) {
+    min-height: 48px;
+  }
 }
 
 .background {
@@ -21,6 +30,16 @@
   padding: 8px;
   min-width: 0; /* Cho phép co lại */
   width: 100%; /* Chiếm toàn bộ width của container */
+
+  @media (max-width: 768px) {
+    padding: 6px;
+    column-gap: 8px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 6px 8px;
+    column-gap: 6px;
+  }
 }
 
 .dim {
@@ -71,6 +90,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+
+  @media (max-width: 768px) {
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+    line-height: 16px;
+  }
 }
 
 .subtitle {
@@ -83,4 +112,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
+
+  @media (max-width: 768px) {
+    font-size: 13px;
+    line-height: 20px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+    line-height: 18px;
+  }
 }

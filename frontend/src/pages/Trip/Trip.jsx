@@ -22,7 +22,6 @@ function TripContent() {
 
     const onSubmit = async () => {
         const result = await handleSearchTrip();
-        console.log(result);
         if (!result.success) {
             toast.warning(result.message);
             return;

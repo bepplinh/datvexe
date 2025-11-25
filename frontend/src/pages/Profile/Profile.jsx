@@ -12,10 +12,8 @@ function Profile() {
     const fetchProfile = async () => {
         try {
             const res = await axiosClient.get("/info");
-            console.log(res);
             setProfile(res.data);
         } catch (e) {
-            console.log(e);
             toast.error("Đã có lỗi xảy ra !");
             setError("Không tải được thông tin hồ sơ. Vui lòng thử lại.");
         } finally {
@@ -33,6 +31,7 @@ function Profile() {
         }
         fetchProfile();
     };
+
     return (
         <div className="profile-page">
             <h1 className="profile-page__title">Thông tin cá nhân</h1>

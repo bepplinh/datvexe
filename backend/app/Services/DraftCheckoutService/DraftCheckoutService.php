@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Services\DraftCheckoutService;
 
 use App\Models\Seat;
@@ -11,7 +10,6 @@ use App\Models\DraftCheckoutItem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-
 
 class DraftCheckoutService
 {
@@ -30,46 +28,41 @@ class DraftCheckoutService
             throw ValidationException::withMessages(['trips' => ['Không có ghế hợp lệ.']]);
         }
 
-        // 2) Load Trip + Seat
         $tripInfo = $this->loadTripsAndSeats($seatsByTrip);
-
-        // 3) Tính giá theo logic của bạn (computeSeatSnapshots)
-        $snapshotsByTrip = []; // [tripId => [ [seat_id, seat_code, price], ... ]]
+        $snapshotsByTrip = [];
         foreach ($tripInfo as $tripId => $info) {
             $seats = $info['seats']->only($seatsByTrip[$tripId])->values();
             $snapshotsByTrip[$tripId] = $this->computeSeatSnapshots((int)$tripId, $seats);
         }
 
-        // 4) Transaction tạo/cập nhật draft + legs + items
-        $result = DB::transaction(function () use ($seatsByTrip, $legsByTrip, $snapshotsByTrip, $token, $userId, $ttlSeconds , $fromLocationId, $toLocationId, $fromLocation, $toLocation) {
-
-            // 4.1 Upsert draft theo session_token (idempotent)
+        $result = DB::transaction(function () use ($seatsByTrip, $legsByTrip, $snapshotsByTrip, $token, $userId, $ttlSeconds, $fromLocationId, $toLocationId, $fromLocation, $toLocation) {
+            $ttlSeconds = max(1, (int) $ttlSeconds);
+            $now = now();
+            $expiresAt = $now->copy()->addSeconds($ttlSeconds);
             $draft = DraftCheckout::query()
                 ->where('session_token', $token)
                 ->whereIn('status', ['pending', 'paying'])
-                ->where('expires_at', '>', now())
+                ->where('expires_at', '>', $now)
                 ->lockForUpdate()
                 ->first();
 
             if (!$draft) {
-                $draft = DraftCheckout::query()->create([
-                    'user_id'        => $userId,
-                    'session_token'  => $token,
-                    'status'         => 'pending',
-                    'currency'       => 'VND',
-                    'total_price'    => 0,
+                $draft = DraftCheckout::create([
+                    'user_id' => $userId,
+                    'session_token' => $token,
+                    'status' => 'pending',
+                    'currency' => 'VND',
+                    'total_price' => 0,
                     'discount_amount' => 0,
-                    'expires_at'     => now()->addSeconds($ttlSeconds),
+                    'expires_at' => $expiresAt,
                 ]);
             } else {
-                // gia hạn thời gian theo TTL mới nhất
                 $draft->update([
-                    'expires_at' => now()->addSeconds($ttlSeconds),
+                    'expires_at' => $expiresAt,
                 ]);
             }
 
-            // 4.2 Đảm bảo legs tồn tại cho từng trip
-            $legMap = []; // [tripId => DraftCheckoutLeg]
+            $legMap = [];
             $existingLegs = DraftCheckoutLeg::query()
                 ->where('draft_checkout_id', $draft->id)
                 ->whereIn('trip_id', array_keys($seatsByTrip))
@@ -86,7 +79,7 @@ class DraftCheckoutService
 
                     if ($legCode === 'RETURN') {
                         [$fromLocationId, $toLocationId] = [$toLocationId, $fromLocationId];
-                        [$fromLocation, $toLocation] = [$toLocation,$fromLocation];
+                        [$fromLocation, $toLocation] = [$toLocation, $fromLocation];
                     }
 
                     $newLegRows[] = [
@@ -115,7 +108,6 @@ class DraftCheckoutService
                 }
             }
 
-            // 4.3 (Idempotent) Xoá items cũ của các legs “mục tiêu”, rồi insert mới
             $legIds = array_map(fn($l) => $l->id, $legMap);
             if (!empty($legIds)) {
                 DraftCheckoutItem::query()
@@ -127,9 +119,9 @@ class DraftCheckoutService
             $subtotalDraft = 0;
             foreach ($seatsByTrip as $tripId => $seatIds) {
                 $leg   = $legMap[$tripId];
-                $snap  = $snapshotsByTrip[$tripId]; // all seats of this trip (already filtered)
+                $snap = $snapshotsByTrip[$tripId];
                 foreach ($snap as $s) {
-                    if (!in_array($s['seat_id'], $seatIds, true)) continue; // safety
+                    if (!in_array($s['seat_id'], $seatIds, true)) continue;
                     $price = (int)$s['price'];
                     $itemRows[] = [
                         'draft_checkout_id'     => $draft->id,
@@ -149,7 +141,6 @@ class DraftCheckoutService
                 DraftCheckoutItem::insert($itemRows);
             }
 
-            // 4.4 Cập nhật totals từng leg
             $legTotals = DraftCheckoutItem::query()
                 ->selectRaw('draft_checkout_leg_id, SUM(price) as sum_price')
                 ->whereIn('draft_checkout_leg_id', $legIds)
@@ -165,21 +156,37 @@ class DraftCheckoutService
                 ]);
             }
 
-            // 4.5 Cập nhật totals draft
-            $discountDraft = 0; // TODO: áp dụng coupon nếu có
-            $totalDraft    = max(0, $subtotalDraft - $discountDraft);
-            $draft->update([
-                'total_price'     => $totalDraft,
-                'discount_amount' => $discountDraft,
-            ]);
+            $savedExpiresAt = $draft->expires_at;
+            $discountDraft = 0;
+            $totalDraft = max(0, $subtotalDraft - $discountDraft);
+            
+            DraftCheckout::where('id', $draft->id)
+                ->update([
+                    'subtotal_price' => $subtotalDraft,
+                    'total_price' => $totalDraft,
+                    'discount_amount' => $discountDraft,
+                ]);
+            
+            $draft->refresh();
+            
+            // Khôi phục expires_at nếu bị thay đổi do MySQL ON UPDATE CURRENT_TIMESTAMP
+            $currentExpiresAt = $draft->expires_at instanceof \Carbon\Carbon 
+                ? $draft->expires_at->timestamp 
+                : strtotime($draft->expires_at);
+            $savedExpiresAtTimestamp = $savedExpiresAt instanceof \Carbon\Carbon 
+                ? $savedExpiresAt->timestamp 
+                : strtotime($savedExpiresAt);
+                
+            if ($currentExpiresAt != $savedExpiresAtTimestamp) {
+                DraftCheckout::where('id', $draft->id)
+                    ->update(['expires_at' => $savedExpiresAt]);
+                $draft->refresh();
+            }
 
-            // Chuẩn bị response
             $items = DraftCheckoutItem::query()
                 ->where('draft_checkout_id', $draft->id)
                 ->orderBy('draft_checkout_leg_id')
                 ->get();
-
-            // Gắn leg code (OUT/RETURN) cho từng item
             $legCodeById = [];
             foreach ($legMap as $tripId => $leg) {
                 $legCodeById[$leg->id] = $legsByTrip[$tripId] ?? $leg->leg;

@@ -16,10 +16,6 @@ class SeatLockController extends Controller
         private SeatReleaseService $seatRelease
     ) {}
 
-    /**
-     * POST /api/checkout/lock-seats
-     * Body:
-     */
     public function lock(Request $request)
     {
         $data = $request->validate([
@@ -43,8 +39,26 @@ class SeatLockController extends Controller
         ]);
 
         $ttl = (int) (SeatLockService::DEFAULT_TTL);
-        $token = $request->header('X-Session-Token');
         $userId = Auth::id();
+        $oldToken = $request->header('X-Session-Token');
+        $shouldCreateNewToken = true;
+
+        if ($oldToken) {
+            $existingDraft = \App\Models\DraftCheckout::where('session_token', $oldToken)
+                ->whereIn('status', ['pending', 'paying'])
+                ->where('expires_at', '>', now())
+                ->first();
+
+            if ($existingDraft) {
+                $token = $oldToken;
+                $shouldCreateNewToken = false;
+            }
+        }
+
+        if ($shouldCreateNewToken) {
+            $token = \Illuminate\Support\Str::random(32);
+            $request->headers->set('X-Session-Token', $token);
+        }
 
         $result = $this->seatLock->lock(
             trips: $data['trips'],
@@ -57,7 +71,6 @@ class SeatLockController extends Controller
             to_location: $data['to_location']
         );
 
-        // ✅ Trả về session_token trong response để frontend lưu vào cookie
         return response()->json([
             'success' => true,
             'session_token' => $token,

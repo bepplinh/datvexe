@@ -18,6 +18,23 @@
     user-select: none;
     padding: 0;
 
+    @media (max-width: 768px) {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+
+    @media (max-width: 480px) {
+        position: relative;
+        top: auto;
+        left: auto;
+        transform: none;
+        width: 40px;
+        height: 40px;
+        margin: 8px auto;
+        align-self: center;
+    }
+
     transition: background-color 0.2s ease,
                 border-color 0.2s ease,
                 box-shadow 0.2s ease,
@@ -26,12 +43,20 @@
     &:hover {
         border-color: #cccccc;
         transform: translate(-50%, -50%) translateY(-1px);
+
+        @media (max-width: 480px) {
+            transform: translateY(-1px);
+        }
     }
 
     &:active {
         background-color: #f0f0f0;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
         transform: translate(-50%, -50%);
+
+        @media (max-width: 480px) {
+            transform: none;
+        }
     }
 
     &:disabled {
@@ -39,6 +64,10 @@
         cursor: not-allowed;
         box-shadow: none;
         transform: translate(-50%, -50%);
+
+        @media (max-width: 480px) {
+            transform: none;
+        }
     }
 }
 

@@ -2,670 +2,439 @@
 <html lang="vi">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xác Nhận Đặt Vé Thành Công</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Xác nhận đặt vé</title>
     <style>
+        :root {
+            color-scheme: light;
+        }
+
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f5f5f5;
-            padding: 20px;
+            margin: 0;
+            padding: 24px;
+            background: #f5f7fb;
+            font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #0f172a;
             line-height: 1.6;
         }
 
-        .email-container {
+        .email-shell {
+            max-width: 760px;
             margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 12px;
+            background: #ffffff;
+            border-radius: 18px;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+            border: 1px solid #e2e8f0;
         }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 10px;
+        .email-head {
+            background: radial-gradient(circle at top, #1d4ed8, #0f172a);
+            color: #fff;
+            padding: 32px 32px 24px;
             text-align: center;
         }
 
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
+        .email-head h1 {
+            margin: 0 0 6px;
+            font-size: 22px;
+            letter-spacing: 0.3px;
         }
 
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
+        .email-head p {
+            margin: 0;
+            font-size: 15px;
+            opacity: 0.85;
         }
 
-        .status-badge {
+        .status-pill {
             display: inline-block;
-            background-color: #10b981;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 13px;
+            margin-top: 18px;
+            padding: 6px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
             font-weight: 600;
-            margin-top: 15px;
-        }
-
-        .content {
-            padding: 30px 20px;
-        }
-
-        .ticket-code {
-            text-align: center;
-            padding: 15px;
-            background-color: #f9fafb;
-            border-radius: 8px;
-            margin-bottom: 25px;
-        }
-
-        .ticket-code label {
-            display: block;
             font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 8px;
-            font-weight: 500;
+            letter-spacing: 0.5px;
         }
 
-        .ticket-code .code {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1f2937;
-            letter-spacing: 2px;
+        .email-body {
+            padding: 32px;
         }
 
-        .route-info {
-            background: linear-gradient(to right, #fef3c7, #fde68a);
+        .summary-card {
+            background: #f8fafc;
+            border-radius: 16px;
             padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
         }
 
-        .route-header {
-            display: table;
-            width: 100%;
-            border-spacing: 0;
-            margin-bottom: 15px;
+        .summary-item label {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.7px;
+            margin-bottom: 6px;
         }
 
-        .route-time {
+        .summary-item span {
             font-size: 18px;
             font-weight: 700;
-            color: #92400e;
-            display: table-cell;
-            vertical-align: middle;
-            width: 50%;
-            text-align: center;
+            color: #0f172a;
+            word-break: break-word;
         }
 
-        .route-locations {
-            display: table;
-            width: 100%;
-            border-spacing: 0;
-            margin-bottom: 12px;
+        .trip-stack {
+            display: grid;
+            gap: 18px;
         }
 
-        .route-date {
-            text-align: center;
-            font-size: 13px;
-            color: #78350f;
-            font-weight: 600;
+        .trip-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 22px;
         }
 
-        .route-location {
-            width: 40%;
-            display: table-cell;
-            vertical-align: top;
-        }
-
-        .route-location .label {
-            font-size: 12px;
-            color: #78350f;
-            margin-bottom: 4px;
-        }
-
-        .route-location .location {
-            font-size: 18px;
-            font-weight: 700;
-            color: #92400e;
-        }
-
-        .route-icon {
-            padding: 0 15px;
-            font-size: 24px;
-            width: 20%;
-            text-align: center;
-            display: table-cell;
-            vertical-align: middle;
-        }
-
-        .trip-price {
-            background-color: #ecfdf5;
-            padding: 12px 15px;
-            border-radius: 6px;
-            text-align: center;
-            border: 2px solid #a7f3d0;
-            margin-bottom: 15px;
-        }
-
-        .trip-price label {
-            display: block;
-            font-size: 12px;
-            color: #065f46;
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
-
-        .trip-price .amount {
-            font-size: 20px;
-            font-weight: 700;
-            color: #059669;
-        }
-
-        .trip-price .currency {
-            font-size: 13px;
-            color: #047857;
-            margin-left: 3px;
-        }
-
-        .info-grid {
-            width: 100%;
-            border-spacing: 15px 0;
-        }
-
-        .info-item {
-            background-color: #f9fafb;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-
-        .info-item label {
-            display: block;
-            font-size: 12px;
-            color: #6b7280;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-
-        .info-item .value {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .full-width {
-            width: 100%;
-        }
-
-        .pickup-info {
-            background-color: #eff6ff;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            border: 2px solid #dbeafe;
-        }
-
-        .pickup-info h3 {
-            font-size: 16px;
-            color: #1e40af;
-            margin-bottom: 12px;
+        .trip-card__title {
             display: flex;
             align-items: center;
-        }
-
-        .pickup-info h3::before {
-            content: "📍";
-            margin-right: 8px;
-        }
-
-        .pickup-item {
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: #1f2937;
-        }
-
-        .pickup-item strong {
-            color: #1e40af;
-            display: inline-block;
-            min-width: 90px;
-        }
-
-        .trips-container-table {
-            width: 100%;
-            /* border-spacing sẽ được set inline */
-            margin-bottom: 20px;
-            table-layout: fixed;
-        }
-
-        .trip-section-td {
-            vertical-align: top;
-            padding: 0;
-        }
-
-        .trip-section-content {
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 20px;
-            height: 100%;
-        }
-
-        .trip-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 16px;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            font-size: 15px;
             font-weight: 600;
-            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #475569;
         }
 
-        .price-section {
-            background-color: #f9fafb;
-            padding: 10px 20px;
-            border-radius: 8px;
-            /* display: flex;
-            align-items: center; */
-            margin-bottom: 25px;
-            border: 2px solid #e5e7eb;
+        .trip-card__badge {
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 12px;
+            font-weight: 600;
         }
 
-        .price-section-child {
+        .trip-card__main {
+            display: flex;
+            flex-wrap: wrap;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .trip-card__time {
+            flex: 1 1 200px;
+            padding: 18px;
+            background: #0f172a;
+            color: #fff;
+        }
+
+        .trip-card__time strong {
+            display: block;
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+
+        .trip-card__time span {
+            font-size: 13px;
+            opacity: 0.75;
+        }
+
+        .trip-card__route {
+            flex: 2 1 280px;
+            padding: 18px 22px;
+            background: #fff;
+        }
+
+        .route-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .route-point {
+            flex: 1;
+        }
+
+        .route-point label {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+        .route-point strong {
+            font-size: 18px;
+            color: #0f172a;
+        }
+
+        .route-arrow {
+            font-size: 18px;
+            color: #94a3b8;
+        }
+
+        .trip-meta {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+        }
+
+        .meta-box {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+
+        .meta-box label {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            letter-spacing: 0.6px;
+            margin-bottom: 6px;
+        }
+
+        .meta-box span {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .price-breakdown {
+            margin: 28px 0 20px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .price-row {
             display: flex;
             justify-content: space-between;
-            align-items: center
+            padding: 14px 20px;
+            font-size: 16px;
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        .price-section label {
-            font-size: 14px;
-            color: #6b7280;
-            font-weight: 500;
+        .price-row:last-child {
+            border-bottom: none;
         }
 
-        .price-section .amount {
-            font-size: 20px;
+        .price-row--highlight {
+            background: #0f172a;
+            color: #fff;
             font-weight: 700;
-            color: #10b981;
         }
 
-        .price-section .currency {
+        .note-card {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 14px;
+            padding: 18px 20px;
             font-size: 14px;
-            color: #6b7280;
-            margin-left: 4px;
+            color: #78350f;
         }
 
-        .note {
-            background-color: #fef3c7;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #f59e0b;
-            margin-bottom: 25px;
-        }
-
-        .note p {
-            font-size: 13px;
-            color: #92400e;
-            margin-bottom: 8px;
-        }
-
-        .note p:last-child {
-            margin-bottom: 0;
-        }
-
-        .footer {
-            background-color: #f9fafb;
-            padding: 20px;
+        .email-foot {
+            padding: 22px;
             text-align: center;
-            border-top: 1px solid #e5e7eb;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
         }
 
-        .footer p {
+        .email-foot p {
+            margin: 0;
+            color: #475569;
             font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 10px;
         }
 
-        .contact-info {
+        .contact {
+            margin-top: 6px;
             font-size: 12px;
-            color: #9ca3af;
+            color: #94a3b8;
         }
 
-        @media only screen and (max-width: 600px) {
+        @media screen and (max-width: 640px) {
             body {
-                padding: 10px;
+                padding: 12px;
             }
 
-            .email-container {
-                max-width: 100% !important;
+            .email-body {
+                padding: 22px 20px;
             }
 
-            .header h1 {
-                font-size: 20px;
-            }
-
-            .ticket-code .code {
-                font-size: 26px;
-            }
-
-            .trips-container-table,
-            .info-grid {
-                display: block !important;
-                width: 100% !important;
-                border-spacing: 0 !important;
-            }
-
-            .trip-section-td {
-                display: block !important;
-                width: 100% !important;
-                padding: 0 0 15px 0 !important;
-            }
-
-            .route-locations {
-                display: block !important;
-                text-align: center;
-            }
-
-            .route-location,
-            .route-icon {
-                display: block !important;
-                width: 100% !important;
-                padding: 5px 0 !important;
-                text-align: center !important;
-            }
-
-            .route-icon {
-                transform: rotate(90deg);
-            }
-
-            .price-section {
+            .trip-card__main {
                 flex-direction: column;
-                gap: 10px;
-                text-align: center;
+            }
+
+            .trip-card__time,
+            .trip-card__route {
+                flex: 1 1 auto;
+            }
+
+            .price-row {
+                flex-direction: column;
+                gap: 6px;
+                text-align: left;
             }
         }
     </style>
 </head>
 
 <body>
-
     @php
-        $outboundLeg = $booking->legs->first(fn($leg) => strtoupper($leg->leg_type) === 'OUT');
-        $returnLeg = $booking->legs->first(fn($leg) => strtoupper($leg->leg_type) === 'RETURN');
-        $isTwoColumn = $outboundLeg && $returnLeg;
-        $containerWidth = $isTwoColumn ? 1000 : 700;
+        $legs = $booking->legs ?? collect();
+        $outboundLeg = $legs->first(fn($leg) => strtoupper($leg->leg_type) === 'OUT');
+        $returnLeg = $legs->first(fn($leg) => strtoupper($leg->leg_type) === 'RETURN');
+        $segments = collect(
+            array_filter([
+                [
+                    'title' => 'Chiều đi',
+                    'emoji' => '🚌',
+                    'leg' => $outboundLeg,
+                ],
+                [
+                    'title' => 'Chiều về',
+                    'emoji' => '🏠',
+                    'leg' => $returnLeg,
+                ],
+            ]),
+        )->whereNotNull('leg');
 
-        // THAY ĐỔI: Thêm biến để điều chỉnh border-spacing
-        $tableBorderSpacing = $isTwoColumn ? '20px 0' : '0';
-
-        $getSeatList = fn($leg) => $leg ? $leg->items->pluck('seat.seat_number')->filter()->join(', ') : '';
-        $getSeatCount = fn($leg) => $leg ? $leg->items->count() : 0;
+        $formatTime = fn($date) => $date ? \Carbon\Carbon::parse($date)->format('H:i') : '--';
+        $formatDate = fn($date) => $date ? \Carbon\Carbon::parse($date)->format('d/m/Y') : '--';
+        $seatList = fn($leg) => $leg?->items?->pluck('seat.seat_number')->filter()->implode(', ') ?: '—';
+        $seatCount = fn($leg) => $leg?->items?->count() ?: 0;
+        $passengerName = $booking->customer_name ?: optional($booking->user)->name ?: 'Quý khách';
+        $totalTickets = $legs->sum(fn($leg) => $leg->items->count());
     @endphp
 
-    <div class="email-container" style="max-width: {{ $containerWidth }}px;">
-        <div class="header">
-            <h1>🎉 Đặt Vé Thành Công!</h1>
-            <p>Cảm ơn quý khách đã sử dụng dịch vụ của DucAnhTransport</p>
-            <div class="status-badge">✓ Đã Thanh Toán</div>
+    <div class="email-shell">
+        <div class="email-head">
+            <h1>Đặt vé thành công</h1>
+            <p>Cảm ơn bạn đã tin tưởng DucAnh Transport</p>
+            <div class="status-pill">Thanh toán xác nhận</div>
         </div>
 
-        <div class="content">
-            <div class="ticket-code">
-                <label>MÃ VÉ CỦA BẠN</label>
-                <div class="code">{{ $booking->code }}</div>
-            </div>
-
-            {{-- THAY ĐỔI: Thêm $tableBorderSpacing vào style --}}
-            <table class="trips-container-table" cellpadding="0" cellspacing="0" border="0"
-                style="width: 100%; border-spacing: {{ $tableBorderSpacing }}; margin-bottom: 20px; table-layout: fixed;">
-                <tr>
-                    @if ($outboundLeg)
-                        <td class="trip-section-td"
-                            style="width: {{ $isTwoColumn ? '50%' : '100%' }}; vertical-align: top; padding: 0;">
-                            <div class="trip-section-content"
-                                style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; height: 100%;">
-                                {{-- ... (Nội dung Chiều Đi giữ nguyên) ... --}}
-                                <div class="trip-header"
-                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 16px; border-radius: 6px; margin-bottom: 15px; font-size: 16px; font-weight: 600; text-align: center;">
-                                    🚌 Chiều Đi</div>
-                                <div class="route-info"
-                                    style="background: linear-gradient(to right, #fef3c7, #fde68a); padding: 20px; border-radius: 8px; margin-bottom: 15px;">
-                                    <div class="route-header"
-                                        style="display: table; width: 100%; border-spacing: 0; margin-bottom: 15px;">
-                                        <div class="route-time"
-                                            style="font-size: 18px; font-weight: 700; color: #92400e; display: table-cell; vertical-align: middle; width: 50%; text-align: center;">
-                                            ⏰ {{ optional($outboundLeg->trip->departure_time)->format('H:i') ?? '---' }}
-                                        </div>
-                                    </div>
-                                    <div class="route-locations"
-                                        style="display: table; width: 100%; border-spacing: 0; margin-bottom: 12px;">
-                                        <div class="route-location"
-                                            style="width: 40%; display: table-cell; vertical-align: top;">
-                                            <div class="label"
-                                                style="font-size: 12px; color: #78350f; margin-bottom: 4px;">Điểm đi
-                                            </div>
-                                            <div class="location"
-                                                style="font-size: 18px; font-weight: 700; color: #92400e;">
-                                                {{ $outboundLeg->from_location->name ?? '---' }}</div>
-                                        </div>
-                                        <div class="route-icon"
-                                            style="padding: 0 15px; font-size: 24px; width: 20%; text-align: center; display: table-cell; vertical-align: middle;">
-                                            →</div>
-                                        <div class="route-location"
-                                            style="text-align: right; width: 40%; display: table-cell; vertical-align: top;">
-                                            <div class="label"
-                                                style="font-size: 12px; color: #78350f; margin-bottom: 4px;">Điểm đến
-                                            </div>
-                                            <div class="location"
-                                                style="font-size: 18px; font-weight: 700; color: #92400e;">
-                                                {{ $outboundLeg->to_location->name ?? '---' }}</div>
-                                        </div>
-                                    </div>
-                                    <div class="route-date"
-                                        style="text-align: center; font-size: 13px; color: #78350f; font-weight: 600;">
-                                        📅 {{ optional($outboundLeg->trip->departure_time)->format('d/m/Y') ?? '---' }}
-                                    </div>
-                                </div>
-                                <div class="trip-price"
-                                    style="background-color: #ecfdf5; padding: 12px 15px; border-radius: 6px; text-align: center; border: 2px solid #a7f3d0; margin-bottom: 15px;">
-                                    <label
-                                        style="display: block; font-size: 12px; color: #065f46; margin-bottom: 4px; font-weight: 500;">Giá
-                                        vé chiều đi</label>
-                                    <div>
-                                        <span class="amount"
-                                            style="font-size: 20px; font-weight: 700; color: #059669;">{{ number_format($outboundLeg->total_price ?? 0) }}</span>
-                                        <span class="currency"
-                                            style="font-size: 13px; color: #047857; margin-left: 3px;">VNĐ</span>
-                                    </div>
-                                </div>
-                                <table class="info-grid" cellpadding="0" cellspacing="0" border="0"
-                                    style="width: 100%; border-spacing: 15px 0; margin-bottom: 15px;">
-                                    <tr>
-                                        <td class="info-item"
-                                            style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; width: 50%;">
-                                            <label
-                                                style="display: block; font-size: 12px; color: #6b7280; margin-bottom: 5px; font-weight: 500;">Vị
-                                                trí ghế</label>
-                                            <div class="value"
-                                                style="font-size: 16px; font-weight: 600; color: #1f2937;">
-                                                {{ $getSeatList($outboundLeg) }}</div>
-                                        </td>
-                                        <td class="info-item"
-                                            style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; width: 50%;">
-                                            <label
-                                                style="display: block; font-size: 12px; color: #6b7280; margin-bottom: 5px; font-weight: 500;">Số
-                                                lượng vé</label>
-                                            <div class="value"
-                                                style="font-size: 16px; font-weight: 600; color: #1f2937;">
-                                                {{ $getSeatCount($outboundLeg) }} vé</div>
-                                        </td>
-                                    </tr>
-                                </table>
-                                <div class="pickup-info"
-                                    style="background-color: #eff6ff; padding: 20px; border-radius: 8px; margin-bottom: 25px; border: 2px solid #dbeafe;">
-                                    <h3
-                                        style="font-size: 16px; color: #1e40af; margin-bottom: 12px; display: flex; align-items: center;">
-                                        Thông Tin Đón Trả</h3>
-                                    <div class="pickup-item"
-                                        style="margin-bottom: 10px; font-size: 14px; color: #1f2937;">
-                                        <strong style="color: #1e40af; display: inline-block; min-width: 90px;">Điểm
-                                            đón:</strong> {{ $outboundLeg->pickup_address ?? '---' }}
-                                    </div>
-                                    <div class="pickup-item"
-                                        style="margin-bottom: 10px; font-size: 14px; color: #1f2937;">
-                                        <strong style="color: #1e40af; display: inline-block; min-width: 90px;">Điểm
-                                            trả:</strong> {{ $outboundLeg->dropoff_address ?? '---' }}
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    @endif
-
-                    @if ($returnLeg)
-                        <td class="trip-section-td"
-                            style="width: {{ $isTwoColumn ? '50%' : '100%' }}; vertical-align: top; padding: 0;">
-                            <div class="trip-section-content"
-                                style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; height: 100%;">
-                                {{-- ... (Nội dung Chiều Về giữ nguyên) ... --}}
-                                <div class="trip-header"
-                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 16px; border-radius: 6px; margin-bottom: 15px; font-size: 16px; font-weight: 600; text-align: center;">
-                                    🏠 Chiều Về</div>
-                                <div class="route-info"
-                                    style="background: linear-gradient(to right, #fef3c7, #fde68a); padding: 20px; border-radius: 8px; margin-bottom: 15px;">
-                                    <div class="route-header"
-                                        style="display: table; width: 100%; border-spacing: 0; margin-bottom: 15px;">
-                                        <div class="route-time"
-                                            style="font-size: 18px; font-weight: 700; color: #92400e; display: table-cell; vertical-align: middle; width: 50%; text-align: center;">
-                                            ⏰ {{ optional($returnLeg->depart_at)->format('H:i') ?? '---' }}</div>
-                                    </div>
-                                    <div class="route-locations"
-                                        style="display: table; width: 100%; border-spacing: 0; margin-bottom: 12px;">
-                                        <div class="route-location"
-                                            style="width: 40%; display: table-cell; vertical-align: top;">
-                                            <div class="label"
-                                                style="font-size: 12px; color: #78350f; margin-bottom: 4px;">Điểm đi
-                                            </div>
-                                            <div class="location"
-                                                style="font-size: 18px; font-weight: 700; color: #92400e;">
-                                                {{ $returnLeg->from_location->name ?? '---' }}</div>
-                                        </div>
-                                        <div class="route-icon"
-                                            style="padding: 0 15px; font-size: 24px; width: 20%; text-align: center; display: table-cell; vertical-align: middle;">
-                                            →</div>
-                                        <div class="route-location"
-                                            style="text-align: right; width: 40%; display: table-cell; vertical-align: top;">
-                                            <div class="label"
-                                                style="font-size: 12px; color: #78350f; margin-bottom: 4px;">Điểm đến
-                                            </div>
-                                            <div class="location"
-                                                style="font-size: 18px; font-weight: 700; color: #92400e;">
-                                                {{ $returnLeg->to_location->name ?? '---' }}</div>
-                                        </div>
-                                    </div>
-                                    <div class="route-date"
-                                        style="text-align: center; font-size: 13px; color: #78350f; font-weight: 600;">
-                                        📅 {{ optional($returnLeg->depart_at)->format('d/m/Y') ?? '---' }}</div>
-                                </div>
-                                <div class="trip-price"
-                                    style="background-color: #ecfdf5; padding: 12px 15px; border-radius: 6px; text-align: center; border: 2px solid #a7f3d0; margin-bottom: 15px;">
-                                    <label
-                                        style="display: block; font-size: 12px; color: #065f46; margin-bottom: 4px; font-weight: 500;">Giá
-                                        vé chiều về</label>
-                                    <div>
-                                        <span class="amount"
-                                            style="font-size: 20px; font-weight: 700; color: #059669;">{{ number_format($returnLeg->total_price ?? 0) }}</span>
-                                        <span class="currency"
-                                            style="font-size: 13px; color: #047857; margin-left: 3px;">VNĐ</span>
-                                    </div>
-                                </div>
-                                <table class="info-grid" cellpadding="0" cellspacing="0" border="0"
-                                    style="width: 100%; border-spacing: 15px 0; margin-bottom: 15px;">
-                                    <tr>
-                                        <td class="info-item"
-                                            style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; width: 50%;">
-                                            <label
-                                                style="display: block; font-size: 12px; color: #6b7280; margin-bottom: 5px; font-weight: 500;">Vị
-                                                trí ghế</label>
-                                            <div class="value"
-                                                style="font-size: 16px; font-weight: 600; color: #1f2937;">
-                                                {{ $getSeatList($returnLeg) }}</div>
-                                        </td>
-                                        <td class="info-item"
-                                            style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; width: 50%;">
-                                            <label
-                                                style="display: block; font-size: 12px; color: #6b7280; margin-bottom: 5px; font-weight: 500;">Số
-                                                lượng vé</label>
-                                            <div class="value"
-                                                style="font-size: 16px; font-weight: 600; color: #1f2937;">
-                                                {{ $getSeatCount($returnLeg) }} vé</div>
-                                        </td>
-                                    </tr>
-                                </table>
-                                <div class="pickup-info"
-                                    style="background-color: #eff6ff; padding: 20px; border-radius: 8px; margin-bottom: 25px; border: 2px solid #dbeafe;">
-                                    <h3
-                                        style="font-size: 16px; color: #1e40af; margin-bottom: 12px; display: flex; align-items: center;">
-                                        Thông Tin Đón Trả</h3>
-                                    <div class="pickup-item"
-                                        style="margin-bottom: 10px; font-size: 14px; color: #1f2937;">
-                                        <strong style="color: #1e40af; display: inline-block; min-width: 90px;">Điểm
-                                            đón:</strong> {{ $returnLeg->pickup_address ?? '---' }}
-                                    </div>
-                                    <div class="pickup-item"
-                                        style="margin-bottom: 10px; font-size: 14px; color: #1f2937;">
-                                        <strong style="color: #1e40af; display: inline-block; min-width: 90px;">Điểm
-                                            trả:</strong> {{ $returnLeg->dropoff_address ?? '---' }}
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    @endif
-                </tr>
-            </table>
-
-            {{-- CÁC PHẦN NÀY PHẢI NẰM TRONG .CONTENT --}}
-            <div class="price-section">
-                <div class="price-section-child">
-                    <label>Giảm giá</label>
-                    <div>
-                        <span class="amount">{{ number_format($booking->discount_amount ?? 0) }}</span>
-                        <span class="currency">VNĐ</span>
-                    </div>
+        <div class="email-body">
+            <div class="summary-card">
+                <div class="summary-item">
+                    <label>Mã vé</label>
+                    <span>{{ $booking->code }}</span>
                 </div>
-                <div class="price-section-child">
-                    <label>Tổng Tiền</label>
-                    <div>
-                        <span class="amount">{{ number_format($booking->total_price ?? 0) }}</span>
-                        <span class="currency">VNĐ</span>
-                    </div>
+                <div class="summary-item">
+                    <label>Hành khách</label>
+                    <span>{{ $passengerName }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Số vé</label>
+                    <span>{{ $totalTickets }}</span>
+                </div>
+                <div class="summary-item">
+                    <label>Tổng tiền</label>
+                    <span>{{ number_format($booking->total_price ?? 0) }} đ</span>
                 </div>
             </div>
 
-            <div class="note">
-                <p><strong>📌 Lưu ý:</strong></p>
-                <p>• Vui lòng có mặt tại điểm đón trước 15 phút</p>
-                <p>• Liên hệ hotline nếu cần hỗ trợ hoặc thay đổi lịch trình</p>
+            <div class="trip-stack">
+                @foreach ($segments as $segment)
+                    @php
+                        $leg = $segment['leg'];
+                    @endphp
+                    <div class="trip-card">
+                        <div class="trip-card__title">
+                            <span>{{ $segment['emoji'] }} {{ $segment['title'] }}</span>
+                            <span class="trip-card__badge">
+                                {{ $formatDate($leg->trip->departure_time ?? $leg->depart_at) }}
+                            </span>
+                        </div>
+
+                        <div class="trip-card__main">
+                            <div class="trip-card__time">
+                                <strong>{{ $formatTime($leg->trip->departure_time ?? $leg->depart_at) }}</strong>
+                                <span>Giờ khởi hành dự kiến</span>
+                            </div>
+                            <div class="trip-card__route">
+                                <div class="route-row">
+                                    <div class="route-point">
+                                        <label>Điểm đi</label>
+                                        <strong>{{ $leg->from_location->name ?? '—' }}</strong>
+                                    </div>
+                                    <div class="route-arrow">⟶</div>
+                                    <div class="route-point" style="text-align: right;">
+                                        <label>Điểm đến</label>
+                                        <strong>{{ $leg->to_location->name ?? '—' }}</strong>
+                                    </div>
+                                </div>
+                                <p style="margin: 12px 0 0; color: #475569; font-size: 14px;">
+                                    {{ $leg->pickup_address ?? 'Điểm đón sẽ được thông báo qua SMS' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="trip-meta">
+                            <div class="meta-box">
+                                <label>Vị trí ghế</label>
+                                <span>{{ $seatList($leg) }}</span>
+                            </div>
+                            <div class="meta-box">
+                                <label>Số lượng</label>
+                                <span>{{ $seatCount($leg) }} vé</span>
+                            </div>
+                            <div class="meta-box">
+                                <label>Giá vé</label>
+                                <span>{{ number_format($leg->total_price ?? 0) }} đ</span>
+                            </div>
+                            <div class="meta-box">
+                                <label>Điểm trả</label>
+                                <span>{{ $leg->dropoff_address ?? '—' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="price-breakdown">
+                <div class="price-row">
+                    <span>Giảm giá</span>
+                    <strong>{{ number_format($booking->discount_amount ?? 0) }} đ</strong>
+                </div>
+                <div class="price-row price-row--highlight">
+                    <span>Tổng thanh toán</span>
+                    <span>{{ number_format($booking->total_price ?? 0) }} đ</span>
+                </div>
+            </div>
+
+            <div class="note-card">
+                <strong>📌 Lưu ý cho chuyến đi</strong>
+                <ul style="padding-left: 20px; margin: 10px 0 0; color: #92400e;">
+                    <li>Vui lòng có mặt trước giờ khởi hành ít nhất 15 phút.</li>
+                    <li>Giữ mã vé và CMND/CCCD để xuất trình khi cần.</li>
+                    <li>Liên hệ hotline nếu bạn muốn thay đổi lịch trình.</li>
+                </ul>
             </div>
         </div>
 
-        {{-- THAY ĐỔI: Thẻ đóng .content đã được di chuyển ra SAU .note --}}
-
-        <div class="footer">
-            <p>Chúc bạn có chuyến đi an toàn và vui vẻ!</p>
-            <div class="contact-info">
-                <p>Hotline: 1900 6688 | Email: support@example.com</p>
-                <p>© 2025 Công ty Vận Tải. All rights reserved.</p>
+        <div class="email-foot">
+            <p>Chúc bạn có chuyến đi an toàn và trọn vẹn!</p>
+            <div class="contact">
+                Hotline: 1900 6688 · support@example.com
             </div>
         </div>
     </div>
 </body>
 
 </html>
+

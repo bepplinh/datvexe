@@ -1,15 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./CountdownTimer.scss";
 
 function CountdownTimer({ expiresAt, onExpired }) {
     const [timeLeft, setTimeLeft] = useState(null);
     const [isExpired, setIsExpired] = useState(false);
+    const onExpiredRef = useRef(onExpired);
+    const hasCalledExpiredRef = useRef(false);
+
+    // Cập nhật ref khi onExpired thay đổi
+    useEffect(() => {
+        onExpiredRef.current = onExpired;
+    }, [onExpired]);
 
     useEffect(() => {
         if (!expiresAt) {
             setTimeLeft(null);
+            hasCalledExpiredRef.current = false;
             return;
         }
+
+        // Reset flag khi expiresAt thay đổi
+        hasCalledExpiredRef.current = false;
 
         const calculateTimeLeft = () => {
             const now = new Date().getTime();
@@ -19,8 +30,10 @@ function CountdownTimer({ expiresAt, onExpired }) {
             if (difference <= 0) {
                 setIsExpired(true);
                 setTimeLeft({ minutes: 0, seconds: 0 });
-                if (onExpired) {
-                    onExpired();
+                // Chỉ gọi onExpired một lần
+                if (!hasCalledExpiredRef.current && onExpiredRef.current) {
+                    hasCalledExpiredRef.current = true;
+                    onExpiredRef.current();
                 }
                 return null;
             }
@@ -46,7 +59,7 @@ function CountdownTimer({ expiresAt, onExpired }) {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [expiresAt, onExpired]);
+    }, [expiresAt]);
 
     if (!expiresAt || !timeLeft) {
         return null;

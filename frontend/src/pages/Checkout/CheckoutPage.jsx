@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import "./CheckoutPage.scss";
@@ -18,6 +18,7 @@ import { mapContactFormToDraftPayload } from "./utils/contactMapper";
 import CountdownTimer from "./components/CountdownTimer/CountdownTimer";
 
 function CheckoutPage() {
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const {
         draftId,
@@ -153,12 +154,12 @@ function CheckoutPage() {
         }
     };
 
-    const handleExpired = () => {
-        // Không gọi API unlock ở đây vì job ReleaseSeatAfterExpired sẽ tự động xử lý
-        // khi TTL hết. Việc gọi API unlock đồng thời có thể gây race condition
-        // và conflict với job đang chạy.
-        toast.error("Thời gian giữ chỗ đã hết hạn. Ghế sẽ được tự động giải phóng.");
-    };
+    const handleExpired = useCallback(() => {
+        toast.error("Thời gian giữ chỗ đã hết hạn !.");
+        setTimeout(() => {
+            navigate("/trip");
+        }, 1000);
+    }, [navigate]);
 
     const renderStepContent = () => {
         switch (currentStep) {

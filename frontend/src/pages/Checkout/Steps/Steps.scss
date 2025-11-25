@@ -2,6 +2,20 @@
     display: flex;
     align-items: center;
     gap: 13px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    @media (max-width: 768px) {
+        gap: 8px;
+    }
+
+    @media (max-width: 480px) {
+        gap: 4px;
+    }
 }
 
 .steps__divider {
@@ -11,6 +25,18 @@
     border-radius: 3px;
     align-self: center;
     transition: background-color 0.3s ease;
+    flex-shrink: 1;
+    min-width: 40px;
+
+    @media (max-width: 768px) {
+        width: 50px;
+        min-width: 30px;
+    }
+
+    @media (max-width: 480px) {
+        width: 30px;
+        min-width: 20px;
+    }
 }
 
 .steps__divider--completed {
@@ -20,9 +46,14 @@
 .step {
     display: flex;
     align-items: center;
-
     gap: 8px;
     color: #6a7189;
+    flex-shrink: 0;
+    min-width: 0;
+
+    @media (max-width: 480px) {
+        gap: 4px;
+    }
 }
 
 .step__num {
@@ -38,11 +69,40 @@
     font-weight: 700;
     font-size: 18px;
     transition: all 0.3s ease;
+    flex-shrink: 0;
+
+    @media (max-width: 768px) {
+        width: 40px;
+        height: 40px;
+        border-radius: 20px;
+        font-size: 16px;
+        border-width: 2px;
+    }
+
+    @media (max-width: 480px) {
+        width: 36px;
+        height: 36px;
+        border-radius: 18px;
+        font-size: 14px;
+    }
 }
 
 .step__label {
     font-weight: 600;
     white-space: nowrap;
+    font-size: 14px;
+
+    @media (max-width: 768px) {
+        font-size: 13px;
+    }
+
+    @media (max-width: 480px) {
+        font-size: 12px;
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 60px;
+    }
 }
 
 .step--active .step__num {

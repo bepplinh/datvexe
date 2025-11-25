@@ -5,9 +5,30 @@
   border-radius: 5px;
   background: #7ba7ef26;
   padding: 24px 20px 23px;
-  width: 903px;
-  height: 168px;
+  width: 100%;
+  max-width: 903px;
+  min-height: 168px;
   margin-bottom: 20px;
+
+  @media (max-width: 1024px) {
+    max-width: 100%;
+    padding: 20px 16px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 16px 12px;
+    margin-bottom: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  @media (max-width: 480px) {
+    padding: 14px 10px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+  }
 
   .vector {
     display: flex;
@@ -29,6 +50,19 @@
     padding-left: 16px;
     width: 206px;
     row-gap: 8px;
+
+    @media (max-width: 1024px) {
+      width: auto;
+      flex: 1;
+      min-width: 0;
+      padding-left: 12px;
+    }
+
+    @media (max-width: 768px) {
+      padding-left: 0;
+      width: 100%;
+      row-gap: 6px;
+    }
 
     .heading4 {
       display: flex;
@@ -137,6 +171,13 @@
     padding-bottom: 1px;
     height: 28px;
 
+    @media (max-width: 768px) {
+      flex-wrap: wrap;
+      height: auto;
+      gap: 8px;
+      padding-right: 0;
+    }
+
     .a0230 {
       width: 64px;
       text-align: right;
@@ -201,6 +242,10 @@
     background: #d7d7d7;
     width: 1px;
     height: 60px;
+
+    @media (max-width: 768px) {
+      display: none;
+    }
   }
 
   .verticalDivider2 {
@@ -208,6 +253,14 @@
     background: #d7d7d7;
     width: 1px;
     height: 60px;
+
+    @media (max-width: 1024px) {
+      margin-left: 12px;
+    }
+
+    @media (max-width: 768px) {
+      display: none;
+    }
   }
 
   .container5 {
@@ -216,6 +269,18 @@
     justify-content: space-between;
     width: 209px;
     min-width: 209px;
+
+    @media (max-width: 1024px) {
+      width: auto;
+      min-width: 180px;
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 768px) {
+      width: 100%;
+      min-width: 100%;
+      margin-top: 12px;
+    }
 
     .a180000 {
       flex-grow: 1;
@@ -260,6 +325,17 @@
     padding: 0 12px 8px;
     width: 164px;
     height: 35px;
+
+    @media (max-width: 1024px) {
+      position: static;
+      width: 100%;
+      margin-top: 12px;
+      padding: 0;
+    }
+
+    @media (max-width: 768px) {
+      margin-top: 16px;
+    }
 
     .cN2222Ch3 {
       flex-shrink: 0;

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, ChevronRight, Home, Bell } from "lucide-react";
+import { Menu, ChevronRight, Home, Bell, Sun, Moon } from "lucide-react";
 import { useAdminAuth } from "../../hooks/useAdminAuth";
+import { useTheme } from "../../contexts/ThemeProvider";
 import { SIDEBAR_MENU } from "../data/sidebarMenuData";
 import "../AdminLayout.scss";
 
@@ -10,6 +11,7 @@ function Header({ onToggleSidebar, onToggleMobileMenu }) {
     const [unreadCount] = useState(5); // Số thông báo chưa đọc
     const location = useLocation();
     const { admin } = useAdminAuth();
+    const { theme, toggleTheme } = useTheme();
 
     // Đóng notification dropdown khi click bên ngoài
     useEffect(() => {
@@ -119,6 +121,19 @@ function Header({ onToggleSidebar, onToggleMobileMenu }) {
             </div>
 
             <div className="admin-header__right">
+                {/* Theme Toggle */}
+                <button
+                    className="admin-header__theme-toggle"
+                    onClick={toggleTheme}
+                    aria-label={theme === "light" ? "Chuyển sang chế độ tối" : "Chuyển sang chế độ sáng"}
+                >
+                    {theme === "light" ? (
+                        <Moon size={20} />
+                    ) : (
+                        <Sun size={20} />
+                    )}
+                </button>
+
                 {/* Notification Bell */}
                 <div className="admin-header__notifications">
                     <button

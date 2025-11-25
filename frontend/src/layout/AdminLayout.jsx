@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { useAdminAuth } from "../hooks/useAdminAuth";
+import { ThemeProvider } from "../contexts/ThemeProvider";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import "./AdminLayout.scss";
@@ -34,43 +35,45 @@ function AdminLayout() {
     };
 
     return (
-        <div className="admin-layout">
-            {/* Sidebar */}
-            <Sidebar
-                sidebarOpen={sidebarOpen}
-                mobileMenuOpen={mobileMenuOpen}
-                onCloseMobileMenu={closeMobileMenu}
-                onLogout={logout}
-            />
+        <ThemeProvider>
+            <div className="admin-layout">
+                {/* Sidebar */}
+                <Sidebar
+                    sidebarOpen={sidebarOpen}
+                    mobileMenuOpen={mobileMenuOpen}
+                    onCloseMobileMenu={closeMobileMenu}
+                    onLogout={logout}
+                />
 
-            {/* Overlay cho mobile */}
-            {mobileMenuOpen && (
+                {/* Overlay cho mobile */}
+                {mobileMenuOpen && (
+                    <div
+                        className="admin-sidebar__overlay"
+                        onClick={closeMobileMenu}
+                    />
+                )}
+
+                {/* Main Content */}
                 <div
-                    className="admin-sidebar__overlay"
-                    onClick={closeMobileMenu}
-                />
-            )}
+                    className={`admin-main ${
+                        sidebarOpen
+                            ? "admin-main--sidebar-open"
+                            : "admin-main--sidebar-closed"
+                    }`}
+                >
+                    {/* Header */}
+                    <Header
+                        onToggleSidebar={toggleSidebar}
+                        onToggleMobileMenu={toggleMobileMenu}
+                    />
 
-            {/* Main Content */}
-            <div
-                className={`admin-main ${
-                    sidebarOpen
-                        ? "admin-main--sidebar-open"
-                        : "admin-main--sidebar-closed"
-                }`}
-            >
-                {/* Header */}
-                <Header
-                    onToggleSidebar={toggleSidebar}
-                    onToggleMobileMenu={toggleMobileMenu}
-                />
-
-                {/* Page Content */}
-                <main className="admin-content">
-                    <Outlet />
-                </main>
+                    {/* Page Content */}
+                    <main className="admin-content">
+                        <Outlet />
+                    </main>
+                </div>
             </div>
-        </div>
+        </ThemeProvider>
     );
 }
 

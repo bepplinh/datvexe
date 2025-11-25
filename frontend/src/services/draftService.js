@@ -4,16 +4,7 @@ import Cookies from "js-cookie";
 export const getDraftById = async (draftId) => {
     try {
         const sessionToken = Cookies.get("x_session_token");
-        console.log("🔍 Debug GET Draft:", {
-            draftId,
-            sessionToken,
-            hasToken: !!sessionToken,
-            allCookies: document.cookie,
-        });
         const res = await axiosClient.get(`/checkout/drafts/${draftId}`);
-
-        // ✅ Debug response
-        console.log("📦 API Response:", res);
 
         return {
             success: true,

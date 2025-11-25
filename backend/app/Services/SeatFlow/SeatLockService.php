@@ -6,32 +6,20 @@ use App\Events\SeatLocked;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Validation\ValidationException;
 use App\Services\DraftCheckoutService\DraftCheckoutService;
-// ✅ Thêm import để map seat_id -> seat_number
 use App\Models\Seat;
 
 class SeatLockService
 {
-    const DEFAULT_TTL = 30;
+    const DEFAULT_TTL = 10;
 
     public function __construct(
         private DraftCheckoutService $drafts,
     ) {}
 
-    /**
-     * Lock ghế + tạo draft (all-or-nothing).
-     *
-     * @param  array   $trips  [
-     *   ['trip_id'=>1,'seat_ids'=>[3,4,5],'leg'=>'OUT'],
-     *   ['trip_id'=>2,'seat_ids'=>[1,2],'leg'=>'RETURN'],
-     * ]
-     * @param  string  $sessionToken
-     * @param  int     $ttl
-     * @param  ?int    $userId
-     */
     public function lock(
         array $trips,
         string $sessionToken,
-        int $ttl = self::DEFAULT_TTL,
+        int $ttl,
         ?int $userId = null,
         int $from_location_id,
         int $to_location_id,
@@ -46,17 +34,13 @@ class SeatLockService
             ]);
         }
 
-        // ✅ Prefetch seat_number theo seat_id để dựng message đẹp (KHÔNG đổi Lua)
-        // Nếu seat_id là unique toàn hệ thống -> chỉ cần whereIn('id')
         $allSeatIds = collect($seatsByTrip)->flatten()->unique()->values();
         $seatNumberById = Seat::whereIn('id', $allSeatIds)
             ->pluck('seat_number', 'id')
             ->toArray();
 
-        // ✅ All-or-nothing lock (Lua GIỮ NGUYÊN, chỉ gửi mảng số)
         $this->lockSeatsAcrossTrips($seatsByTrip, $seatNumberById, $sessionToken, $ttl);
 
-        // Tạo draft từ các lock đã thành công
         $draft = $this->drafts->createFromLocks(
             seatsByTrip: $seatsByTrip,
             legsByTrip: $legsByTrip,
@@ -69,24 +53,20 @@ class SeatLockService
             toLocation: $to_location
         );
 
-        // TTL còn lại để FE hiển thị countdown
         $ttlLeft = $this->ttlLeftForSeats($seatsByTrip);
-
-        // Gắn ttl_left vào từng item trả về
         $items = array_map(function ($it) use ($ttlLeft) {
             $k = $it['trip_id'] . ':' . $it['seat_id'];
             $it['ttl_left'] = $ttlLeft[$k] ?? null;
             return $it;
         }, $draft['items']);
 
-        // Broadcast realtime
         $locksPayload = [];
         foreach ($seatsByTrip as $tripId => $seatIds) {
             $locksPayload[] = [
                 'trip_id'     => (int)$tripId,
                 'seat_ids'    => array_values($seatIds),
                 'seat_labels' => array_map(
-                    fn ($seatId) => $seatNumberById[$seatId] ?? (string) $seatId,
+                    fn($seatId) => $seatNumberById[$seatId] ?? (string) $seatId,
                     $seatIds
                 ),
                 'leg'         => $legsByTrip[$tripId] ?? null,
@@ -125,17 +105,6 @@ class SeatLockService
         return [$seatsByTrip, $legsByTrip];
     }
 
-    private function normalizeSeatIds(array $seatIds): array
-    {
-        $seatIds = array_map('intval', (array)$seatIds);
-        $seatIds = array_values(array_unique($seatIds));
-        return array_values(array_filter($seatIds, fn($v) => $v > 0));
-    }
-
-    /**
-     * All-or-nothing lock với Lua (GIỮ NGUYÊN Lua),
-     * nhưng format message ở PHP bằng seat_number map.
-     */
     private function lockSeatsAcrossTrips(
         array $seatsByTrip,
         array $seatNumberById,
@@ -174,8 +143,14 @@ class SeatLockService
     end
     
     -- Không conflict -> lock tất cả
+    local tripsSet = "sess:" .. token .. ":trips"
+    
     for trip_id_str, seat_list in pairs(payload) do
         local trip_id = tostring(trip_id_str)
+        
+        -- Thêm trip_id vào set trips của session
+        redis.call("SADD", tripsSet, trip_id)
+        
         for _, seat_id in ipairs(seat_list) do
             local seatKey = "trip:" .. trip_id .. ":seat:" .. seat_id .. ":lock"
     
@@ -187,13 +162,18 @@ class SeatLockService
     
             -- set ghế theo session token
             redis.call("SADD", "session:" .. token .. ":seats", trip_id .. ":" .. seat_id)
+            
+            -- set ghế theo session và trip (để dễ query sau)
+            redis.call("SADD", "trip:" .. trip_id .. ":sess:" .. token .. ":s", seat_id)
         end
     end
+    
+    -- Set TTL cho trips set (cùng TTL với session)
+    redis.call("EXPIRE", tripsSet, ttl)
     
     return "OK"
     LUA;
 
-        // ❗ GỬI cho Lua DẠNG SỐ THUẦN (KHÔNG gửi object), để tránh lỗi concat table
         $payload = $seatsByTrip;
 
         $res = Redis::eval(
@@ -211,7 +191,6 @@ class SeatLockService
                 $conflicts = json_decode(substr($res, 10), true) ?: [];
 
                 if (!empty($conflicts)) {
-                    // Lấy conflict đầu tiên để tạo thông điệp ngắn gọn
                     $c = $conflicts[0];
                     $tripId  = $c['trip_id'] ?? '?';
                     $seatId  = (int)($c['seat_id'] ?? 0);
@@ -230,8 +209,6 @@ class SeatLockService
             ]);
         }
 
-        // ✅ Sau khi lock thành công: set TTL cho cả session giữ ghế (pha 1)
-        // Đây là "đồng hồ 3 phút" để sau này CheckoutController check
         Redis::setex("session:{$token}:ttl", $ttl, 1);
     }
 

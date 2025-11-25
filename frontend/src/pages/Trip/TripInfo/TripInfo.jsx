@@ -98,11 +98,6 @@ export default function TripInfo({ trip, onSelect }) {
                 <div
                     className="button"
                     onClick={() => {
-                        console.log(
-                            "trip_id khi bấm Đặt vé:",
-                            trip.trip_id,
-                            trip
-                        );
                         setShowBookSeat(true);
                         if (onSelect) onSelect(trip);
                     }}
