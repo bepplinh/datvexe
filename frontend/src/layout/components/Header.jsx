@@ -1,17 +1,37 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, ChevronRight, Home, Bell, Sun, Moon } from "lucide-react";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/vi";
 import { useAdminAuth } from "../../hooks/useAdminAuth";
+import { useAdminNotifications } from "../../contexts/AdminNotificationProvider";
 import { useTheme } from "../../contexts/ThemeProvider";
 import { SIDEBAR_MENU } from "../data/sidebarMenuData";
 import "../AdminLayout.scss";
 
+dayjs.extend(relativeTime);
+dayjs.locale("vi");
+
 function Header({ onToggleSidebar, onToggleMobileMenu }) {
+    const { notifications, unreadCount, loading, markOneAsRead, markAllAsRead } = useAdminNotifications();
     const [notificationOpen, setNotificationOpen] = useState(false);
-    const [unreadCount] = useState(5); // Số thông báo chưa đọc
     const location = useLocation();
+    const navigate = useNavigate();
     const { admin } = useAdminAuth();
     const { theme, toggleTheme } = useTheme();
+
+    const handleClickNotification = (notification) => {
+        if (!notification.is_read) {
+            markOneAsRead(notification.id);
+        }
+        // TODO: Có thể thêm navigation đến trang chi tiết booking nếu cần
+        // navigate(`/admin/bookings/${notification.booking_id}`);
+    };
+
+    const handleMarkAllAsRead = async () => {
+        await markAllAsRead();
+    };
 
     // Đóng notification dropdown khi click bên ngoài
     useEffect(() => {
@@ -157,59 +177,73 @@ function Header({ onToggleSidebar, onToggleMobileMenu }) {
                             <div className="admin-header__notification-header">
                                 <h3>Thông báo</h3>
                                 {unreadCount > 0 && (
-                                    <button className="admin-header__notification-mark-all">
+                                    <button
+                                        className="admin-header__notification-mark-all"
+                                        onClick={handleMarkAllAsRead}
+                                    >
                                         Đánh dấu đã đọc tất cả
                                     </button>
                                 )}
                             </div>
                             <div className="admin-header__notification-list">
-                                <div className="admin-header__notification-item admin-header__notification-item--unread">
-                                    <div className="admin-header__notification-dot"></div>
-                                    <div className="admin-header__notification-content">
-                                        <div className="admin-header__notification-title">
-                                            Đơn hàng mới
-                                        </div>
-                                        <div className="admin-header__notification-message">
-                                            Có đơn hàng mới #12345 cần xử lý
-                                        </div>
-                                        <div className="admin-header__notification-time">
-                                            5 phút trước
+                                {loading ? (
+                                    <div className="admin-header__notification-item">
+                                        <div className="admin-header__notification-content">
+                                            <div className="admin-header__notification-message">
+                                                Đang tải...
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="admin-header__notification-item admin-header__notification-item--unread">
-                                    <div className="admin-header__notification-dot"></div>
-                                    <div className="admin-header__notification-content">
-                                        <div className="admin-header__notification-title">
-                                            Thanh toán thành công
-                                        </div>
-                                        <div className="admin-header__notification-message">
-                                            Đơn hàng #12344 đã thanh toán thành công
-                                        </div>
-                                        <div className="admin-header__notification-time">
-                                            15 phút trước
+                                ) : notifications.length === 0 ? (
+                                    <div className="admin-header__notification-item">
+                                        <div className="admin-header__notification-content">
+                                            <div className="admin-header__notification-message">
+                                                Không có thông báo mới
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="admin-header__notification-item">
-                                    <div className="admin-header__notification-content">
-                                        <div className="admin-header__notification-title">
-                                            Chuyến xe sắp khởi hành
+                                ) : (
+                                    notifications.map((notification) => (
+                                        <div
+                                            key={notification.id}
+                                            className={`admin-header__notification-item ${
+                                                !notification.is_read
+                                                    ? "admin-header__notification-item--unread"
+                                                    : ""
+                                            }`}
+                                            onClick={() => handleClickNotification(notification)}
+                                        >
+                                            {!notification.is_read && (
+                                                <div className="admin-header__notification-dot"></div>
+                                            )}
+                                            <div className="admin-header__notification-content">
+                                                <div className="admin-header__notification-title">
+                                                    {notification.title}
+                                                </div>
+                                                <div className="admin-header__notification-message">
+                                                    {notification.message}
+                                                </div>
+                                                <div className="admin-header__notification-time">
+                                                    {dayjs(notification.created_at).fromNow()}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="admin-header__notification-message">
-                                            Chuyến xe #789 sẽ khởi hành trong 1 giờ
-                                        </div>
-                                        <div className="admin-header__notification-time">
-                                            1 giờ trước
-                                        </div>
-                                    </div>
-                                </div>
+                                    ))
+                                )}
                             </div>
-                            <div className="admin-header__notification-footer">
-                                <button className="admin-header__notification-view-all">
-                                    Xem tất cả thông báo
-                                </button>
-                            </div>
+                            {notifications.length > 0 && (
+                                <div className="admin-header__notification-footer">
+                                    <button
+                                        className="admin-header__notification-view-all"
+                                        onClick={() => {
+                                            setNotificationOpen(false);
+                                            navigate("/admin/notifications");
+                                        }}
+                                    >
+                                        Xem tất cả thông báo
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

@@ -17,8 +17,8 @@ class BookingLeg extends Model
         'trip_id',
         'pickup_location_id',
         'dropoff_location_id',
-        'pickup_location_snap',
-        'dropoff_location_snap',
+        'pickup_snap',
+        'dropoff_snap',
         'pickup_address',
         'dropoff_address',
         'total_price',
@@ -37,5 +37,15 @@ class BookingLeg extends Model
     public function trip()
     {
         return $this->belongsTo(Trip::class);
+    }
+
+    public function pickupLocation()
+    {
+        return $this->belongsTo(Location::class, 'pickup_location_id');
+    }
+
+    public function dropoffLocation()
+    {
+        return $this->belongsTo(Location::class, 'dropoff_location_id');
     }
 }

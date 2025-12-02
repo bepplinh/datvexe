@@ -20,16 +20,18 @@ use App\Http\Controllers\CouponUserController;
 use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\TripStationController;
 use App\Http\Controllers\Auth\OtpAuthController;
+use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\Client\GeminiChatController;
 use App\Http\Controllers\Client\TripSearchController;
 use App\Http\Controllers\Admin\AdminBookingController;
-use App\Http\Controllers\Admin\RouteOptimizationController;
 use App\Http\Controllers\SeatLayoutTemplateController;
+use App\Http\Controllers\Admin\BusSeatLayoutController;
 use App\Http\Controllers\Client\ClientBookingController;
 use App\Http\Controllers\Client\ClientProfileController;
 use App\Http\Controllers\ScheduleTemplateTripController;
 use App\Http\Controllers\Client\ClientLocationController;
 use App\Http\Controllers\Client\ClientTripSeatController;
+use App\Http\Controllers\Admin\RouteOptimizationController;
 use App\Http\Controllers\Client\Checkout\CheckoutController;
 use App\Http\Controllers\Client\Checkout\SeatLockController;
 use App\Http\Controllers\TripGenerateFromTemplateController;
@@ -88,9 +90,19 @@ Route::middleware(['auth:api', 'role:admin'])
     ->group(function () {
         Route::post('bookings', [AdminBookingController::class, 'store']);
 
+        Route::get('buses/{bus}/seat-layout', [BusSeatLayoutController::class, 'show']);
+        Route::put('buses/{bus}/seat-layout', [BusSeatLayoutController::class, 'update']);
+
+        Route::get('notifications', [AdminNotificationController::class, 'index']);
+        Route::post('notifications/{notification}/read', [AdminNotificationController::class, 'markAsRead']);
+        Route::post('notifications/{notification}/unread', [AdminNotificationController::class, 'markAsUnread']);
+        Route::post('notifications/read-all', [AdminNotificationController::class, 'markAllAsRead']);
+
         // Route optimization
         Route::prefix('route-optimization')->group(function () {
+            Route::get('/trip/{tripId}/locations', [RouteOptimizationController::class, 'getTripLocations']);
             Route::get('/trip/{tripId}', [RouteOptimizationController::class, 'optimizeTrip']);
+            Route::get('/trips', [RouteOptimizationController::class, 'listTripsForDate']);
             Route::post('/trips', [RouteOptimizationController::class, 'optimizeMultipleTrips']);
         });
     });

@@ -14,7 +14,18 @@ class UpdateTripRequest extends FormRequest
 
     public function rules(): array
     {
-        $tripId = $this->route('trip')?->id ?? $this->route('trip');
+        // Lấy trip ID từ route parameter (có thể là model instance hoặc ID)
+        $trip = $this->route('trip');
+        $tripId = $trip instanceof \App\Models\Trip ? $trip->id : $trip;
+        
+        // Lấy bus_id hiện tại của trip nếu không được gửi trong request
+        $currentBusId = null;
+        if ($trip instanceof \App\Models\Trip) {
+            $currentBusId = $trip->bus_id;
+        } elseif ($tripId) {
+            $tripModel = \App\Models\Trip::find($tripId);
+            $currentBusId = $tripModel ? $tripModel->bus_id : null;
+        }
 
         $rules = [
             'route_id' => ['required', 'integer', 'exists:routes,id'],
@@ -23,18 +34,24 @@ class UpdateTripRequest extends FormRequest
             'status' => ['nullable', 'in:scheduled,running,finished,cancelled'],
         ];
 
-        if ($this->filled('bus_id')) {
-            $rules['departure_time'][] = function ($attribute, $value, $fail) use ($tripId) {
-                $departureDate = \Carbon\Carbon::parse($value)->format('Y-m-d');
-                $busId = $this->input('bus_id');
+        // Kiểm tra validation nếu có bus_id (từ request hoặc từ trip hiện tại)
+        $busIdToCheck = $this->filled('bus_id') ? $this->input('bus_id') : $currentBusId;
+        
+        if ($busIdToCheck && $tripId) {
+            $rules['departure_time'][] = function ($attribute, $value, $fail) use ($tripId, $busIdToCheck) {
+                $departureDateTime = \Carbon\Carbon::parse($value);
+                $departureDate = $departureDateTime->format('Y-m-d');
+                $departureTime = $departureDateTime->format('H:i:s');
                 
-                $existingTrip = \App\Models\Trip::where('bus_id', $busId)
+                // Kiểm tra xem có chuyến nào khác cùng bus, cùng ngày và cùng giờ không
+                $existingTrip = \App\Models\Trip::where('bus_id', $busIdToCheck)
                     ->whereDate('departure_time', $departureDate)
+                    ->whereTime('departure_time', $departureTime)
                     ->where('id', '!=', $tripId)
                     ->first();
                 
                 if ($existingTrip) {
-                    $fail('Mỗi xe bus chỉ có thể có một chuyến trong cùng ngày.');
+                    $fail('Mỗi xe bus chỉ có thể có một chuyến trong cùng ngày và cùng giờ.');
                 }
             };
         }

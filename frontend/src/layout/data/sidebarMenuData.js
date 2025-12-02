@@ -6,6 +6,9 @@ import {
     Settings,
     MapPin,
     Route,
+    Rows3,
+    Sparkles,
+    Car,
 } from "lucide-react";
 
 export const SIDEBAR_MENU = [
@@ -44,6 +47,24 @@ export const SIDEBAR_MENU = [
         label: "Quản lý tuyến",
         icon: Route,
         path: "/admin/routes",
+    },
+    {
+        id: "buses",
+        label: "Quản lý xe",
+        icon: Bus,
+        path: "/admin/buses",
+    },
+    {
+        id: "route-optimization",
+        label: "Tối ưu tuyến AI",
+        icon: Sparkles,
+        path: "/admin/route-optimization",
+    },
+    {
+        id: "seat-layout",
+        label: "Sơ đồ ghế",
+        icon: Rows3,
+        path: "/admin/seat-layout",
     },
     {
         id: "settings",

@@ -23,6 +23,7 @@ export const LocationProvider = ({ children }) => {
     const isMountedRef = useRef(true);
     const hasInitializedRef = useRef(false);
     const initializingRef = useRef(false);
+    const lastFieldTypeRef = useRef(null);
 
     // Kiểm tra xem có đang ở trang admin không (sử dụng window.location vì Provider nằm ngoài Router)
     const isAdminRoute =
@@ -135,6 +136,39 @@ export const LocationProvider = ({ children }) => {
     }, []);
 
     /**
+     * Reset expandedIds to close all nodes in the tree
+     * Also tracks fieldType to reset when switching between "from" and "to"
+     */
+    const resetExpandedIds = useCallback((fieldType) => {
+        // Only reset if fieldType is provided and different from last one
+        if (fieldType) {
+            if (lastFieldTypeRef.current !== null && lastFieldTypeRef.current !== fieldType) {
+                // FieldType changed, reset tree only if there are expanded nodes
+                setExpandedIds((prev) => {
+                    if (prev.size > 0) {
+                        return new Set();
+                    }
+                    return prev; // Return same reference to avoid unnecessary re-render
+                });
+                // Only update lastFieldTypeRef when we actually reset
+                lastFieldTypeRef.current = fieldType;
+            } else if (lastFieldTypeRef.current === null) {
+                // First time opening a menu, just track the fieldType without resetting
+                lastFieldTypeRef.current = fieldType;
+            }
+            // If fieldType is the same as last one, do nothing (don't update ref or reset)
+        } else {
+            // If no fieldType provided, just reset (for manual reset)
+            setExpandedIds((prev) => {
+                if (prev.size > 0) {
+                    return new Set();
+                }
+                return prev;
+            });
+        }
+    }, []);
+
+    /**
      * Get root locations (cities)
      */
     const rootLocations = React.useMemo(
@@ -183,6 +217,7 @@ export const LocationProvider = ({ children }) => {
         initializeTree,
         searchLocations,
         toggleExpand,
+        resetExpandedIds,
         setError,
     };
 

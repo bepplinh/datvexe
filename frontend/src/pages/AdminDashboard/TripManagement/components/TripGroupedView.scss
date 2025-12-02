@@ -1,0 +1,233 @@
+.trip-grouped-view {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &__empty {
+        background: #fff;
+        border-radius: 16px;
+        padding: 3rem;
+        text-align: center;
+        color: #6c757d;
+        box-shadow: 0 14px 34px rgba(11, 83, 148, 0.08);
+    }
+
+    &__date-group {
+        background: #fff;
+        border-radius: 12px;
+        padding: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e9ecef;
+    }
+
+    &__date-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+        user-select: none;
+
+        &:hover {
+            background: #f8f9fa;
+        }
+    }
+
+    &__date-header-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+
+    &__date-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0c1d4a;
+    }
+
+    &__trip-count {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 600;
+        background: #f8f9fa;
+        padding: 4px 10px;
+        border-radius: 8px;
+    }
+
+    &__routes {
+        margin-top: 8px;
+        padding-left: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__route-group {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 8px;
+        border: 1px solid #e9ecef;
+    }
+
+    &__route-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 8px;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: background-color 0.2s ease;
+        user-select: none;
+
+        &:hover {
+            background: #fff;
+        }
+    }
+
+    &__route-header-left {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+    }
+
+    &__route-name {
+        margin: 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #0c1d4a;
+    }
+
+    &__route-count {
+        font-size: 0.8rem;
+        color: #6c757d;
+        background: #fff;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+    &__trips {
+        margin-top: 8px;
+        padding-left: 8px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 8px;
+
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &__trip-card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #e9ecef;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        &:hover {
+            border-color: #0d6efd;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.1);
+        }
+    }
+
+    &__trip-main {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    &__trip-time {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: #0c1d4a;
+        min-width: 70px;
+
+        svg {
+            color: #0d6efd;
+        }
+    }
+
+    &__trip-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 100px;
+    }
+
+    &__trip-id {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    &__trip-bus {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    &__trip-status {
+        flex-shrink: 0;
+    }
+
+    &__trip-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+        padding-top: 6px;
+        border-top: 1px solid #f1f3f5;
+    }
+
+    &__action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #f8f9fa;
+
+        &--view {
+            color: #0d6efd;
+
+            &:hover {
+                background: #e3f2fd;
+                color: #0a58ca;
+            }
+        }
+
+        &--edit {
+            color: #198754;
+
+            &:hover {
+                background: #d1e7dd;
+                color: #146c43;
+            }
+        }
+
+        &--delete {
+            color: #dc3545;
+
+            &:hover {
+                background: #f8d7da;
+                color: #b02a37;
+            }
+        }
+    }
+}

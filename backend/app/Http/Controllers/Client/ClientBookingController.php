@@ -18,8 +18,8 @@ class ClientBookingController extends Controller
                     'legs.trip.route',
                     'legs.trip.bus',
                     'legs.items.seat',
-                    // 'legs.pickupLocation',
-                    // 'legs.dropoffLocation',
+                    'legs.pickupLocation',
+                    'legs.dropoffLocation',
                     // 'coupon'
                 ])
                 ->orderBy('created_at', 'desc');

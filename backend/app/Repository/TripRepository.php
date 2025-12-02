@@ -14,7 +14,7 @@ class TripRepository implements TripRepositoryInterface
         $query = Trip::with([
             'route.fromCity:id,name,type',
             'route.toCity:id,name,type',
-            'bus'
+            'bus.typeBus'
         ]);
 
         if (!empty($filters['route_id'])) {
@@ -27,10 +27,10 @@ class TripRepository implements TripRepositoryInterface
             $query->where('bus_id', $filters['bus_id']);
         }
         if (!empty($filters['date_from'])) {
-            $query->where('departure_time', '>=', $filters['date_from']);
+            $query->whereDate('departure_time', '>=', $filters['date_from']);
         }
         if (!empty($filters['date_to'])) {
-            $query->where('departure_time', '<=', $filters['date_to']);
+            $query->whereDate('departure_time', '<=', $filters['date_to']);
         }
         if (!empty($filters['from_city']) && !empty($filters['to_city'])) {
             $from = (int) $filters['from_city'];

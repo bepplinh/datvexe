@@ -27,6 +27,10 @@ class DatabaseSeeder extends Seeder
             ScheduleTemplateTripSeeder::class,
             CouponSeeder::class,
             BookingSeeder::class,
+            Route8BookingSeeder::class,
+            Trip17BookingLegLocationSeeder::class,
+            AdminNotificationSeeder::class,
+            SeatLayoutBackfillSeeder::class,
         ]);
     }
 }

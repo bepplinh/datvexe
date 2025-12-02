@@ -23,6 +23,45 @@ class LocationCollector
         return $locations;
     }
 
+    /**
+     * Lấy danh sách địa điểm theo loại (pickup hoặc dropoff)
+     */
+    public function collectByType(Collection $bookingLegs, string $type): array
+    {
+        $type = strtolower($type);
+        $locations = [];
+
+        foreach ($bookingLegs as $leg) {
+            if ($type === 'pickup') {
+                $locations[] = $this->createPickupLocation($leg);
+            } elseif ($type === 'dropoff') {
+                $locations[] = $this->createDropoffLocation($leg);
+            }
+        }
+
+        return $locations;
+    }
+
+    /**
+     * Tách riêng pickup locations và dropoff locations
+     * @return array{pickup: array, dropoff: array}
+     */
+    public function separatePickupAndDropoff(Collection $bookingLegs): array
+    {
+        $pickupLocations = [];
+        $dropoffLocations = [];
+
+        foreach ($bookingLegs as $leg) {
+            $pickupLocations[] = $this->createPickupLocation($leg);
+            $dropoffLocations[] = $this->createDropoffLocation($leg);
+        }
+
+        return [
+            'pickup' => $pickupLocations,
+            'dropoff' => $dropoffLocations,
+        ];
+    }
+
     private function createPickupLocation(BookingLeg $leg): LocationDTO
     {
         return new LocationDTO(

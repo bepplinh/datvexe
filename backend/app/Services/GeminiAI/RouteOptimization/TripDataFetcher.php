@@ -23,7 +23,7 @@ class TripDataFetcher
      */
     public function getTrip(int $tripId): ?Trip
     {
-        return Trip::with(['route'])->find($tripId);
+        return Trip::with(['route.fromCity', 'route.toCity'])->find($tripId);
     }
 
     /**

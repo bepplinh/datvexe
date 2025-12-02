@@ -16,11 +16,7 @@
         right: -10%;
         width: 600px;
         height: 600px;
-        background: linear-gradient(
-            135deg,
-            rgba(102, 126, 234, 0.05) 0%,
-            rgba(118, 75, 162, 0.05) 100%
-        );
+        background: rgba(0, 0, 0, 0.02);
         border-radius: 50%;
         z-index: 0;
     }
@@ -32,11 +28,7 @@
         left: -10%;
         width: 500px;
         height: 500px;
-        background: linear-gradient(
-            135deg,
-            rgba(102, 126, 234, 0.03) 0%,
-            rgba(118, 75, 162, 0.03) 100%
-        );
+        background: rgba(0, 0, 0, 0.01);
         border-radius: 50%;
         z-index: 0;
     }
@@ -76,16 +68,18 @@
         width: 64px;
         height: 64px;
         margin: 0 auto 1rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #000000;
         border-radius: 1rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
-        transition: transform 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease, background 0.3s ease;
 
         &:hover {
             transform: translateY(-2px);
+            background: #333333;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
     }
 
@@ -163,13 +157,13 @@
 
         &:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #000000;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
         }
 
         &:focus + .admin-login__input-icon,
         &:focus ~ .admin-login__input-icon {
-            color: #667eea;
+            color: #000000;
         }
 
         &:disabled {
@@ -195,7 +189,7 @@
         border-radius: 0.375rem;
 
         &:hover {
-            color: #667eea;
+            color: #000000;
             background-color: #f1f5f9;
         }
 
@@ -231,7 +225,7 @@
     &__submit {
         width: 100%;
         padding: 1rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #000000;
         color: #fff;
         border: none;
         border-radius: 0.75rem;
@@ -243,11 +237,12 @@
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 
         &:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            background: #333333;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         &:active:not(:disabled) {

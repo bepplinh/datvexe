@@ -23,15 +23,19 @@ class StoreTripRequest extends FormRequest
 
         if ($this->filled('bus_id')) {
             $rules['departure_time'][] = function ($attribute, $value, $fail) {
-                $departureDate = \Carbon\Carbon::parse($value)->format('Y-m-d');
+                $departureDateTime = \Carbon\Carbon::parse($value);
+                $departureDate = $departureDateTime->format('Y-m-d');
+                $departureTime = $departureDateTime->format('H:i:s');
                 $busId = $this->input('bus_id');
                 
+                // Kiểm tra xem có chuyến nào khác cùng bus, cùng ngày và cùng giờ không
                 $existingTrip = \App\Models\Trip::where('bus_id', $busId)
                     ->whereDate('departure_time', $departureDate)
+                    ->whereTime('departure_time', $departureTime)
                     ->first();
                 
                 if ($existingTrip) {
-                    $fail('Mỗi xe bus chỉ có thể có một chuyến trong cùng ngày.');
+                    $fail('Mỗi xe bus chỉ có thể có một chuyến trong cùng ngày và cùng giờ.');
                 }
             };
         }

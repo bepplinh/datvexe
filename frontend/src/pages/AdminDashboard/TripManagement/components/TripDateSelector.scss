@@ -1,0 +1,124 @@
+.trip-date-selector {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 14px 34px rgba(11, 83, 148, 0.08);
+    border: 1px solid rgba(13, 110, 253, 0.1);
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #0c1d4a;
+    }
+
+    &__date-picker {
+        margin-bottom: 24px;
+    }
+
+    &__date-input {
+        .MuiOutlinedInput-root {
+            border-radius: 12px;
+        }
+    }
+
+    &__routes {
+        margin-top: 24px;
+    }
+
+    &__routes-title {
+        margin: 0 0 16px 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #0c1d4a;
+    }
+
+    &__routes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &__route-card {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: #0d6efd;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+            transform: translateY(-2px);
+        }
+    }
+
+    &__route-icon {
+        width: 48px;
+        height: 48px;
+        background: #0d6efd;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    &__route-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__route-name {
+        margin: 0 0 4px 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #0c1d4a;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__route-count {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    &__route-arrow {
+        color: #6c757d;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+    }
+
+    &__route-card:hover &__route-arrow {
+        color: #0d6efd;
+        transform: translateX(4px);
+    }
+
+    &__empty {
+        text-align: center;
+        padding: 3rem 0;
+        color: #6c757d;
+    }
+}
+

@@ -59,11 +59,6 @@ const RouteDataGrid = ({ routes = [], onView, onEdit, onDelete }) => {
                 ),
         },
         {
-            field: "created_at",
-            headerName: "Ngày tạo",
-            width: 150,
-        },
-        {
             field: "actions",
             headerName: "Thao tác",
             width: 150,

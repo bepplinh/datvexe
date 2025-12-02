@@ -12,6 +12,7 @@ use App\Services\Checkout\PayOSService;
 use App\Services\Checkout\BookingService;
 use Illuminate\Validation\ValidationException;
 use App\Http\Requests\Draft\UpdateDraftRequest;
+use App\Services\Admin\AdminNotificationService;
 use App\Services\SeatFlow\ReleaseLocksAfterBooked;
 use App\Services\DraftCheckoutService\UpdateDraftPayment;
 
@@ -22,7 +23,8 @@ class CheckoutController extends Controller
         private SeatFlowService $seatFlow,
         private PayOSService $payOS,
         private BookingService $bookingService,
-        private ReleaseLocksAfterBooked $releaseLocksAfterBooked
+        private ReleaseLocksAfterBooked $releaseLocksAfterBooked,
+        private AdminNotificationService $adminNotificationService
     ) {}
 
     public function updateDraftPayment(
@@ -163,6 +165,8 @@ class CheckoutController extends Controller
                     userId: $booking->user_id
                 ));
 
+                $this->adminNotificationService->notifyBookingPaid($booking);
+                
                 return response()->json([
                     'success' => true,
                     'message' => 'Đặt vé thành công.',

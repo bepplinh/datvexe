@@ -15,7 +15,7 @@ return new class extends Migration
             $t->id();
             $t->foreignId('seat_layout_template_id')->constrained()->cascadeOnDelete();
             $t->unsignedTinyInteger('deck')->default(1);
-            $t->enum('column_group', ['right','middle','left']);
+            $t->string('column_group', 10);
             $t->unsignedTinyInteger('index_in_column');
             $t->string('seat_label');    
             $t->timestamps();

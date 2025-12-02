@@ -67,24 +67,61 @@ const TicketCard = ({ ticket, onClick }) => {
             tabIndex={0}
         >
             <div className="ticket-card__left">
-                <div className="ticket-card__code">
-                    Mã vé: {ticket.code || ticket.id || "N/A"}
+                <div className="ticket-card__code-row">
+                    <div className="ticket-card__code">
+                        Mã vé: {ticket.code || ticket.id || "N/A"}
+                    </div>
+                    {ticket.is_round_trip && (
+                        <span className="ticket-card__badge-roundtrip">
+                            Vé khứ hồi
+                        </span>
+                    )}
                 </div>
                 <div className="ticket-card__route">
                     <Send className="ticket-card__icon" size={16} />
                     <span>
-                        {ticket.from || "Điểm đi"} - {ticket.to || "Điểm đến"}
+                        {ticket.from || "Điểm đi"}{" "}
+                        {ticket.is_round_trip ? "⇄" : "→"}{" "}
+                        {ticket.to || "Điểm đến"}
                     </span>
                 </div>
                 <div className="ticket-card__datetime">
                     <Clock className="ticket-card__icon" size={16} />
-                    <span>
-                        {formatTime(ticket.departure_time)} {formatDate(ticket.departure_date)}
-                    </span>
+                    <div className="ticket-card__datetime-content">
+                        <span>
+                            {ticket.is_round_trip ? "Chiều đi: " : ""}
+                            {formatTime(ticket.departure_time)}{" "}
+                            {formatDate(ticket.departure_date)}
+                        </span> <br/>
+                        {ticket.is_round_trip && (
+                            <span className="ticket-card__datetime-return">
+                                Chiều về:{" "}
+                                {formatTime(ticket.return_departure_time)}{" "}
+                                {formatDate(ticket.return_departure_date)}
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <div className="ticket-card__bus-type">
                     <Bus className="ticket-card__icon" size={16} />
-                    <span>{ticket.bus_type || "GIƯỜNG NẰM"}</span>
+                    <div className="ticket-card__bus-type-content">
+                        {ticket.is_round_trip ? (
+                            <>
+                                <span>
+                                    Chiều đi:{" "}
+                                    {ticket.bus_type || "GIƯỜNG NẰM"}
+                                </span>
+                                <span>
+                                    Chiều về:{" "}
+                                    {ticket.return_bus_type ||
+                                        ticket.bus_type ||
+                                        "GIƯỜNG NẰM"}
+                                </span>
+                            </>
+                        ) : (
+                            <span>{ticket.bus_type || "GIƯỜNG NẰM"}</span>
+                        )}
+                    </div>
                 </div>
             </div>
             <div className="ticket-card__divider"></div>

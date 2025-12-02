@@ -19,15 +19,21 @@ class BookingSeeder extends Seeder
         // Lấy dữ liệu cần thiết
         $trips = DB::table('trips')->get();
         $seats = DB::table('seats')->get();
-        $locations = DB::table('locations')->where('type', 'ward')->get();
+        // Lấy cả wards và districts (vì một số districts không có wards)
+        $locations = DB::table('locations')
+            ->whereIn('type', ['ward', 'district'])
+            ->get();
 
         $userId = 3;
         $numberOfBookings = 10; // Số lượng booking muốn tạo
+        $numberOfRoundTripBookings = 3; // Ít nhất bao nhiêu booking sẽ có cả chiều đi và về
 
         if ($trips->isEmpty() || $seats->isEmpty() || $locations->isEmpty()) {
             $this->command?->warn('⚠️ Cannot seed bookings: missing trips, seats, or locations.');
             return;
         }
+
+        $this->command->info("📊 Found {$trips->count()} trips, {$seats->count()} seats, {$locations->count()} locations");
 
         $this->command->info("🚀 Creating {$numberOfBookings} bookings for user_id = {$userId}...");
 
@@ -41,11 +47,18 @@ class BookingSeeder extends Seeder
             $isCancelled = rand(1, 100) <= 30;
             $status = $isCancelled ? 'cancelled' : 'paid';
 
-            // Random số lượng legs (1 hoặc 2 - OUT hoặc OUT+RETURN)
-            $hasReturn = rand(1, 100) <= 50; // 50% có return leg
-            $legTypes = ['OUT'];
-            if ($hasReturn) {
-                $legTypes[] = 'RETURN';
+            // Xác định leg types cho booking này
+            // - Một vài booking đầu chắc chắn có cả OUT + RETURN
+            // - Các booking còn lại giữ nguyên random như cũ
+            if ($i < $numberOfRoundTripBookings) {
+                $legTypes = ['OUT', 'RETURN'];
+            } else {
+                // Random số lượng legs (1 hoặc 2 - OUT hoặc OUT+RETURN)
+                $hasReturn = rand(1, 100) <= 50; // 50% có return leg
+                $legTypes = ['OUT'];
+                if ($hasReturn) {
+                    $legTypes[] = 'RETURN';
+                }
             }
 
             // Tính toán giá
@@ -97,6 +110,24 @@ class BookingSeeder extends Seeder
                     $dropoffLocation = $locations->random();
                 }
 
+                // Helper function để tạo địa chỉ đầy đủ
+                $buildAddress = function($location) use ($locations) {
+                    $parts = [$location->name];
+                    $parentId = $location->parent_id;
+                    
+                    while ($parentId) {
+                        $parent = DB::table('locations')->where('id', $parentId)->first();
+                        if ($parent) {
+                            $parts[] = $parent->name;
+                            $parentId = $parent->parent_id;
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    return implode(', ', $parts);
+                };
+
                 // Random số lượng ghế (1-4 ghế)
                 $numberOfSeats = rand(1, 4);
                 $selectedSeats = $seats->random(min($numberOfSeats, $seats->count()));
@@ -112,10 +143,8 @@ class BookingSeeder extends Seeder
                     'dropoff_location_id' => $dropoffLocation->id,
                     'pickup_snap' => null,
                     'dropoff_snap' => null,
-                    'pickup_address' => $pickupLocation->name . ', ' .
-                        DB::table('locations')->where('id', $pickupLocation->parent_id)->value('name'),
-                    'dropoff_address' => $dropoffLocation->name . ', ' .
-                        DB::table('locations')->where('id', $dropoffLocation->parent_id)->value('name'),
+                    'pickup_address' => $buildAddress($pickupLocation),
+                    'dropoff_address' => $buildAddress($dropoffLocation),
                     'total_price' => 0, // Sẽ cập nhật sau
                     'created_at' => $booking->created_at,
                     'updated_at' => $booking->updated_at,

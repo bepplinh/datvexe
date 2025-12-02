@@ -11,8 +11,14 @@ return new class extends Migration {
             $table->foreignId('bus_id')->constrained()->cascadeOnDelete();
             $table->string('seat_number');
             $table->unsignedTinyInteger('deck')->default(2);
-            $table->enum('column_group', ['left', 'middle', 'right']);
+            $table->string('column_group', 10);
             $table->unsignedTinyInteger('index_in_column'); // số thứ tự trong cột
+            $table->integer('layout_x')->nullable();
+            $table->integer('layout_y')->nullable();
+            $table->unsignedSmallInteger('layout_w')->default(48);
+            $table->unsignedSmallInteger('layout_h')->default(48);
+            $table->string('seat_type', 32)->nullable();
+            $table->json('layout_meta')->nullable();
 
             $table->boolean('active')->default(true);
             $table->timestamps();

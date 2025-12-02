@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useState, useCallback } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useLocation } from "../../../contexts/LocationProvider";
@@ -18,9 +18,16 @@ export default function LocationMenu({ fieldType, excludedLocation, onSelect }) 
     rootLocations,
     searchLocations,
     toggleExpand,
+    resetExpandedIds,
   } = useLocation();
 
   const { setFrom, setTo } = useSearchTrip();
+
+  // Reset tree when fieldType changes (e.g., switching from "from" to "to")
+  // Use useLayoutEffect to avoid flicker by running synchronously before paint
+  useLayoutEffect(() => {
+    resetExpandedIds(fieldType);
+  }, [fieldType, resetExpandedIds]);
 
   // Debounce search
   useEffect(() => {
@@ -46,12 +53,14 @@ export default function LocationMenu({ fieldType, excludedLocation, onSelect }) 
       } else if (fieldType === "to") {
         setTo(location);
       }
+      // Reset tree (close all nodes) after selecting a location
+      resetExpandedIds();
       // Call parent callback
       if (onSelect) {
         onSelect(location);
       }
     }
-  }, [fieldType, setFrom, setTo, onSelect]);
+  }, [fieldType, setFrom, setTo, onSelect, resetExpandedIds]);
 
   // Filter out excluded location from tree
   const filterLocationNode = (node) => {
@@ -194,7 +203,19 @@ export default function LocationMenu({ fieldType, excludedLocation, onSelect }) 
                   onClick={(e) => {
                     e.stopPropagation();
                     if (canSelect) {
-                      onSelect(item);
+                      setSelectedId(item.id);
+                      // Auto set to SearchTripProvider
+                      if (fieldType === "from") {
+                        setFrom(item);
+                      } else if (fieldType === "to") {
+                        setTo(item);
+                      }
+                      // Reset tree (close all nodes) after selecting a location
+                      resetExpandedIds();
+                      // Call parent callback
+                      if (onSelect) {
+                        onSelect(item);
+                      }
                     }
                   }}
                   style={{ cursor: canSelect ? "pointer" : "default" }}

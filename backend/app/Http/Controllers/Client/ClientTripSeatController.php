@@ -5,17 +5,19 @@ namespace App\Http\Controllers\Client;
 use App\Models\Trip;
 use App\Models\TripSeatStatus;
 use App\Http\Controllers\Controller;
+use App\Services\BusSeatLayoutService;
 use App\Services\SeatFlowService;
 
 class ClientTripSeatController extends Controller
 {
     public function __construct(
         private SeatFlowService $seatFlow,
+        private BusSeatLayoutService $layoutService,
     ) {}
     public function show(int $tripId)
     {
         $trip = Trip::with(['bus.seats' => function ($q) {
-            $q->select('id', 'bus_id', 'seat_number', 'deck', 'column_group', 'index_in_column', 'active');
+            $q->select('id', 'bus_id', 'seat_number', 'deck', 'column_group', 'index_in_column', 'seat_type', 'layout_x', 'layout_y', 'layout_w', 'layout_h', 'active');
         }])->findOrFail($tripId);
 
         $seats = $trip->bus?->seats ?? collect();
@@ -42,6 +44,8 @@ class ClientTripSeatController extends Controller
             ->map(fn ($id) => (int) $id)
             ->flip();
 
+        $layout = $this->layoutService->layoutFromSeats($seats, $trip->bus);
+
         $payload = $seats->map(function ($seat) use ($booked, $locked) {
             $status = 'available';
             if ($booked->has($seat->id)) {
@@ -57,6 +61,13 @@ class ClientTripSeatController extends Controller
                 'column_group'  => $seat->column_group,
                 'index'         => $seat->index_in_column,
                 'status'        => $status,
+                'seat_type'     => $seat->seat_type,
+                'position'      => [
+                    'x' => $seat->layout_x,
+                    'y' => $seat->layout_y,
+                    'w' => $seat->layout_w,
+                    'h' => $seat->layout_h,
+                ],
             ];
         })->groupBy('deck')->map->values();
 
@@ -65,6 +76,7 @@ class ClientTripSeatController extends Controller
             'data' => [
                 'trip_id' => $tripId,
                 'bus_id'  => $trip->bus_id,
+                'layout'  => $layout,
                 'seats'   => $payload,   
             ],
         ]);

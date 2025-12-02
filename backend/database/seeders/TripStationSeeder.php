@@ -12,36 +12,92 @@ class TripStationSeeder extends Seeder
         $routes = DB::table('routes')->get();
 
         foreach ($routes as $route) {
-            // pick first ward of from_city's first district and first ward of to_city's first district
-            $fromDistrict = DB::table('locations')->where('type','district')->where('parent_id', $route->from_city)->first();
-            $toDistrict   = DB::table('locations')->where('type','district')->where('parent_id', $route->to_city)->first();
-            if (!$fromDistrict || !$toDistrict) continue;
+            // Lấy thông tin route
+            $fromCity = DB::table('locations')->where('id', $route->from_city)->first();
+            $toCity = DB::table('locations')->where('id', $route->to_city)->first();
 
-            $fromWard = DB::table('locations')->where('type','ward')->where('parent_id', $fromDistrict->id)->first();
-            $toWard   = DB::table('locations')->where('type','ward')->where('parent_id', $toDistrict->id)->first();
-            if (!$fromWard || !$toWard) continue;
+            if (!$fromCity || !$toCity) {
+                continue;
+            }
 
-            // Seed two sample price tiers
-            DB::table('trip_stations')->insert([
-                [
-                    'route_id' => $route->id,
-                    'from_location_id' => $fromWard->id,
-                    'to_location_id'   => $toWard->id,
-                    'price' => 100000,
-                    'duration_minutes' => 120,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ],
-                [
-                    'route_id' => $route->id,
-                    'from_location_id' => $fromWard->id,
-                    'to_location_id'   => $toWard->id,
-                    'price' => 150000,
-                    'duration_minutes' => 180,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ],
-            ]);
+            // Lấy tất cả các districts và wards của from_city và to_city
+            $fromDistricts = DB::table('locations')
+                ->where('parent_id', $route->from_city)
+                ->where('type', 'district')
+                ->pluck('id')
+                ->toArray();
+            
+            $toDistricts = DB::table('locations')
+                ->where('parent_id', $route->to_city)
+                ->where('type', 'district')
+                ->pluck('id')
+                ->toArray();
+
+            // Lấy tất cả các districts trực tiếp thuộc city
+            $fromDistrictLocations = DB::table('locations')
+                ->where('parent_id', $route->from_city)
+                ->where('type', 'district')
+                ->get();
+            
+            $toDistrictLocations = DB::table('locations')
+                ->where('parent_id', $route->to_city)
+                ->where('type', 'district')
+                ->get();
+
+            // Lấy tất cả các wards thuộc các districts
+            $fromWardLocations = collect();
+            if (!empty($fromDistricts)) {
+                $fromWardLocations = DB::table('locations')
+                    ->whereIn('parent_id', $fromDistricts)
+                    ->where('type', 'ward')
+                    ->get();
+            }
+            
+            $toWardLocations = collect();
+            if (!empty($toDistricts)) {
+                $toWardLocations = DB::table('locations')
+                    ->whereIn('parent_id', $toDistricts)
+                    ->where('type', 'ward')
+                    ->get();
+            }
+
+            // Kết hợp districts và wards
+            $fromLocations = $fromDistrictLocations->merge($fromWardLocations);
+            $toLocations = $toDistrictLocations->merge($toWardLocations);
+
+            if ($fromLocations->isEmpty() || $toLocations->isEmpty()) {
+                $this->command->warn("⚠️ No locations found for route: {$route->name}");
+                continue;
+            }
+
+            // Tạo trip stations cho tất cả các cặp from_location -> to_location
+            $tripStations = [];
+            
+            foreach ($fromLocations as $fromLocation) {
+                foreach ($toLocations as $toLocation) {
+                    // Tính giá dựa trên khoảng cách (giả định)
+                    // Giá cơ bản từ 100k đến 500k
+                    $basePrice = rand(100000, 500000);
+                    
+                    // Tính duration (giả định 60-300 phút)
+                    $duration = rand(60, 300);
+                    
+                    $tripStations[] = [
+                        'route_id' => $route->id,
+                        'from_location_id' => $fromLocation->id,
+                        'to_location_id' => $toLocation->id,
+                        'price' => $basePrice,
+                        'duration_minutes' => $duration,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+
+            if (!empty($tripStations)) {
+                DB::table('trip_stations')->insert($tripStations);
+                $this->command->info("✅ Created " . count($tripStations) . " trip stations for route: {$route->name}");
+            }
         }
     }
 } 

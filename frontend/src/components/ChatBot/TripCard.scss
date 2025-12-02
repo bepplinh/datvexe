@@ -1,0 +1,250 @@
+.chatbot-trip-card {
+    margin-top: 12px;
+    padding: 16px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+        border-color: #000000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    &__avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #7ba7ef26;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+        color: #0c1e51;
+        flex-shrink: 0;
+    }
+
+    &__info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__bus-name {
+        margin: 0 0 4px 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #2d2d2f;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__bus-type {
+        font-size: 11px;
+        color: #666;
+        background: #f3f4f6;
+        padding: 2px 8px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    &__price {
+        font-size: 16px;
+        font-weight: 600;
+        color: #ed1925;
+        white-space: nowrap;
+    }
+
+    &__route {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        padding: 8px 0;
+        border-top: 1px solid #f3f4f6;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    &__time {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #2d2d2f;
+        min-width: 50px;
+
+        svg {
+            color: #666;
+        }
+    }
+
+    &__duration {
+        flex: 1;
+        text-align: center;
+        font-size: 12px;
+        color: #666;
+        position: relative;
+
+        &::before,
+        &::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 1px;
+            background: #d1d5db;
+        }
+
+        &::before {
+            left: -30px;
+        }
+
+        &::after {
+            right: -30px;
+        }
+    }
+
+    &__locations {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 12px;
+        color: #666;
+    }
+
+    &__from,
+    &__to {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__from {
+        font-weight: 500;
+        color: #2d2d2f;
+    }
+
+    &__arrow {
+        color: #9ca3af;
+        font-size: 14px;
+    }
+
+    &__footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    &__seats {
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__seats span {
+        display: block;
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 4px;
+
+        strong {
+            color: #ed1925;
+            font-weight: 600;
+        }
+    }
+
+    &__seat-bar {
+        width: 100%;
+        height: 4px;
+        background: #e5e7eb;
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    &__seat-fill {
+        height: 100%;
+        background: #ed1925;
+        border-radius: 2px;
+        transition: width 0.3s ease;
+    }
+
+    &__button {
+        padding: 8px 16px;
+        background: #ed1925;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+
+        &:hover {
+            background: #c9141f;
+            transform: scale(1.05);
+        }
+
+        &:active {
+            transform: scale(0.98);
+        }
+    }
+}
+
+// Responsive
+@media (max-width: 480px) {
+    .chatbot-trip-card {
+        padding: 12px;
+
+        &__header {
+            flex-wrap: wrap;
+        }
+
+        &__price {
+            width: 100%;
+            text-align: right;
+        }
+
+        &__route {
+            flex-wrap: wrap;
+        }
+
+        &__duration {
+            width: 100%;
+            margin: 8px 0;
+
+            &::before,
+            &::after {
+                display: none;
+            }
+        }
+
+        &__footer {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        &__button {
+            width: 100%;
+        }
+    }
+}
+

@@ -24,7 +24,7 @@
         width: 56px;
         height: 56px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #0d6efd, #00aefd);
+        background: #000000;
         color: white;
         display: flex;
         align-items: center;
@@ -32,7 +32,7 @@
         font-size: 24px;
         font-weight: 700;
         flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
     &__info {
@@ -65,7 +65,7 @@
         white-space: nowrap;
 
         &.role-admin {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            background: #dc3545;
             color: white;
         }
 
@@ -97,13 +97,7 @@
 
     &__divider {
         height: 1px;
-        background: repeating-linear-gradient(
-            to right,
-            #e9ecef 0,
-            #e9ecef 8px,
-            transparent 8px,
-            transparent 16px
-        );
+        background: #e9ecef;
         margin: 16px 0;
     }
 

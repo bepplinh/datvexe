@@ -1,0 +1,43 @@
+.bus-type-datagrid-wrapper {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 16px rgba(13, 110, 253, 0.08);
+    border: 1px solid rgba(13, 110, 253, 0.1);
+    margin-bottom: 2rem;
+
+    .MuiDataGrid-root {
+        border: none;
+        font-family: inherit;
+    }
+
+    .MuiDataGrid-columnHeaders {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+        font-weight: 700;
+        color: #0c1d4a;
+    }
+
+    .MuiDataGrid-cell {
+        border-bottom: 1px solid #e9ecef;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        vertical-align: middle;
+    }
+
+    .MuiDataGrid-cell[data-field="actions"] {
+        justify-content: center;
+    }
+
+    .MuiDataGrid-row {
+        &:hover {
+            background-color: rgba(13, 110, 253, 0.04) !important;
+        }
+    }
+
+    .MuiDataGrid-footerContainer {
+        border-top: 1px solid #e9ecef;
+    }
+}
+

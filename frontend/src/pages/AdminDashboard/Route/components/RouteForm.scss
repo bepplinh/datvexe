@@ -21,7 +21,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 24px 24px 16px;
+        padding: 24px 24px 16px !important;
         font-size: 1.4rem;
         font-weight: 700;
         color: #0c1d4a;
@@ -47,13 +47,18 @@
     }
 
     &__content {
-        padding: 24px;
+        padding: 24px !important;
+        
+        .MuiDialogContent-root {
+            padding: 24px !important;
+        }
     }
 
     &__fields {
         display: flex;
         flex-direction: column;
         gap: 20px;
+        padding: 8px 0;
     }
 
     &__field {
@@ -79,9 +84,13 @@
     }
 
     &__actions {
-        padding: 16px 24px;
+        padding: 16px 24px !important;
         border-top: 1px solid #e9ecef;
         gap: 12px;
+        
+        .MuiDialogActions-root {
+            padding: 16px 24px !important;
+        }
     }
 
     &__cancel-btn {
@@ -97,11 +106,13 @@
         text-transform: none;
         font-weight: 600;
         padding: 10px 24px;
-        background: linear-gradient(135deg, #0d6efd, #00aefd);
-        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+        background: #000000;
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 
         &:hover {
-            background: linear-gradient(135deg, #0b5ed7, #0099e6);
+            background: #333333;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
     }
 }

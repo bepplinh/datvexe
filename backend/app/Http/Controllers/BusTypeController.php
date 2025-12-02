@@ -43,10 +43,29 @@ class BusTypeController extends Controller
     public function update(StoreTypeBusRequest $request, $id)
     {
         $busType = BusType::find($id);
+        if (!$busType) {
+            return response()->json([
+                'message' => 'Bus type not found',
+            ], 404);
+        }
         $busType->update($request->all());
         return response()->json([
             'message' => 'Bus type updated successfully',
             'data' => $busType
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $busType = BusType::find($id);
+        if (!$busType) {
+            return response()->json([
+                'message' => 'Bus type not found',
+            ], 404);
+        }
+        $busType->delete();
+        return response()->json([
+            'message' => 'Bus type deleted successfully',
         ]);
     }
 }

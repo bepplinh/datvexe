@@ -3,6 +3,7 @@
 namespace App\Services\GeminiAI;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use App\Services\GeminiAI\GeminiClient;
 use App\Services\TripSearchService;
 use App\Support\Time\ViDatetimeParser;
@@ -65,18 +66,60 @@ class GeminiAiService
             ]]
         ]];
 
-        // ====== system instruction (ngắn mà "ép kỷ luật") ======
+        // ====== system instruction (cải thiện để thông minh hơn) ======
         $system = [
             'role' => 'user',
             'parts' => [[
                 'text' => <<<PROMPT
-Bạn là trợ lý tiếng Việt chỉ hỗ trợ tìm chuyến xe khách (bus) trên hệ thống nội bộ.
-- Trả lời tiếng Việt, ngắn gọn và tuyệt đối không trả lời bằng tiếng Anh.
-- Nếu đủ dữ kiện: gọi function search_trips để tìm chuyến.
-- Nếu không có chuyến nào, nói rõ "Không tìm thấy chuyến nào phù hợp." bằng tiếng Việt.
-- Nếu thiếu from/to/date: hỏi đúng trường bị thiếu, KHÔNG hỏi flights/trains/hotel.
-- Thời gian: hiểu nhãn tiếng Việt như "hôm nay/mai/thứ x", "sáng/chiều/tối" hoặc "HH:mm-HH:mm".
-- Nếu không có kết quả: nói rõ không tìm thấy, gợi ý nới giờ/giá/số ghế, giữ nguyên ngôn ngữ Việt.
+Bạn là trợ lý AI thông minh chuyên tìm chuyến xe khách (bus) bằng tiếng Việt.
+
+QUY TẮC QUAN TRỌNG:
+1. LUÔN trả lời bằng tiếng Việt, thân thiện và tự nhiên như đang nói chuyện với bạn.
+2. Khi có đủ thông tin (điểm đi, điểm đến, ngày): GỌI NGAY function search_trips.
+3. Khi thiếu thông tin: HỎI RÕ RÀNG từng phần một, không hỏi dồn dập.
+
+HIỂU BIẾT VỀ ĐỊA ĐIỂM:
+- Hiểu các cách viết: "Hà Nội" = "HN" = "Hanoi", "TP.HCM" = "Sài Gòn" = "SG" = "Ho Chi Minh"
+- Hiểu tên quận/huyện: "Mỹ Đình", "Cầu Giấy", "Thọ Xuân", "Bến Xe Miền Đông"
+- Nếu không rõ địa điểm: hỏi lại hoặc gợi ý các địa điểm phổ biến
+
+HIỂU BIẾT VỀ THỜI GIAN:
+- "hôm nay", "mai", "ngày mai", "thứ 2", "thứ 3", ..., "thứ 7", "chủ nhật"
+- "sáng" (4:30-11:59), "chiều" (12:00-17:59), "tối" (18:00-23:59)
+- "sáng sớm", "chiều muộn", "tối muộn"
+- Có thể hiểu: "tối mai", "sáng thứ 6", "chiều hôm nay"
+
+HIỂU BIẾT VỀ GIÁ CẢ:
+- "dưới 200k", "dưới 200 nghìn", "<= 200000", "khoảng 200k", "từ 150k đến 300k"
+- "rẻ nhất", "giá tốt", "phù hợp túi tiền"
+
+HIỂU BIẾT VỀ SỐ LƯỢNG:
+- "2 vé", "3 người", "1 ghế", "cho 4 người", "cần 2 chỗ"
+
+HIỂU BIẾT VỀ LOẠI XE:
+- "giường nằm", "limousine", "ghế ngồi", "xe VIP"
+
+KHI TÌM THẤY CHUYẾN:
+- Tóm tắt ngắn gọn: số lượng chuyến, khoảng giá, số ghế còn lại
+- Nếu có nhiều chuyến: gợi ý chuyến phù hợp nhất
+- Nếu ít chuyến: khuyến khích đặt sớm
+
+KHI KHÔNG TÌM THẤY:
+- Giải thích rõ ràng tại sao không có (ngày quá xa, không có tuyến, hết vé)
+- Gợi ý: thử ngày khác, nới lỏng điều kiện (giá, giờ, loại xe)
+- Luôn lịch sự và hữu ích
+
+CÁC CÂU HỎI ĐẶC BIỆT:
+- "Chuyến nào rẻ nhất?": tìm và highlight chuyến giá thấp nhất
+- "Chuyến nào sớm nhất?": tìm chuyến khởi hành sớm nhất
+- "Còn nhiều ghế không?": ưu tiên chuyến còn nhiều ghế
+- "Xe nào đẹp nhất?": ưu tiên limousine hoặc giường nằm
+
+KHÔNG BAO GIỜ:
+- Trả lời bằng tiếng Anh
+- Hỏi về máy bay, tàu hỏa, khách sạn
+- Đưa ra thông tin không chính xác
+- Bỏ qua thông tin quan trọng từ người dùng
 PROMPT
             ]]
         ];
@@ -130,12 +173,42 @@ PROMPT
                 }
             }
 
+            // Cải thiện xử lý khi không tìm thấy location
             if ($fromId <= 0 || $toId <= 0) {
                 $missing = [];
-                if ($fromId <= 0) $missing[] = 'điểm đi';
-                if ($toId <= 0)   $missing[] = 'điểm đến';
+                $suggestions = [];
+                
+                if ($fromId <= 0 && $fromText !== '') {
+                    $missing[] = 'điểm đi';
+                    if ($this->resolver) {
+                        $suggestions['from'] = $this->resolver->suggest($fromText, 3);
+                    }
+                }
+                
+                if ($toId <= 0 && $toText !== '') {
+                    $missing[] = 'điểm đến';
+                    if ($this->resolver) {
+                        $suggestions['to'] = $this->resolver->suggest($toText, 3);
+                    }
+                }
+                
                 $m = implode(' và ', $missing);
-                return ['message' => "Mình cần $m cụ thể (bạn chọn từ gợi ý giúp mình nhé?)."];
+                $message = "Mình không tìm thấy $m bạn nhắc đến.";
+                
+                // Thêm gợi ý nếu có
+                if (!empty($suggestions)) {
+                    $message .= " Bạn có thể thử:";
+                    foreach ($suggestions as $type => $items) {
+                        if (!empty($items)) {
+                            $names = array_column($items, 'name');
+                            $message .= " " . implode(', ', array_slice($names, 0, 3));
+                        }
+                    }
+                } else {
+                    $message .= " Bạn vui lòng cho mình biết $m cụ thể nhé.";
+                }
+                
+                return ['message' => $message];
             }
 
             // ---- Lấy date/time từ nhiều key + fallback từ message gốc ----
@@ -166,21 +239,39 @@ PROMPT
                 'buổi sáng' => 'sáng',
                 'sang' => 'sáng',
                 'sáng sớm' => 'sáng',
+                'sớm' => 'sáng',
                 'buổi chiều' => 'chiều',
                 'chieu' => 'chiều',
                 'chiều muộn' => 'chiều',
                 'buổi tối'  => 'tối',
                 'toi' => 'tối',
                 'tối muộn' => 'tối',
+                'khuya' => 'tối',
+                'đêm' => 'tối',
             ];
             if (isset($map[$time])) $time = $map[$time];
+            
+            // Nếu không có time_window trong args, thử extract từ message
+            if ($time === '' && !empty($userMessage)) {
+                $timePatterns = [
+                    '/sáng|sớm/i' => 'sáng',
+                    '/chiều|trưa/i' => 'chiều',
+                    '/tối|đêm|khuya/i' => 'tối',
+                ];
+                foreach ($timePatterns as $pattern => $mapped) {
+                    if (preg_match($pattern, $userMessage)) {
+                        $time = $mapped;
+                        break;
+                    }
+                }
+            }
 
             $timeFrom = $timeTo = null;
             if ($time !== '') {
                 [$timeFrom, $timeTo] = \App\Support\Time\ViDatetimeParser::resolveTimeWindow($time);
             }
 
-            // 3) Map filters sang searchOneWay
+            // 3) Map filters sang searchOneWay với cải thiện parse giá cả
             $filters = [];
             if ($timeFrom && $timeTo) {
                 $filters['time_from'] = $timeFrom;
@@ -189,25 +280,72 @@ PROMPT
             if (!empty($args['bus_type_ids']) && is_array($args['bus_type_ids'])) {
                 $filters['bus_type'] = array_map('intval', $args['bus_type_ids']);
             }
-            if (isset($args['price_cap']))  $filters['price_cap']  = (int)$args['price_cap'];
+            
+            // Cải thiện parse price_cap từ nhiều format
+            if (isset($args['price_cap'])) {
+                $filters['price_cap'] = (int)$args['price_cap'];
+            } else {
+                // Thử extract giá từ message nếu có
+                $pricePatterns = [
+                    '/dưới\s*(\d+)\s*k/i' => 1,
+                    '/dưới\s*(\d+)\s*nghìn/i' => 1,
+                    '/dưới\s*(\d+)\s*000/i' => 1,
+                    '/<=?\s*(\d+)\s*k/i' => 1,
+                    '/khoảng\s*(\d+)\s*k/i' => 1,
+                    '/từ\s*\d+\s*k?\s*đến\s*(\d+)\s*k/i' => 1,
+                ];
+                foreach ($pricePatterns as $pattern => $multiplier) {
+                    if (preg_match($pattern, $userMessage, $matches)) {
+                        $price = (int)$matches[1] * ($multiplier === 1 ? 1000 : $multiplier);
+                        $filters['price_cap'] = $price;
+                        break;
+                    }
+                }
+            }
+            
             if (isset($args['min_seats']))  $filters['min_seats']  = max(0, (int)$args['min_seats']);
             if (isset($args['limit']))      $filters['limit']      = (int)$args['limit'];
+            
+            // Xử lý sort thông minh hơn
             $sort = strtolower((string)($args['sort'] ?? 'asc'));
+            // Nếu user hỏi "rẻ nhất" hoặc "giá tốt" => sort by price (cần thêm logic)
+            if (preg_match('/rẻ|giá\s*tốt|giá\s*thấp/i', $userMessage)) {
+                // Note: TripSearchService hiện sort by time, có thể cần thêm sort by price
+            }
+            // Nếu user hỏi "sớm nhất" => sort asc (mặc định)
+            if (preg_match('/sớm|sớm\s*nhất/i', $userMessage)) {
+                $sort = 'asc';
+            }
             $filters['sort'] = in_array($sort, ['asc', 'desc'], true) ? $sort : 'asc';
 
             // passengers => tối thiểu số ghế
             if (isset($args['passengers'])) {
                 $filters['min_seats'] = max((int)($filters['min_seats'] ?? 0), (int)$args['passengers']);
+            } else {
+                // Thử extract số lượng từ message
+                if (preg_match('/(\d+)\s*(?:vé|người|ghế|chỗ)/i', $userMessage, $matches)) {
+                    $filters['min_seats'] = max((int)($filters['min_seats'] ?? 0), (int)$matches[1]);
+                }
             }
 
             // 4) Gọi service tìm chuyến của bạn
             try {
                 $trips = $this->tripSearch->searchOneWay($fromId, $toId, $dateYmd, $filters);
             } catch (\Throwable $e) {
-                return ['message' => 'Không thể tìm chuyến lúc này. Bạn thử lại sau nhé.'];
+                Log::error('Trip search error', [
+                    'message' => $e->getMessage(),
+                    'from' => $fromId,
+                    'to' => $toId,
+                    'date' => $dateYmd,
+                    'filters' => $filters,
+                ]);
+                return ['message' => 'Xin lỗi, hệ thống đang gặp sự cố. Bạn vui lòng thử lại sau nhé.'];
             }
 
-            // 5) Turn 2: gửi functionResponse cho Gemini để "kể chuyện" đẹp
+            // 5) Turn 2: gửi functionResponse cho Gemini để "kể chuyện" đẹp với context phong phú hơn
+            $tripCount = count($trips);
+            $summary = $this->buildTripSummary($trips);
+            
             $payload2 = [
                 'contents' => [
                     $system,
@@ -218,6 +356,8 @@ PROMPT
                             'name' => 'search_trips',
                             'response' => [
                                 'trips' => $trips,
+                                'summary' => $summary,
+                                'count' => $tripCount,
                             ],
                         ]
                     ]]]
@@ -226,17 +366,150 @@ PROMPT
 
             try {
                 $second = $this->gemini->secondTurn($payload2);
-                $text = GeminiClient::extractText($second) ?? 'Mình đã tìm được một số chuyến phù hợp.';
+                $text = GeminiClient::extractText($second);
+                
+                // Fallback thông minh nếu AI không trả về text
+                if (empty($text)) {
+                    $text = $this->generateSmartResponse($trips, $summary, $userMessage);
+                }
             } catch (\Throwable $e) {
-                // Fallback: nếu turn 2 lỗi, vẫn trả trips để FE render
-                $text = 'Mình đã tìm được một số chuyến phù hợp.';
+                Log::error('Gemini second turn error', [
+                    'message' => $e->getMessage(),
+                    'user_message' => $userMessage,
+                ]);
+                // Fallback: tạo response thông minh dựa trên kết quả
+                $text = $this->generateSmartResponse($trips, $summary, $userMessage);
             }
 
             return ['message' => $text, 'trips' => $trips];
         }
 
         // ====== Không gọi function: thường là câu hỏi làm rõ ======
-        $text = GeminiClient::extractText($first) ?? 'Bạn vui lòng cho biết điểm đi, điểm đến và ngày đi.';
+        $text = GeminiClient::extractText($first);
+        
+        // Nếu AI không trả về text, tạo response thông minh dựa trên message
+        if (empty($text)) {
+            $text = $this->handleGeneralQuestion($userMessage);
+        }
+        
         return ['message' => $text];
+    }
+
+    /**
+     * Tạo summary từ danh sách trips để AI có context tốt hơn
+     */
+    private function buildTripSummary(array $trips): array
+    {
+        if (empty($trips)) {
+            return [
+                'count' => 0,
+                'price_range' => null,
+                'time_range' => null,
+                'available_seats' => 0,
+                'bus_types' => [],
+            ];
+        }
+
+        $prices = array_filter(array_column($trips, 'price'));
+        $times = array_filter(array_column($trips, 'departure_time'));
+        $totalSeats = array_sum(array_column($trips, 'available_seats'));
+        $busTypes = array_unique(array_filter(array_column(array_column($trips, 'bus'), 'type')));
+
+        return [
+            'count' => count($trips),
+            'price_range' => !empty($prices) ? [
+                'min' => min($prices),
+                'max' => max($prices),
+            ] : null,
+            'time_range' => !empty($times) ? [
+                'earliest' => min($times),
+                'latest' => max($times),
+            ] : null,
+            'available_seats' => $totalSeats,
+            'bus_types' => array_values($busTypes),
+        ];
+    }
+
+    /**
+     * Tạo response thông minh khi AI không trả về text
+     */
+    private function generateSmartResponse(array $trips, array $summary, string $userMessage): string
+    {
+        if (empty($trips)) {
+            // Phân tích tại sao không có kết quả
+            if (preg_match('/rẻ|giá\s*thấp|dưới\s*\d+/i', $userMessage)) {
+                return "Mình không tìm thấy chuyến nào phù hợp với mức giá bạn yêu cầu. Bạn có thể thử nới lỏng điều kiện giá hoặc chọn ngày khác nhé.";
+            }
+            if (preg_match('/sớm|sáng\s*sớm/i', $userMessage)) {
+                return "Mình không tìm thấy chuyến nào khởi hành sớm vào ngày này. Bạn có thể thử ngày khác hoặc chọn khung giờ khác nhé.";
+            }
+            return "Mình không tìm thấy chuyến nào phù hợp. Bạn có thể thử ngày khác hoặc điều chỉnh điều kiện tìm kiếm nhé.";
+        }
+
+        $count = $summary['count'];
+        $priceRange = $summary['price_range'];
+        $totalSeats = $summary['available_seats'];
+
+        $response = "Mình đã tìm thấy {$count} chuyến phù hợp";
+
+        if ($priceRange) {
+            $minPrice = number_format($priceRange['min'], 0, ',', '.');
+            $maxPrice = number_format($priceRange['max'], 0, ',', '.');
+            if ($priceRange['min'] === $priceRange['max']) {
+                $response .= " với giá {$minPrice}đ";
+            } else {
+                $response .= " với giá từ {$minPrice}đ đến {$maxPrice}đ";
+            }
+        }
+
+        if ($totalSeats > 0) {
+            $response .= ". Còn tổng cộng {$totalSeats} ghế trống";
+        }
+
+        $response .= ". Bạn xem chi tiết bên dưới và chọn chuyến phù hợp nhé!";
+
+        // Thêm gợi ý nếu user hỏi về "rẻ nhất" hoặc "sớm nhất"
+        if (preg_match('/rẻ\s*nhất|giá\s*tốt/i', $userMessage) && $priceRange) {
+            $cheapest = min(array_column($trips, 'price'));
+            $response .= " Chuyến rẻ nhất có giá " . number_format($cheapest, 0, ',', '.') . "đ.";
+        }
+
+        if (preg_match('/sớm\s*nhất/i', $userMessage) && !empty($trips)) {
+            $earliest = min(array_column($trips, 'departure_time'));
+            $response .= " Chuyến sớm nhất khởi hành lúc {$earliest}.";
+        }
+
+        return $response;
+    }
+
+    /**
+     * Xử lý câu hỏi chung không phải tìm chuyến
+     */
+    private function handleGeneralQuestion(string $userMessage): string
+    {
+        $msg = mb_strtolower(trim($userMessage));
+
+        // Chào hỏi
+        if (preg_match('/^(chào|xin chào|hello|hi|hey)/i', $msg)) {
+            return "Xin chào! Mình có thể giúp bạn tìm chuyến xe. Bạn muốn đi đâu và đi khi nào?";
+        }
+
+        // Hỏi về cách sử dụng
+        if (preg_match('/(cách|hướng dẫn|help|giúp|sử dụng)/i', $msg)) {
+            return "Bạn chỉ cần cho mình biết:\n- Điểm đi và điểm đến (ví dụ: Hà Nội, Thanh Hóa)\n- Ngày đi (ví dụ: mai, hôm nay, thứ 6)\n- Thời gian (tùy chọn: sáng, chiều, tối)\n- Số lượng vé (tùy chọn)\n- Mức giá (tùy chọn: dưới 200k)\n\nVí dụ: 'Tìm 2 vé từ Hà Nội đi Thanh Hóa mai sáng, dưới 250k'";
+        }
+
+        // Câu hỏi về giá
+        if (preg_match('/(giá|giá cả|phí|tiền)/i', $msg)) {
+            return "Giá vé phụ thuộc vào tuyến đường, loại xe và thời gian. Bạn cho mình biết điểm đi, điểm đến và ngày đi, mình sẽ tìm chuyến phù hợp với mức giá tốt nhất cho bạn nhé!";
+        }
+
+        // Câu hỏi về thời gian
+        if (preg_match('/(mất bao lâu|thời gian|bao lâu|duration)/i', $msg)) {
+            return "Thời gian di chuyển phụ thuộc vào tuyến đường. Bạn cho mình biết điểm đi và điểm đến, mình sẽ tìm chuyến và cho biết thời gian di chuyển cụ thể nhé!";
+        }
+
+        // Mặc định: hỏi thông tin cần thiết
+        return "Để mình tìm chuyến phù hợp, bạn vui lòng cho mình biết:\n- Điểm đi\n- Điểm đến\n- Ngày đi\n\nVí dụ: 'Tìm chuyến từ Hà Nội đi Thanh Hóa mai'";
     }
 }

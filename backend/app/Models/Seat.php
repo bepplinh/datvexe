@@ -8,7 +8,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Seat extends Model
 {
-    protected $fillable = ['bus_id','seat_number','deck','column_group','index_in_column','active'];
+    protected $fillable = [
+        'bus_id',
+        'seat_number',
+        'deck',
+        'column_group',
+        'index_in_column',
+        'layout_x',
+        'layout_y',
+        'layout_w',
+        'layout_h',
+        'seat_type',
+        'layout_meta',
+        'active',
+    ];
+
+    protected $casts = [
+        'layout_meta' => 'array',
+        'active'      => 'bool',
+    ];
 
     public function bus(): BelongsTo { return $this->belongsTo(Bus::class); }
     public function tripStatuses(): HasMany { return $this->hasMany(TripSeatStatus::class); }

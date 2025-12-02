@@ -33,22 +33,55 @@ const TicketManagement = () => {
     const fetchTickets = async () => {
         try {
             setLoading(true);
-            const response = await axiosClient.get("/bookings");
+            // Lấy nhiều vé hơn mặc định (API có paginate với per_page)
+            const response = await axiosClient.get("/bookings", {
+                params: {
+                    per_page: 100, // có thể tăng/giảm tuỳ nhu cầu
+                    page: 1,
+                },
+            });
 
             const bookings = response.data?.data?.data || [];
 
-            const formattedTickets = bookings.map((booking) => {
-                const firstLeg = booking.legs?.[0];
-                const departureTime = firstLeg?.trip?.departure_time || null;
+            console.log("Bookings API raw:", bookings);
 
-                return {
+            const formattedTickets = bookings.map((booking) => {
+                const legs = booking.legs || [];
+                const firstLeg = legs[0];
+                const returnLeg = legs[1];
+                const pickupLocationName =
+                    firstLeg?.pickup_location?.name ||
+                    firstLeg?.pickupLocation?.name ||
+                    null;
+                const dropoffLocationName =
+                    firstLeg?.dropoff_location?.name ||
+                    firstLeg?.dropoffLocation?.name ||
+                    null;
+                const departureTime = firstLeg?.trip?.departure_time || null;
+                const returnDepartureTime =
+                    returnLeg?.trip?.departure_time || null;
+
+                const isRoundTrip = legs.length > 1;
+
+                const departureBusType =
+                    firstLeg?.trip?.bus?.type_name ||
+                    firstLeg?.trip?.bus?.name ||
+                    "GIƯỜNG NẰM";
+                const returnBusType =
+                    returnLeg?.trip?.bus?.type_name ||
+                    returnLeg?.trip?.bus?.name ||
+                    departureBusType;
+
+                const ticket = {
                     id: booking.id,
                     code: booking.code,
                     from:
+                        pickupLocationName ||
                         firstLeg?.pickup_address ||
                         booking.origin_location ||
                         "Điểm đi",
                     to:
+                        dropoffLocationName ||
                         firstLeg?.dropoff_address ||
                         booking.destination_location ||
                         "Điểm đến",
@@ -58,10 +91,8 @@ const TicketManagement = () => {
                     departure_time: departureTime
                         ? departureTime.slice(11, 16)
                         : null,
-                    bus_type:
-                        firstLeg?.trip?.bus?.type_name ||
-                        firstLeg?.trip?.bus?.name ||
-                        "GIƯỜNG NẰM",
+                    bus_type: departureBusType,
+                    return_bus_type: isRoundTrip ? returnBusType : null,
                     payment_status:
                         booking.status === "paid" ? "paid" : "unpaid",
                     ticket_status:
@@ -69,9 +100,20 @@ const TicketManagement = () => {
                             ? "cancelled"
                             : "not-departed",
                     price: booking.total_price || 0,
+                    is_round_trip: isRoundTrip,
+                    return_departure_date: returnDepartureTime
+                        ? returnDepartureTime.slice(0, 10)
+                        : null,
+                    return_departure_time: returnDepartureTime
+                        ? returnDepartureTime.slice(11, 16)
+                        : null,
                     raw: booking, // giữ booking gốc để modal dùng
                 };
+
+                return ticket;
             });
+
+            console.log("Formatted tickets:", formattedTickets);
 
             setTickets(formattedTickets);
             setFilteredTickets(formattedTickets);
@@ -259,10 +301,10 @@ const TicketManagement = () => {
                 <h1 className="ticket-management__title">Quản lý vé của tôi</h1>
                 <p className="ticket-management__subtitle">
                     Theo dõi trạng thái vé, lịch trình và thông tin thanh toán
-                    của bạn trong một nơi duy nhất
+                    của bạn
                 </p>
 
-                <div className="ticket-management__stats">
+                {/* <div className="ticket-management__stats">
                     {stats.map((item) => (
                         <div
                             key={item.label}
@@ -276,7 +318,7 @@ const TicketManagement = () => {
                             </span>
                         </div>
                     ))}
-                </div>
+                </div> */}
 
                 <div className="ticket-management__actions">
                     <div className="ticket-management__search">

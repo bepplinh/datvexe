@@ -27,9 +27,11 @@ class SeatMaterializerService
 
             $count = 0;
             foreach ($rows as $r) {
+                $seatNumber = $this->makeSeatNumber($r->seat_label, (int) $r->deck);
+
                 Seat::create([
                     'bus_id'          => $bus->id,
-                    'seat_number'     => $r->seat_label,
+                    'seat_number'     => $seatNumber,
                     'deck'            => (int)$r->deck,
                     'column_group'    => $r->column_group,
                     'index_in_column' => (int)$r->index_in_column,
@@ -43,5 +45,14 @@ class SeatMaterializerService
 
             return $count;
         });
+    }
+
+    /**
+     * Ensure seat numbers are unique across decks by appending the deck index
+     * for upper floors. Tầng 1 giữ nguyên nhãn gốc để tránh thay đổi UI cũ.
+     */
+    protected function makeSeatNumber(string $baseLabel, int $deck): string
+    {
+        return $deck <= 1 ? $baseLabel : "{$baseLabel}-{$deck}";
     }
 }

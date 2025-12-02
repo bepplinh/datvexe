@@ -7,10 +7,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Bus extends Model
 {
-    protected $fillable =  ['code', 'name', 'plate_number', 'type_bus_id', 'seat_layout_template_id', 'uses_custom_seats'];
+    protected $fillable =  [
+        'code',
+        'name',
+        'plate_number',
+        'type_bus_id',
+        'seat_layout_template_id',
+        'uses_custom_seats',
+        'layout_canvas_width',
+        'layout_canvas_height',
+    ];
 
     protected $casts = [
-        'uses_custom_seats' => 'bool',
+        'uses_custom_seats'    => 'bool',
+        'layout_canvas_width'  => 'integer',
+        'layout_canvas_height' => 'integer',
     ];
 
     public function seats(): HasMany

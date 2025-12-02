@@ -26,6 +26,8 @@ return new class extends Migration
             $table->string('passenger_name')->nullable();
             $table->string('passenger_phone')->nullable();
             $table->string('passenger_email')->nullable();
+            $table->string('pickup_address', 500)->nullable();
+            $table->string('dropoff_address', 500)->nullable();
         
             // Thanh toán
             $table->string('currency', 10)->default('VND');
@@ -45,7 +47,7 @@ return new class extends Migration
             $table->enum('status', ['pending','paying','paid','cancelled','expired'])
                   ->default('pending')->index();
             $table->string('problem')->nullable();
-            $table->timestamp('expires_at')->index();
+            $table->timestamp('expires_at')->nullable(false)->useCurrentOnUpdate(false)->index();
             $table->timestamp('completed_at')->nullable();
         
             $table->timestamps();

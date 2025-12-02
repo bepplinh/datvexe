@@ -34,8 +34,28 @@ const TicketDetailModal = ({ ticket, onClose }) => {
                         <div className="ticket-detail__row">
                             <span className="ticket-detail__label">Tuyến:</span>
                             <span className="ticket-detail__value">
-                                {leg.pickup_address || "Điểm đón"} →{" "}
-                                {leg.dropoff_address || "Điểm trả"}
+                                {leg.pickup_location.name || "Điểm đón"} →{" "}
+                                {leg.dropoff_location.name || "Điểm trả"}
+                            </span>
+                        </div>
+                        <div className="ticket-detail__row">
+                            <span className="ticket-detail__label">
+                                Điểm đón:
+                            </span>
+                            <span className="ticket-detail__value">
+                                {leg.pickup_address ||
+                                    leg.pickup_location?.address ||
+                                    "N/A"}
+                            </span>
+                        </div>
+                        <div className="ticket-detail__row">
+                            <span className="ticket-detail__label">
+                                Điểm trả:
+                            </span>
+                            <span className="ticket-detail__value">
+                                {leg.dropoff_address ||
+                                    leg.dropoff_location?.address ||
+                                    "N/A"}
                             </span>
                         </div>
                         <div className="ticket-detail__row">

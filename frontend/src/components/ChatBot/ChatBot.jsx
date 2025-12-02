@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { chatService } from "../../services/chatService";
+import BookSeat from "../BookSeat/BookSeat";
+import TripCard from "./TripCard";
 import "./ChatBot.scss";
 
 const ChatBot = () => {
@@ -14,6 +16,8 @@ const ChatBot = () => {
     ]);
     const [inputMessage, setInputMessage] = useState("");
     const [isTyping, setIsTyping] = useState(false);
+    const [selectedTrip, setSelectedTrip] = useState(null);
+    const [showBookSeat, setShowBookSeat] = useState(false);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -90,6 +94,16 @@ const ChatBot = () => {
         });
     };
 
+    const handleTripClick = (trip) => {
+        setSelectedTrip(trip);
+        setShowBookSeat(true);
+    };
+
+    const handleCloseBookSeat = () => {
+        setShowBookSeat(false);
+        setSelectedTrip(null);
+    };
+
     return (
         <div className="chatbot-container">
             {isOpen && (
@@ -149,12 +163,21 @@ const ChatBot = () => {
                                     <p>{message.text}</p>
                                     {message.trips &&
                                         message.trips.length > 0 && (
-                                            <div className="trips-preview">
-                                                <p className="trips-count">
-                                                    Tìm thấy{" "}
-                                                    {message.trips.length}{" "}
-                                                    chuyến
-                                                </p>
+                                            <div className="chatbot-trips-list">
+                                                {message.trips.map(
+                                                    (trip, index) => (
+                                                        <TripCard
+                                                            key={
+                                                                trip.trip_id ||
+                                                                index
+                                                            }
+                                                            trip={trip}
+                                                            onClick={
+                                                                handleTripClick
+                                                            }
+                                                        />
+                                                    )
+                                                )}
                                             </div>
                                         )}
                                     <span className="message-time">
@@ -255,6 +278,13 @@ const ChatBot = () => {
                     <span className="chatbot-badge">{messages.length - 1}</span>
                 )}
             </button>
+
+            {showBookSeat && selectedTrip && (
+                <BookSeat
+                    trip={selectedTrip}
+                    onClose={handleCloseBookSeat}
+                />
+            )}
         </div>
     );
 };
