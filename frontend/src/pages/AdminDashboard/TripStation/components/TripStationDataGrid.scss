@@ -1,0 +1,56 @@
+.trip-station-datagrid {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    &__container {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    &__header-cell {
+        font-weight: 700;
+        color: #0c1d4a;
+        background: #f8f9fa;
+        user-select: none;
+
+        &:hover {
+            background: #e9ecef;
+        }
+    }
+
+    &__row {
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.04) !important;
+        }
+    }
+
+    &__empty {
+        padding: 48px !important;
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+
+    &__route {
+        font-weight: 500;
+        color: #0c1d4a;
+    }
+
+    &__location {
+        color: #495057;
+    }
+
+    &__price {
+        font-weight: 600;
+        color: #ed1925;
+    }
+
+    &__duration {
+        color: #495057;
+        font-weight: 500;
+    }
+}
+

@@ -1,0 +1,75 @@
+.trip-station-filters {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0c1d4a;
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    &__row {
+        display: flex;
+        gap: 16px;
+
+        @media (max-width: 768px) {
+            flex-direction: column;
+        }
+    }
+
+    &__price-row,
+    &__duration-row {
+        @media (min-width: 769px) {
+            .trip-station-filters__number-field {
+                flex: 1;
+            }
+        }
+    }
+
+    &__field {
+        flex: 1;
+    }
+
+    &__number-field {
+        flex: 1;
+    }
+
+    &__actions {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    &__reset-btn {
+        border-color: #dc3545;
+        color: #dc3545;
+
+        &:hover {
+            background: #dc3545;
+            color: #fff;
+        }
+    }
+}
+

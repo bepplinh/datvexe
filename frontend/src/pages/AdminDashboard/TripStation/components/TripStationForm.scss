@@ -1,0 +1,129 @@
+.trip-station-form-dialog {
+    .MuiDialog-paper {
+        border-radius: 16px;
+        box-shadow: 0 24px 55px rgba(0, 0, 0, 0.15);
+        padding: 10px 0;
+    }
+
+    .MuiDialogContent-root {
+        padding: 0 !important;
+    }
+}
+
+.trip-station-form {
+    &__title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 24px;
+        border-bottom: 1px solid #e9ecef;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #0c1d4a;
+        margin: 0;
+    }
+
+    &__close-btn {
+        border: none;
+        background: #f8f9fa;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #6c757d;
+        transition: all 0.2s ease;
+
+        &:hover:not(:disabled) {
+            background: #e9ecef;
+            color: #0d6efd;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    &__content {
+        padding: 40px 24px !important;
+    }
+
+    &__fields {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin: 0;
+        padding: 0;
+    }
+
+    &__field {
+        margin: 0 !important;
+
+        .MuiOutlinedInput-root {
+            border-radius: 12px;
+        }
+
+        &.MuiFormControl-root {
+            margin: 0;
+        }
+
+        .MuiInputLabel-root {
+            margin-left: 0;
+        }
+    }
+
+    &__error {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.875rem;
+        color: #dc3545;
+    }
+
+    &__submit-error {
+        margin-top: 8px;
+        padding: 12px;
+        background: #fff5f5;
+        border: 1px solid #fed7d7;
+        border-radius: 8px;
+        color: #c53030;
+        font-size: 0.875rem;
+    }
+
+    &__actions {
+        padding: 16px 24px;
+        border-top: 1px solid #e9ecef;
+        gap: 12px;
+        justify-content: flex-end;
+        display: flex;
+    }
+
+    &__cancel-btn {
+        border-radius: 12px;
+        text-transform: none;
+        font-weight: 600;
+        padding: 10px 20px;
+        color: #495057;
+    }
+
+    &__submit-btn {
+        border-radius: 12px;
+        text-transform: none;
+        font-weight: 600;
+        padding: 10px 24px;
+        background: #000000;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+        &:hover {
+            background: #333333;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        &:disabled {
+            opacity: 0.6;
+        }
+    }
+}
+

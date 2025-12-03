@@ -17,6 +17,7 @@ import BusType from "../pages/AdminDashboard/BusType/BusType";
 import BusManagement from "../pages/AdminDashboard/BusManagement/BusManagement";
 import TripManagement from "../pages/AdminDashboard/TripManagement/TripManagement";
 import TripRouteDetail from "../pages/AdminDashboard/TripManagement/TripRouteDetail";
+import TripStationManagement from "../pages/AdminDashboard/TripStation/TripStationManagement";
 import { CheckoutProvider } from "../contexts/CheckoutProvider";
 import Test from "../pages/test";
 
@@ -48,6 +49,7 @@ export const ADMIN_ROUTES = [
     { path: "/admin/bus-types", element: <BusType /> },
     { path: "/admin/trips", element: <TripManagement /> },
     { path: "/admin/trips/:date/:routeId", element: <TripRouteDetail /> },
+    { path: "/admin/trip-stations", element: <TripStationManagement /> },
     { path: "/admin/seat-layout", element: <SeatLayoutBuilder /> },
     { path: "/admin/route-optimization", element: <RouteOptimizationPage /> },
     { path: "/admin/notifications", element: <Notifications /> },
