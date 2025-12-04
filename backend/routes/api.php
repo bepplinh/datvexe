@@ -25,6 +25,7 @@ use App\Http\Controllers\Client\GeminiChatController;
 use App\Http\Controllers\Client\TripSearchController;
 use App\Http\Controllers\Admin\AdminBookingController;
 use App\Http\Controllers\SeatLayoutTemplateController;
+use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\Admin\BusSeatLayoutController;
 use App\Http\Controllers\Client\ClientBookingController;
 use App\Http\Controllers\Client\ClientProfileController;
@@ -51,6 +52,12 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('info', [ClientProfileController::class, 'show']);
     Route::put('info/update', [ClientProfileController::class, 'update']);
+
+    Route::get('conversations', [ConversationController::class, 'index']);
+    Route::post('conversations', [ConversationController::class, 'store']);
+    Route::get('conversations/{conversation}', [ConversationController::class, 'show']);
+    Route::post('conversations/{conversation}/messages', [ConversationController::class, 'storeMessage']);
+    Route::patch('conversations/{conversation}/status', [ConversationController::class, 'updateStatus']);
 });
 
 

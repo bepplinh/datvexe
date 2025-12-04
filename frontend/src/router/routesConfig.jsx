@@ -18,6 +18,7 @@ import BusManagement from "../pages/AdminDashboard/BusManagement/BusManagement";
 import TripManagement from "../pages/AdminDashboard/TripManagement/TripManagement";
 import TripRouteDetail from "../pages/AdminDashboard/TripManagement/TripRouteDetail";
 import TripStationManagement from "../pages/AdminDashboard/TripStation/TripStationManagement";
+import SupportChat from "../pages/AdminDashboard/SupportChat/SupportChat";
 import { CheckoutProvider } from "../contexts/CheckoutProvider";
 import Test from "../pages/test";
 
@@ -53,5 +54,6 @@ export const ADMIN_ROUTES = [
     { path: "/admin/seat-layout", element: <SeatLayoutBuilder /> },
     { path: "/admin/route-optimization", element: <RouteOptimizationPage /> },
     { path: "/admin/notifications", element: <Notifications /> },
+    { path: "/admin/support-chat", element: <SupportChat /> },
 ];
 

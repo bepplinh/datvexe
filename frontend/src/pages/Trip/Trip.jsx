@@ -6,6 +6,7 @@ import TripFilter from "./TripFilter/TripFilter";
 import TripDate from "./TripDate/TripDate";
 import TripList from "./TripList/TripList";
 import TripSelectedTickets from "./TripSelectedTickets/TripSelectedTickets";
+import TripQuickDates from "./TripQuickDates/TripQuickDates";
 import "./Trip.scss";
 import { useSearchTrip } from "../../contexts/SearchTripProvider";
 import { toast } from "react-toastify";
@@ -16,7 +17,13 @@ import {
 import { TripFilterProvider } from "../../contexts/TripFilterProvider";
 
 function TripContent() {
-    const { results, handleSearchTrip } = useSearchTrip();
+    const {
+        results,
+        handleSearchTrip,
+        tripType,
+        departDate,
+        setDepartDate,
+    } = useSearchTrip();
 
     const { isActiveTabWay, setIsActiveTabWay } = useActiveTabWay();
 
@@ -78,6 +85,16 @@ function TripContent() {
                         <TripSelectedTickets />
                     </div>
                     <div className="trip-info">
+                        {tripType === "oneway" && (
+                            <TripQuickDates
+                                selectedDate={departDate}
+                                onSelectDate={(date) => {
+                                    setDepartDate(date);
+                                    handleSearchTrip();
+                                }}
+                            />
+                        )}
+
                         {results && tripDateItems.length > 0 && (
                             <div className="trip-date">
                                 {tripDateItems.map((item) => (

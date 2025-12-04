@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use Database\Seeders\BusSeeder;
 use Illuminate\Database\Seeder;
+use Database\Seeders\ConversationSeeder;
 
 
 class DatabaseSeeder extends Seeder
@@ -31,6 +32,7 @@ class DatabaseSeeder extends Seeder
             Trip17BookingLegLocationSeeder::class,
             AdminNotificationSeeder::class,
             SeatLayoutBackfillSeeder::class,
+            ConversationSeeder::class,
         ]);
     }
 }

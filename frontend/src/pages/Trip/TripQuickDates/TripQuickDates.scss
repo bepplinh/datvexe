@@ -1,0 +1,120 @@
+.trip-quick-dates {
+    margin-bottom: 16px;
+
+    &__overlay {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 15px 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    &__list {
+        flex: 1;
+        display: flex;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    &__item {
+        position: relative;
+        min-width: 190px;
+        padding: 0 32px 8px;
+        background: transparent;
+        border: none;
+        border-right: 1px solid rgba(112, 110, 110, 0.35);
+        color: #2d2d2f;
+        font-family: "Lexend", "Inter", sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        text-align: center;
+        text-transform: capitalize;
+        cursor: pointer;
+        transition: color 0.2s ease;
+
+        &:last-child {
+            border-right: none;
+        }
+
+        &:hover {
+            color: #ed1925;
+        }
+    }
+
+    &__item--active {
+        color: #ed1925;
+    }
+
+    &__text {
+        display: block;
+        line-height: 1.4;
+    }
+
+    &__indicator {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 2px;
+        border-radius: 999px;
+        background: transparent;
+        transition: background 0.2s ease;
+    }
+
+    &__item--active &__indicator {
+        background: #ed1925;
+    }
+
+    &__arrow {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: #f4f4f4;
+        color: #2d2d2f;
+        font-size: 18px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.2s ease;
+
+        &:hover {
+            background: #e1e1e1;
+        }
+    }
+
+    &__arrow--prev {
+        transform: rotate(0deg);
+    }
+
+    @media (max-width: 768px) {
+        &__overlay {
+            padding: 12px;
+        }
+
+        &__item {
+            min-width: 150px;
+            padding: 0 20px 6px;
+        }
+
+        &__arrow {
+            display: none;
+        }
+    }
+}
+
+
+
+
+

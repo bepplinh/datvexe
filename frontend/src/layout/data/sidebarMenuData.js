@@ -9,6 +9,7 @@ import {
     Rows3,
     Sparkles,
     Car,
+    MessageCircle,
 } from "lucide-react";
 
 export const SIDEBAR_MENU = [
@@ -65,6 +66,12 @@ export const SIDEBAR_MENU = [
         label: "Sơ đồ ghế",
         icon: Rows3,
         path: "/admin/seat-layout",
+    },
+    {
+        id: "support-chat",
+        label: "Hỗ trợ khách hàng",
+        icon: MessageCircle,
+        path: "/admin/support-chat",
     },
     {
         id: "settings",
