@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 const PAYMENT_OPTIONS = [
     {
         value: "cash",
@@ -12,7 +14,27 @@ const PAYMENT_OPTIONS = [
     },
 ];
 
-function PaymentStep({ selectedMethod, onSelect }) {
+function PaymentStep({
+    selectedMethod,
+    onSelect,
+    couponCode,
+    onCouponChange,
+    couponMessage,
+    isCouponChecking,
+    isCouponValid,
+}) {
+    const [couponValue, setCouponValue] = useState(couponCode || "");
+
+    useEffect(() => {
+        setCouponValue(couponCode || "");
+    }, [couponCode]);
+
+    const handleCouponChange = (event) => {
+        const value = event.target.value;
+        setCouponValue(value);
+        onCouponChange?.(value);
+    };
+
     return (
         <div className="card">
             <div className="card__title">Chọn phương thức thanh toán</div>
@@ -20,11 +42,10 @@ function PaymentStep({ selectedMethod, onSelect }) {
                 {PAYMENT_OPTIONS.map((option) => (
                     <label
                         key={option.value}
-                        className={`paymentOption ${
-                            selectedMethod === option.value
-                                ? "paymentOption--active"
-                                : ""
-                        }`}
+                        className={`paymentOption ${selectedMethod === option.value
+                            ? "paymentOption--active"
+                            : ""
+                            }`}
                     >
                         <input
                             type="radio"
@@ -43,6 +64,40 @@ function PaymentStep({ selectedMethod, onSelect }) {
                         </div>
                     </label>
                 ))}
+            </div>
+            <div className="couponInput">
+                <div className="couponInput__header">
+                    <div className="couponInput__label">Mã giảm giá</div>
+                    <div className="couponInput__hint">
+                        Nhập mã ưu đãi (nếu có) để giảm giá vé.
+                    </div>
+                </div>
+                <div className="couponInput__field">
+                    <span className="couponInput__icon" aria-hidden="true">
+                        🏷️
+                    </span>
+                    <input
+                        className="couponInput__input"
+                        type="text"
+                        name="coupon"
+                        placeholder="VD: SALE50"
+                        value={couponValue}
+                        autoComplete="off"
+                        onChange={handleCouponChange}
+                    />
+                </div>
+                {couponMessage && (
+                    <div
+                        className={`couponInput__feedback ${isCouponChecking
+                            ? "couponInput__feedback--info"
+                            : isCouponValid
+                                ? "couponInput__feedback--success"
+                                : "couponInput__feedback--error"
+                            }`}
+                    >
+                        {couponMessage}
+                    </div>
+                )}
             </div>
         </div>
     );

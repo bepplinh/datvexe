@@ -1,6 +1,6 @@
 import Stepper from "./Stepper";
 import "./Steps.scss";
-import { useCheckout } from "../../../contexts/CheckoutProvider";
+import { useCheckout } from "../../../contexts/useCheckout";
 
 const dataSteps = [
     {

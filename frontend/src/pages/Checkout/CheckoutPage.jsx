@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import MainLayout from "../../layout/MainLayout/MainLayout";
@@ -6,14 +6,12 @@ import "./CheckoutPage.scss";
 import Steps from "./Steps/Steps";
 import TicketSummary from "./components/TicketSummary";
 import CheckoutActions from "./components/CheckoutActions";
-import { useCheckout } from "../../contexts/CheckoutProvider";
+import { useCheckout } from "../../contexts/useCheckout";
 import ContactStep from "./components/steps/ContactStep";
 import PaymentStep from "./components/steps/PaymentStep";
 import ConfirmationStep from "./components/steps/ConfirmationStep";
-import {
-    updateDraftPayment as updateDraftPaymentService,
-    unlockSeats,
-} from "../../services/draftService";
+import { updateDraftPayment as updateDraftPaymentService } from "../../services/draftService";
+import { validateCoupon } from "../../services/couponService";
 import { mapContactFormToDraftPayload } from "./utils/contactMapper";
 import CountdownTimer from "./components/CountdownTimer/CountdownTimer";
 
@@ -33,9 +31,16 @@ function CheckoutPage() {
         paymentMethod,
         selectPaymentMethod,
         setResultBooking,
+        couponCode,
+        updateCouponCode,
     } = useCheckout();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [couponId, setCouponId] = useState(null);
+    const [couponMessage, setCouponMessage] = useState("");
+    const [isCouponChecking, setIsCouponChecking] = useState(false);
+    const [isCouponValid, setIsCouponValid] = useState(false);
+    const couponTimerRef = useRef(null);
 
     // Xử lý redirect từ PayOS
     useEffect(() => {
@@ -70,6 +75,72 @@ function CheckoutPage() {
             setSearchParams(newParams, { replace: true });
         }
     }, [searchParams, goToStep, setSearchParams]);
+
+    // Debounce validate coupon when user types
+    useEffect(() => {
+        if (couponTimerRef.current) {
+            clearTimeout(couponTimerRef.current);
+        }
+
+        const code = couponCode?.trim();
+        if (!code) {
+            setCouponId(null);
+            setCouponMessage("");
+            setIsCouponValid(false);
+            setIsCouponChecking(false);
+            return;
+        }
+
+        setIsCouponChecking(true);
+        setIsCouponValid(false);
+        setCouponMessage("Đang kiểm tra mã giảm giá...");
+
+        couponTimerRef.current = setTimeout(async () => {
+            try {
+                const validateRes = await validateCoupon(
+                    code,
+                    draftData?.total_price ?? 0
+                );
+
+                const isValid =
+                    validateRes?.valid ?? validateRes?.success ?? false;
+                const resolvedCoupon =
+                    validateRes?.coupon ||
+                    validateRes?.data?.coupon ||
+                    validateRes?.data?.data?.coupon;
+
+                if (!isValid || !resolvedCoupon?.id) {
+                    const message =
+                        validateRes?.message ||
+                        validateRes?.data?.message ||
+                        "Mã giảm giá không hợp lệ.";
+                    setCouponMessage(message);
+                    setCouponId(null);
+                    setIsCouponValid(false);
+                } else {
+                    setCouponMessage("Áp dụng mã giảm giá thành công.");
+                    setCouponId(resolvedCoupon.id);
+                    setIsCouponValid(true);
+                }
+            } catch (err) {
+                console.error("Validate coupon failed", err);
+                setCouponMessage(
+                    err?.response?.data?.message ||
+                    "Không thể kiểm tra mã giảm giá."
+                );
+                setCouponId(null);
+                setIsCouponValid(false);
+            } finally {
+                setIsCouponChecking(false);
+            }
+        }, 500);
+
+        return () => {
+            if (couponTimerRef.current) {
+                clearTimeout(couponTimerRef.current);
+            }
+        };
+    }, [couponCode, draftData]);
 
     const validateContactInfo = () => {
         if (!contactInfo.name?.trim()) {
@@ -115,9 +186,20 @@ function CheckoutPage() {
 
             try {
                 setIsSubmitting(true);
+                if (couponCode?.trim()) {
+                    if (!isCouponValid || !couponId) {
+                        toast.error("Vui lòng kiểm tra mã giảm giá trước khi tiếp tục.");
+                        setIsSubmitting(false);
+                        return;
+                    }
+                } else {
+                    setCouponId(null);
+                }
+
                 const payload = mapContactFormToDraftPayload(contactInfo, {
                     paymentMethod,
                     draftTrips: draftData?.trips ?? [],
+                    couponId,
                 });
                 const result = await updateDraftPaymentService(
                     draftId,
@@ -141,7 +223,7 @@ function CheckoutPage() {
                 } else {
                     toast.error(
                         result.message ||
-                            "Không thể lưu thông tin thanh toán. Vui lòng thử lại."
+                        "Không thể lưu thông tin thanh toán. Vui lòng thử lại."
                     );
                 }
             } catch (error) {
@@ -175,6 +257,11 @@ function CheckoutPage() {
                     <PaymentStep
                         selectedMethod={paymentMethod}
                         onSelect={selectPaymentMethod}
+                        couponCode={couponCode}
+                        onCouponChange={updateCouponCode}
+                        couponMessage={couponMessage}
+                        isCouponChecking={isCouponChecking}
+                        isCouponValid={isCouponValid}
                     />
                 );
             case 3:
@@ -193,8 +280,8 @@ function CheckoutPage() {
         currentStep === 1
             ? "Tiếp tục"
             : currentStep === 2
-            ? "Đặt vé"
-            : "Hoàn tất";
+                ? "Đặt vé"
+                : "Hoàn tất";
 
     return (
         <MainLayout>

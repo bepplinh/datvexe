@@ -114,10 +114,11 @@ class CouponService
             ];
         }
 
-        if ($orderAmount > 0 && $orderAmount < $coupon->minimum_order_amount) {
+        $minOrder = $coupon->min_order_value ?? $coupon->minimum_order_amount ?? 0;
+        if ($orderAmount > 0 && $minOrder > 0 && $orderAmount < $minOrder) {
             return [
                 'valid' => false,
-                'message' => "Đơn hàng tối thiểu phải là " . number_format($coupon->minimum_order_amount) . " VNĐ."
+                'message' => "Đơn hàng tối thiểu phải là " . number_format($minOrder) . " VNĐ."
             ];
         }
 

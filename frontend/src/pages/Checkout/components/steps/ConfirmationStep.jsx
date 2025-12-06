@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router-dom";
-import { useCheckout } from "../../../../contexts/CheckoutProvider";
+import { useCheckout } from "../../../../contexts/useCheckout";
 
 function ConfirmationStep({ contactInfo, paymentMethod }) {
     const [searchParams] = useSearchParams();

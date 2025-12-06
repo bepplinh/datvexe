@@ -329,10 +329,6 @@
     grid-column: 1 / -1;
 }
 
-.form__field--half {
-    // Half width field for proxy booking
-}
-
 .form label {
     color: #6a7189;
     font-size: 13px;
@@ -580,6 +576,113 @@
         color: #6a7189;
         word-wrap: break-word;
         overflow-wrap: break-word;
+    }
+}
+
+.couponInput {
+    padding: 0 20px 20px 20px;
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #f8fafc;
+    border-top: 1px dashed #e5e7eb;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    box-sizing: border-box;
+
+    @media (max-width: 768px) {
+        padding: 0 16px 16px 16px;
+        gap: 8px;
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    &__label {
+        font-weight: 600;
+        color: #0c1e51;
+        font-size: 14px;
+    }
+
+    &__hint {
+        color: #6a7189;
+        font-size: 12px;
+        flex: 1;
+        text-align: right;
+        min-width: 140px;
+
+        @media (max-width: 768px) {
+            text-align: left;
+            min-width: 0;
+        }
+    }
+
+    &__field {
+        position: relative;
+        display: flex;
+        align-items: center;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 10px 12px 10px 40px;
+        background: #ffffff;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+        &:focus-within {
+            border-color: #ed1925;
+            box-shadow: 0 4px 12px rgba(237, 25, 37, 0.12);
+        }
+    }
+
+    &__icon {
+        position: absolute;
+        left: 12px;
+        font-size: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__input {
+        border: none;
+        outline: none;
+        width: 100%;
+        font-size: 14px;
+        padding: 0;
+        background: transparent;
+        color: #0c1e51;
+
+        &::placeholder {
+            color: #a0a7b8;
+        }
+
+        @media (max-width: 768px) {
+            font-size: 16px; // Prevent zoom on iOS
+        }
+    }
+
+    &__feedback {
+        font-size: 12px;
+        margin-left: 2px;
+        margin-top: -2px;
+
+        &--info {
+            color: #0c1e51;
+        }
+
+        &--success {
+            color: #0f9d58;
+        }
+
+        &--error {
+            color: #d93025;
+        }
     }
 }
 

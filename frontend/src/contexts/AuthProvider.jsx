@@ -1,9 +1,8 @@
 // src/context/AuthProvider.jsx
-import { createContext, useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { authService } from "../services/authService";
 import { toast } from "react-toastify";
-
-export const AuthContext = createContext();
+import { AuthContext } from "./AuthContext";
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);

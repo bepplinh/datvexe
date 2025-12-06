@@ -1,16 +1,8 @@
-import {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useDraft } from "../hooks/useDraft";
 import { mapDraftContactToForm } from "../pages/Checkout/utils/contactMapper";
-
-const CheckoutContext = createContext(null);
+import { CheckoutContext } from "./CheckoutContext";
 
 const defaultContactInfo = {
     name: "",
@@ -38,6 +30,7 @@ export const CheckoutProvider = ({ children }) => {
     const [currentStep, setCurrentStep] = useState(1);
     const [paymentMethod, setPaymentMethod] = useState(null);
     const [resultBooking, setResultBooking] = useState(null);
+    const [couponCode, setCouponCode] = useState("");
 
     // Sync contact info từ draft data khi draft được load
     useEffect(() => {
@@ -82,6 +75,10 @@ export const CheckoutProvider = ({ children }) => {
         setPaymentMethod(method);
     }, []);
 
+    const updateCouponCode = useCallback((value) => {
+        setCouponCode(value);
+    }, []);
+
     const value = useMemo(
         () => ({
             // Draft data
@@ -107,6 +104,10 @@ export const CheckoutProvider = ({ children }) => {
             selectPaymentMethod,
             resultBooking,
             setResultBooking,
+
+            // Coupon
+            couponCode,
+            updateCouponCode,
         }),
         [
             draftId,
@@ -124,6 +125,8 @@ export const CheckoutProvider = ({ children }) => {
             paymentMethod,
             selectPaymentMethod,
             resultBooking,
+            couponCode,
+            updateCouponCode,
         ]
     );
 
@@ -132,12 +135,4 @@ export const CheckoutProvider = ({ children }) => {
             {children}
         </CheckoutContext.Provider>
     );
-};
-
-export const useCheckout = () => {
-    const ctx = useContext(CheckoutContext);
-    if (!ctx) {
-        throw new Error("useCheckout must be used within CheckoutProvider");
-    }
-    return ctx;
 };

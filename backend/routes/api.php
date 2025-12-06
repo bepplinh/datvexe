@@ -90,6 +90,8 @@ Route::middleware(['auth:api', 'x-session-token'])->group(function () {
         Route::post('seats/checkout', [SeatFlowController::class, 'checkout']);
         Route::post('seats/release',  [SeatFlowController::class, 'release']);
     });
+
+    Route::post('coupons/validate', [CouponController::class, 'validate']);
 });
 
 Route::middleware(['auth:api', 'role:admin'])
@@ -123,6 +125,7 @@ Route::apiResource('trips', TripController::class);
 Route::apiResource('trip-stations', TripStationController::class);
 Route::apiResource('seat-layout-templates', SeatLayoutTemplateController::class);
 Route::apiResource('/coupons', CouponController::class);
+
 
 Route::apiResource('locations', LocationController::class);
 
