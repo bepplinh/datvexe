@@ -23,6 +23,38 @@ const TicketDetailModal = ({ ticket, onClose }) => {
         });
     };
 
+    const getBookingStatusBadge = (status) => {
+        if (!status) return null;
+
+        const statusLower = status.toLowerCase();
+        let badgeClass = "ticket-detail__badge-status";
+        let badgeText = "";
+
+        if (statusLower === "paid" || statusLower === "đã thanh toán") {
+            badgeClass += " ticket-detail__badge-status--paid";
+            badgeText = "Đã thanh toán";
+        } else if (statusLower === "pending" || statusLower === "đang chờ") {
+            badgeClass += " ticket-detail__badge-status--pending";
+            badgeText = "Đang chờ";
+        } else if (statusLower === "cancelled" || statusLower === "đã hủy") {
+            badgeClass += " ticket-detail__badge-status--cancelled";
+            badgeText = "Đã hủy";
+        } else if (statusLower === "confirmed" || statusLower === "đã xác nhận") {
+            badgeClass += " ticket-detail__badge-status--confirmed";
+            badgeText = "Đã xác nhận";
+        } else if (statusLower === "expired" || statusLower === "hết hạn") {
+            badgeClass += " ticket-detail__badge-status--expired";
+            badgeText = "Hết hạn";
+        } else {
+            badgeClass += " ticket-detail__badge-status--default";
+            badgeText = status;
+        }
+
+        return { badgeClass, badgeText };
+    };
+
+    const bookingStatusBadge = getBookingStatusBadge(booking.status);
+
     const renderLegSection = (title, data) => {
         if (!data.length) return null;
 
@@ -112,8 +144,15 @@ const TicketDetailModal = ({ ticket, onClose }) => {
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="ticket-detail__header">
-                    <div>
-                        <h2>Chi tiết vé #{booking.code || ticket.code}</h2>
+                    <div className="ticket-detail__header-content">
+                        <div className="ticket-detail__header-title-row">
+                            <h2>Chi tiết vé #{booking.code || ticket.code}</h2>
+                            {bookingStatusBadge && (
+                                <span className={bookingStatusBadge.badgeClass}>
+                                    {bookingStatusBadge.badgeText}
+                                </span>
+                            )}
+                        </div>
                         <p className="ticket-detail__subtitle">
                             Hiển thị thông tin chiều đi / chiều về và ghế đã đặt
                         </p>
@@ -129,31 +168,68 @@ const TicketDetailModal = ({ ticket, onClose }) => {
 
                 <div className="ticket-detail__body">
                     <div className="ticket-detail__summary">
-                        <div className="ticket-detail__row">
-                            <span className="ticket-detail__label">Mã vé:</span>
-                            <span className="ticket-detail__value">
-                                {booking.code}
-                            </span>
+                        <div className="ticket-detail__summary-info">
+                            <div className="ticket-detail__row">
+                                <span className="ticket-detail__label">Mã vé:</span>
+                                <span className="ticket-detail__value ticket-detail__value--code">
+                                    {booking.code}
+                                </span>
+                            </div>
                         </div>
-                        <div className="ticket-detail__row">
-                            <span className="ticket-detail__label">
-                                Trạng thái:
-                            </span>
-                            <span className="ticket-detail__value">
-                                {booking.status === "paid"
-                                    ? "Đã thanh toán"
-                                    : booking.status === "cancelled"
-                                    ? "Đã hủy"
-                                    : "Chưa thanh toán"}
-                            </span>
-                        </div>
-                        <div className="ticket-detail__row">
-                            <span className="ticket-detail__label">
-                                Tổng tiền:
-                            </span>
-                            <span className="ticket-detail__value ticket-detail__value--price">
-                                {formatCurrency(booking.total_price || 0)}
-                            </span>
+
+                        <div className="ticket-detail__summary-pricing">
+                            <div className="ticket-detail__pricing-header">
+                                <span className="ticket-detail__pricing-title">
+                                    Thông tin thanh toán
+                                </span>
+                            </div>
+                            <div className="ticket-detail__pricing-content">
+                                {booking.discount_amount &&
+                                    parseFloat(booking.discount_amount) > 0 ? (
+                                    <>
+                                        <div className="ticket-detail__pricing-row">
+                                            <span className="ticket-detail__pricing-label">
+                                                Tạm tính:
+                                            </span>
+                                            <span className="ticket-detail__pricing-value">
+                                                {formatCurrency(
+                                                    booking.subtotal_price ||
+                                                    booking.total_price ||
+                                                    0
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="ticket-detail__pricing-row ticket-detail__pricing-row--discount">
+                                            <span className="ticket-detail__pricing-label">
+                                                Giảm giá:
+                                            </span>
+                                            <span className="ticket-detail__pricing-value ticket-detail__pricing-value--discount">
+                                                -{formatCurrency(
+                                                    booking.discount_amount || 0
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="ticket-detail__pricing-divider"></div>
+                                        <div className="ticket-detail__pricing-row ticket-detail__pricing-row--total">
+                                            <span className="ticket-detail__pricing-label">
+                                                Tổng tiền:
+                                            </span>
+                                            <span className="ticket-detail__pricing-value ticket-detail__pricing-value--total">
+                                                {formatCurrency(booking.total_price || 0)}
+                                            </span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="ticket-detail__pricing-row ticket-detail__pricing-row--total">
+                                        <span className="ticket-detail__pricing-label">
+                                            Tổng tiền:
+                                        </span>
+                                        <span className="ticket-detail__pricing-value ticket-detail__pricing-value--total">
+                                            {formatCurrency(booking.total_price || 0)}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 

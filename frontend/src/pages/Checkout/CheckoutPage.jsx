@@ -22,6 +22,7 @@ function CheckoutPage() {
         draftId,
         draftData,
         isLoadingDraft,
+        draftError,
         contactInfo,
         updateContactInfo,
         currentStep,
@@ -242,6 +243,37 @@ function CheckoutPage() {
             navigate("/trip");
         }, 1000);
     }, [navigate]);
+
+    // Xử lý lỗi khi không có quyền truy cập draft (403) hoặc draft không tồn tại (404)
+    useEffect(() => {
+        if (draftError && !isLoadingDraft) {
+            const errorStatus = draftError.status || draftError.response?.status;
+            const errorMessage = draftError.message || draftError.response?.data?.message;
+
+            if (errorStatus === 403 || errorMessage?.includes("không có quyền")) {
+                toast.error(
+                    errorMessage || "Bạn không có quyền truy cập đơn đặt vé này. Vui lòng tạo đơn mới."
+                );
+                setTimeout(() => {
+                    navigate("/trip");
+                }, 2000);
+            } else if (errorStatus === 404 || errorMessage?.includes("không tồn tại")) {
+                toast.error(
+                    errorMessage || "Đơn đặt vé không tồn tại hoặc đã hết hạn."
+                );
+                setTimeout(() => {
+                    navigate("/trip");
+                }, 2000);
+            } else if (errorStatus === 422 || errorMessage?.includes("hết hiệu lực")) {
+                toast.error(
+                    errorMessage || "Đơn đặt vé này đã hết hiệu lực hoặc đã được xử lý."
+                );
+                setTimeout(() => {
+                    navigate("/trip");
+                }, 2000);
+            }
+        }
+    }, [draftError, isLoadingDraft, navigate]);
 
     const renderStepContent = () => {
         switch (currentStep) {

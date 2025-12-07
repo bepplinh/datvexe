@@ -19,6 +19,7 @@ import TripManagement from "../pages/AdminDashboard/TripManagement/TripManagemen
 import TripRouteDetail from "../pages/AdminDashboard/TripManagement/TripRouteDetail";
 import TripStationManagement from "../pages/AdminDashboard/TripStation/TripStationManagement";
 import SupportChat from "../pages/AdminDashboard/SupportChat/SupportChat";
+import CouponManagement from "../pages/AdminDashboard/CouponManagement/CouponManagement";
 import { CheckoutProvider } from "../contexts/CheckoutProvider";
 import Test from "../pages/test";
 
@@ -55,5 +56,6 @@ export const ADMIN_ROUTES = [
     { path: "/admin/route-optimization", element: <RouteOptimizationPage /> },
     { path: "/admin/notifications", element: <Notifications /> },
     { path: "/admin/support-chat", element: <SupportChat /> },
+    { path: "/admin/coupons", element: <CouponManagement /> },
 ];
 

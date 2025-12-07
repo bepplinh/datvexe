@@ -77,7 +77,10 @@ Route::get('/payos/test', function () {
 });
 
 Route::middleware(['auth:api', 'x-session-token'])->group(function () {
-    Route::get('checkout/drafts/{draftId}', [DraftCheckoutController::class, 'show']);
+    // Rate limit cho draft access để chống brute force
+    Route::get('checkout/drafts/{draftId}', [DraftCheckoutController::class, 'show'])
+        ->middleware('throttle:30,1'); // 30 requests per minute
+
     Route::put('drafts/{draftId}/payment', [CheckoutController::class, 'updateDraftPayment']);
     Route::post('checkout/lock-seats', [SeatLockController::class, 'lock']);
     Route::post('checkout/unlock-seats', [SeatLockController::class, 'unlock']);

@@ -53,6 +53,40 @@ const TicketCard = ({ ticket, onClick }) => {
         return "Chưa đi";
     };
 
+    const getBookingStatusBadge = (status) => {
+        if (!status) return null;
+
+        const statusLower = status.toLowerCase();
+        let badgeClass = "ticket-card__badge-status";
+        let badgeText = "";
+
+        if (statusLower === "paid" || statusLower === "đã thanh toán") {
+            badgeClass += " ticket-card__badge-status--paid";
+            badgeText = "Đã thanh toán";
+        } else if (statusLower === "pending" || statusLower === "đang chờ") {
+            badgeClass += " ticket-card__badge-status--pending";
+            badgeText = "Đang chờ";
+        } else if (statusLower === "cancelled" || statusLower === "đã hủy") {
+            badgeClass += " ticket-card__badge-status--cancelled";
+            badgeText = "Đã hủy";
+        } else if (statusLower === "confirmed" || statusLower === "đã xác nhận") {
+            badgeClass += " ticket-card__badge-status--confirmed";
+            badgeText = "Đã xác nhận";
+        } else if (statusLower === "expired" || statusLower === "hết hạn") {
+            badgeClass += " ticket-card__badge-status--expired";
+            badgeText = "Hết hạn";
+        } else {
+            badgeClass += " ticket-card__badge-status--default";
+            badgeText = status;
+        }
+
+        return { badgeClass, badgeText };
+    };
+
+    const bookingStatusBadge = getBookingStatusBadge(
+        ticket.status || ticket.booking_status
+    );
+
     return (
         <div
             className="ticket-card"
@@ -71,11 +105,18 @@ const TicketCard = ({ ticket, onClick }) => {
                     <div className="ticket-card__code">
                         Mã vé: {ticket.code || ticket.id || "N/A"}
                     </div>
-                    {ticket.is_round_trip && (
-                        <span className="ticket-card__badge-roundtrip">
-                            Vé khứ hồi
-                        </span>
-                    )}
+                    <div className="ticket-card__badges">
+                        {ticket.is_round_trip && (
+                            <span className="ticket-card__badge-roundtrip">
+                                Vé khứ hồi
+                            </span>
+                        )}
+                        {bookingStatusBadge && (
+                            <span className={bookingStatusBadge.badgeClass}>
+                                {bookingStatusBadge.badgeText}
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <div className="ticket-card__route">
                     <Send className="ticket-card__icon" size={16} />
@@ -92,7 +133,7 @@ const TicketCard = ({ ticket, onClick }) => {
                             {ticket.is_round_trip ? "Chiều đi: " : ""}
                             {formatTime(ticket.departure_time)}{" "}
                             {formatDate(ticket.departure_date)}
-                        </span> <br/>
+                        </span> <br />
                         {ticket.is_round_trip && (
                             <span className="ticket-card__datetime-return">
                                 Chiều về:{" "}

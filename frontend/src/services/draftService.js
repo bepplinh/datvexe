@@ -3,7 +3,6 @@ import Cookies from "js-cookie";
 
 export const getDraftById = async (draftId) => {
     try {
-        const sessionToken = Cookies.get("x_session_token");
         const res = await axiosClient.get(`/checkout/drafts/${draftId}`);
 
         return {
@@ -14,11 +13,40 @@ export const getDraftById = async (draftId) => {
         // ✅ Debug error
         console.error("❌ Error GET Draft:", error.response);
         if (error.response) {
-            const { status, data } = error.response;
+            const {
+                status,
+                data
+            } = error.response;
+
+            // Xử lý các trường hợp lỗi cụ thể
+            let errorMessage =
+                (data && data.message) ||
+                "Không thể tải thông tin đơn giữ chỗ.";
+
+            if (status === 403) {
+                // Không có quyền truy cập
+                errorMessage =
+                    (data && data.message) ||
+                    "Bạn không có quyền truy cập đơn đặt vé này. Vui lòng tạo đơn mới.";
+            } else if (status === 404) {
+                // Draft không tồn tại
+                errorMessage =
+                    (data && data.message) ||
+                    "Đơn đặt vé không tồn tại hoặc đã hết hạn.";
+            } else if (status === 422) {
+                // Draft đã hết hiệu lực
+                errorMessage =
+                    (data && data.message) ||
+                    "Đơn đặt vé này đã hết hiệu lực hoặc đã được xử lý.";
+            } else if (status === 429) {
+                // Rate limit
+                errorMessage =
+                    "Bạn đã truy cập quá nhiều lần. Vui lòng đợi một chút rồi thử lại.";
+            }
+
             return {
                 success: false,
-                message:
-                    data?.message || "Không thể tải thông tin đơn giữ chỗ.",
+                message: errorMessage,
                 status,
             };
         }
@@ -41,11 +69,14 @@ export const updateDraftPayment = async (draftId, payload) => {
         };
     } catch (error) {
         if (error.response) {
-            const { status, data } = error.response;
+            const {
+                status,
+                data
+            } = error.response;
             return {
                 success: false,
-                message:
-                    data?.message || "Không thể cập nhật thông tin thanh toán.",
+                message: (data && data.message) ||
+                    "Không thể cập nhật thông tin thanh toán.",
                 status,
             };
         }
@@ -78,11 +109,14 @@ export const unlockSeats = async () => {
         };
     } catch (error) {
         if (error.response) {
-            const { status, data } = error.response;
+            const {
+                status,
+                data
+            } = error.response;
             return {
                 success: false,
-                message:
-                    data?.message || "Không thể giải phóng ghế. Vui lòng thử lại.",
+                message: (data && data.message) ||
+                    "Không thể giải phóng ghế. Vui lòng thử lại.",
                 status,
             };
         }
