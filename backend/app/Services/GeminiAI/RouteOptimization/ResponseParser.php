@@ -20,12 +20,16 @@ class ResponseParser
                 return $this->createFallbackResponse($fallbackLocations, 'Không nhận được response từ AI');
             }
 
-            $data = json_decode($text, true);
+            // Loại bỏ markdown code block nếu có (```json ... ``` hoặc ``` ... ```)
+            $cleanedText = $this->cleanJsonResponse($text);
+
+            $data = json_decode($cleanedText, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
                 Log::warning('Failed to parse Gemini response as JSON', [
                     'error' => json_last_error_msg(),
-                    'response' => $text
+                    'response' => $text,
+                    'cleaned_response' => $cleanedText
                 ]);
                 return $this->createFallbackResponse($fallbackLocations, 'Response không phải JSON hợp lệ');
             }
@@ -39,6 +43,28 @@ class ResponseParser
 
             return $this->createFallbackResponse($fallbackLocations, 'Lỗi khi parse response: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Loại bỏ markdown code block và các ký tự không cần thiết từ JSON response
+     */
+    private function cleanJsonResponse(string $text): string
+    {
+        $cleaned = trim($text);
+
+        // Loại bỏ markdown code block: ```json ... ``` hoặc ``` ... ```
+        $cleaned = preg_replace('/^```(?:json)?\s*\n?/m', '', $cleaned);
+        $cleaned = preg_replace('/\n?```\s*$/m', '', $cleaned);
+
+        // Loại bỏ các ký tự markdown khác nếu có
+        $cleaned = trim($cleaned);
+
+        // Tìm JSON object đầu tiên trong text (nếu có text thêm trước/sau)
+        if (preg_match('/\{[\s\S]*\}/', $cleaned, $matches)) {
+            $cleaned = $matches[0];
+        }
+
+        return $cleaned;
     }
 
     private function createFallbackResponse(array $locations, string $reason): OptimizedRouteDTO

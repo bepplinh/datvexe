@@ -9,9 +9,30 @@ class Payment extends Model
     protected $fillable = [
         'booking_id',
         'amount',
+        'fee',
+        'refund_amount',
+        'currency',
         'provider',
-        'transaction_id',
-        'payment_time',
+        'provider_txn_id',
+        'status',
+        'failure_code',
+        'failure_message',
+        'error_data',
+        'paid_at',
+        'refunded_at',
+        'meta',
+        'raw_request',
+        'raw_response',
+    ];
+
+    protected $casts = [
+        'amount' => 'decimal:0',
+        'fee' => 'decimal:0',
+        'refund_amount' => 'decimal:0',
+        'paid_at' => 'datetime',
+        'refunded_at' => 'datetime',
+        'meta' => 'array',
+        'error_data' => 'array',
     ];
 
     /**

@@ -6,11 +6,10 @@ use App\Models\Booking;
 use App\Models\BookingLeg;
 use App\Models\BookingItem;
 use App\Models\CouponUsage;
+use App\Models\Payment;
 use Illuminate\Support\Str;
 use App\Models\DraftCheckout;
 use App\Models\TripSeatStatus;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class BookingService
 {
@@ -104,11 +103,17 @@ class BookingService
                 'seat_label'     => $item->seat_label,
                 'price'          => $item->price ?? 0,
             ]);
-
-            $this->recordCouponUsage($booking);
         }
 
-        // 4️⃣ Load lại toàn bộ quan hệ
+        // 4️⃣ Record coupon usage (chỉ gọi 1 lần sau khi tạo xong booking)
+        $this->recordCouponUsage($booking);
+
+        // 5️⃣ Tạo payment record nếu booking đã được thanh toán
+        if ($booking->status === 'paid') {
+            $this->createPaymentRecord($booking, $draft);
+        }
+
+        // 6️⃣ Load lại toàn bộ quan hệ
         $booking->load(['legs.items']);
 
         return $booking;
@@ -149,8 +154,17 @@ class BookingService
 
     public function recordCouponUsage(Booking $booking)
     {
-        if(!$booking->coupon_id || $booking->discount_amount <= 0) {
+        if (!$booking->coupon_id || $booking->discount_amount <= 0) {
             return null;
+        }
+
+        // Kiểm tra xem đã có record chưa để tránh duplicate
+        $existingUsage = CouponUsage::where('booking_id', $booking->id)
+            ->where('coupon_id', $booking->coupon_id)
+            ->first();
+
+        if ($existingUsage) {
+            return $existingUsage;
         }
 
         $usageCoupon = CouponUsage::create([
@@ -161,5 +175,47 @@ class BookingService
         ]);
 
         return $usageCoupon;
+    }
+
+    /**
+     * Tạo payment record cho booking đã thanh toán
+     */
+    private function createPaymentRecord(Booking $booking, DraftCheckout $draft): ?Payment
+    {
+        // Kiểm tra xem đã có payment record chưa để tránh duplicate
+        $existingPayment = Payment::where('booking_id', $booking->id)->first();
+        if ($existingPayment) {
+            return $existingPayment;
+        }
+
+        // Xác định status của payment dựa trên booking status
+        $paymentStatus = match ($booking->status) {
+            'paid' => 'succeeded',
+            'cancelled' => 'canceled',
+            default => 'pending',
+        };
+
+        // Tạo payment record
+        $payment = Payment::create([
+            'booking_id' => $booking->id,
+            'amount' => $booking->total_price,
+            'fee' => 0,
+            'refund_amount' => 0,
+            'currency' => $booking->currency ?? 'VND',
+            'provider' => $booking->payment_provider ?? 'cash',
+            'provider_txn_id' => $booking->payment_intent_id,
+            'status' => $paymentStatus,
+            'paid_at' => $paymentStatus === 'succeeded' ? ($booking->paid_at ?? now()) : null,
+            'refunded_at' => null,
+            'meta' => [
+                'booking_code' => $booking->code,
+                'created_from_draft' => true,
+                'draft_id' => $draft->id ?? null,
+            ],
+            'raw_request' => null,
+            'raw_response' => null,
+        ]);
+
+        return $payment;
     }
 }

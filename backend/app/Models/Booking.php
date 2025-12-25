@@ -33,6 +33,7 @@ class Booking extends Model
         'source',
         'booked_by_admin_id',
         'paid_at',
+        'created_at',
         'cancelled_at',
     ];
 

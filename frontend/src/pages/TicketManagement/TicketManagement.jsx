@@ -43,8 +43,6 @@ const TicketManagement = () => {
 
             const bookings = response.data?.data?.data || [];
 
-            console.log("Bookings API raw:", bookings);
-
             const formattedTickets = bookings.map((booking) => {
                 const legs = booking.legs || [];
                 const firstLeg = legs[0];
@@ -112,8 +110,6 @@ const TicketManagement = () => {
 
                 return ticket;
             });
-
-            console.log("Formatted tickets:", formattedTickets);
 
             setTickets(formattedTickets);
             setFilteredTickets(formattedTickets);

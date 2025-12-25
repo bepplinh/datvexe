@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatCurrency } from "../../../../utils/formatCurrency";
 
 const PAYMENT_OPTIONS = [
     {
@@ -34,6 +35,7 @@ function PaymentStep({
         setCouponValue(value);
         onCouponChange?.(value);
     };
+
 
     return (
         <div className="card">
@@ -99,6 +101,7 @@ function PaymentStep({
                     </div>
                 )}
             </div>
+
         </div>
     );
 }

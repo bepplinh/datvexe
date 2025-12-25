@@ -1,0 +1,260 @@
+.create-booking-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.create-booking-modal {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+
+    @media (max-width: 768px) {
+        max-width: 100%;
+    }
+}
+
+.create-booking-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+
+    h3 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #111827;
+    }
+}
+
+.create-booking-modal__close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: color 0.2s;
+
+    &:hover:not(:disabled) {
+        color: #111827;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.create-booking-modal__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.create-booking-modal__columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+
+    padding-bottom: 20px;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}
+
+.create-booking-modal__column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.create-booking-modal__section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.create-booking-modal__section-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.create-booking-modal__form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative; // để dropdown bám theo width của input trong group này
+}
+
+.create-booking-modal__form-group-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.create-booking-modal__location-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 10;
+    margin-top: 4px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.1);
+    max-height: 220px;
+    overflow-y: auto;
+    width: 100%; // bằng với chiều rộng của input trong form-group
+}
+
+.create-booking-modal__location-option {
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #111827;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #f3f4f6;
+    }
+}
+
+.create-booking-modal__label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+
+    .required {
+        color: #ef4444;
+    }
+}
+
+.create-booking-modal__input {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #111827;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    &:disabled {
+        background-color: #f3f4f6;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    &.error {
+        border-color: #ef4444;
+
+        &:focus {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+    }
+}
+
+.create-booking-modal__textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.create-booking-modal__error {
+    font-size: 12px;
+    color: #ef4444;
+    margin-top: -4px;
+}
+
+.create-booking-modal__footer {
+    display: flex;
+    gap: 12px;
+    padding: 20px 24px;
+    border-top: 1px solid #e5e7eb;
+    justify-content: flex-end;
+}
+
+.create-booking-modal__btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    &--cancel {
+        background-color: #f3f4f6;
+        color: #374151;
+
+        &:hover:not(:disabled) {
+            background-color: #e5e7eb;
+        }
+    }
+
+    &--submit {
+        background-color: #3b82f6;
+        color: white;
+
+        &:hover:not(:disabled) {
+            background-color: #2563eb;
+        }
+    }
+}
+
+// Custom scrollbar
+.create-booking-modal__body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.create-booking-modal__body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.create-booking-modal__body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+
+    &:hover {
+        background: #94a3b8;
+    }
+}

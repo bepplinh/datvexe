@@ -145,7 +145,15 @@ class TripSearchService
                     'to_city_id'   => optional($trip->route)->to_city,
                 ],
             ];
-        })->filter()->values()->all();
-        return $results;
+        })->filter()->values();
+
+        // Bổ sung sort linh hoạt: price, departure_time, available_seats
+        $sortBy = $filters['sort_by'] ?? null;
+        $sortDir = strtolower($filters['sort'] ?? 'asc') === 'desc';
+        if (in_array($sortBy, ['price', 'departure_time', 'available_seats'], true)) {
+            $results = $results->sortBy($sortBy, SORT_REGULAR, $sortDir)->values();
+        }
+
+        return $results->all();
     }
 }

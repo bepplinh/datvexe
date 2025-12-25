@@ -49,6 +49,8 @@ class BusSeeder extends Seeder
                 'plate_number'           => '51A-12345',
                 'type_bus_id'            => $typeId('Giường nằm'),
                 'seat_layout_template_id'=> $tplIdByCode['SL-24-2D'] ?? null,
+                'layout_canvas_width'    => 225,
+                'layout_canvas_height'   => 495,
             ],
             [
                 'code'                   => 'BUS002',
@@ -56,6 +58,8 @@ class BusSeeder extends Seeder
                 'plate_number'           => '51B-67890',
                 'type_bus_id'            => $typeId('Limousine'),
                 'seat_layout_template_id'=> $tplIdByCode['SL-22-2D'] ?? null,
+                'layout_canvas_width'    => 225,
+                'layout_canvas_height'   => 495,
             ],
             [
                 'code'                   => 'BUS003',

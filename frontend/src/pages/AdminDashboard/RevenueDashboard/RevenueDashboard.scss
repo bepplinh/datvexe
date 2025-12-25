@@ -1,0 +1,427 @@
+.revenue-dashboard {
+    padding: 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
+
+    &--loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+        gap: 1rem;
+        color: #6b7280;
+    }
+
+    &__loader {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+
+        @media (max-width: 767px) {
+            flex-direction: column;
+        }
+    }
+
+    &__title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 0.25rem 0;
+        line-height: 1.2;
+
+        .dark & {
+            color: #f9fafb;
+        }
+
+        @media (max-width: 767px) {
+            font-size: 1.25rem;
+        }
+    }
+
+    &__subtitle {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.5;
+
+        .dark & {
+            color: #9ca3af;
+        }
+    }
+
+    &__filters {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+        flex-wrap: wrap;
+    }
+
+    &__filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            .dark & {
+                color: #d1d5db;
+            }
+        }
+    }
+
+    &__select,
+    &__input {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        background: white;
+        color: #111827;
+        transition: all 0.2s;
+
+        .dark & {
+            background: #1f2937;
+            border-color: #4b5563;
+            color: #f9fafb;
+        }
+
+        &:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+    }
+
+    &__chart-filters {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-radius: 0.5rem;
+        flex-wrap: wrap;
+
+        .dark & {
+            background: #1f2937;
+        }
+    }
+
+    &__stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    &__charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+
+        @media (max-width: 1200px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &__chart-card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+            0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+
+        .dark & {
+            background: #1f2937;
+        }
+
+        &:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    }
+
+    &__chart-header {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e5e7eb;
+
+        .dark & {
+            border-bottom-color: #374151;
+        }
+    }
+
+    &__chart-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+
+        .dark & {
+            color: #f9fafb;
+        }
+    }
+
+    &__chart-body {
+        padding: 1rem;
+        min-height: 300px;
+    }
+
+    &__empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 300px;
+        color: #6b7280;
+        font-size: 0.875rem;
+
+        .dark & {
+            color: #9ca3af;
+        }
+    }
+
+    &__table-card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+            0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+
+        .dark & {
+            background: #1f2937;
+        }
+    }
+
+    &__table-body {
+        padding: 1rem;
+        overflow-x: auto;
+    }
+}
+
+// Stat Cards
+.revenue-stat-card {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+        0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    display: flex;
+    gap: 0.75rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    .dark & {
+        background: #1f2937;
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+            0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    &--primary {
+        .revenue-stat-card__icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    }
+
+    &--secondary {
+        .revenue-stat-card__icon {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+    }
+
+    &--info {
+        .revenue-stat-card__icon {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+    }
+
+    &__icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    &__content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+
+        .dark & {
+            color: #9ca3af;
+        }
+    }
+
+    &__value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.25rem;
+        line-height: 1.2;
+
+        .dark & {
+            color: #f9fafb;
+        }
+    }
+
+    &__change {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+
+        &--up {
+            color: #10b981;
+        }
+
+        &--down {
+            color: #ef4444;
+        }
+    }
+
+    &__change-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-left: 0.25rem;
+
+        .dark & {
+            color: #9ca3af;
+        }
+    }
+}
+
+// Table
+.revenue-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+
+    thead {
+        background: #f9fafb;
+
+        .dark & {
+            background: #111827;
+        }
+    }
+
+    th {
+        padding: 0.5rem 0.75rem;
+        text-align: left;
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 2px solid #e5e7eb;
+        white-space: nowrap;
+        font-size: 0.8125rem;
+
+        .dark & {
+            color: #d1d5db;
+            border-bottom-color: #374151;
+        }
+    }
+
+    td {
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid #e5e7eb;
+        color: #111827;
+        font-size: 0.8125rem;
+
+        .dark & {
+            color: #f9fafb;
+            border-bottom-color: #374151;
+        }
+    }
+
+    tbody tr {
+        transition: background-color 0.2s;
+
+        &:hover {
+            background: #f9fafb;
+
+            .dark & {
+                background: #111827;
+            }
+        }
+    }
+
+    &__revenue {
+        font-weight: 600;
+        color: #10b981;
+
+        .dark & {
+            color: #34d399;
+        }
+    }
+}
+
+// Responsive
+@media (max-width: 768px) {
+    .revenue-dashboard {
+        padding: 0.75rem;
+    }
+
+    .revenue-dashboard__charts {
+        grid-template-columns: 1fr;
+    }
+
+    .revenue-dashboard__chart-body {
+        padding: 0.75rem;
+        min-height: 250px;
+    }
+
+    .revenue-stat-card {
+        padding: 0.75rem;
+    }
+
+    .revenue-stat-card__value {
+        font-size: 1.25rem;
+    }
+
+    .revenue-stat-card__icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .revenue-table {
+        font-size: 0.75rem;
+
+        th,
+        td {
+            padding: 0.5rem;
+        }
+    }
+}
+

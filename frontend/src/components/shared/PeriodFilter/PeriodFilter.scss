@@ -1,0 +1,48 @@
+.period-filter {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    &__group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    &__label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #64748b;
+    }
+
+    &__select,
+    &__input {
+        padding: 10px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: all 0.2s;
+        min-width: 150px;
+
+        &:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        &:hover {
+            border-color: #cbd5e1;
+        }
+    }
+
+    &__select {
+        cursor: pointer;
+    }
+}
+

@@ -4,6 +4,7 @@ import "./ClientChatWidget.scss";
 import { conversationService } from "../../services/conversationService";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
+import { createEchoInstance } from "../../lib/echo";
 
 const formatTime = (value) => (value ? dayjs(value).format("HH:mm") : "");
 
@@ -14,6 +15,8 @@ const ClientChatWidget = () => {
     const [conversation, setConversation] = useState(null);
     const [input, setInput] = useState("");
     const messagesEndRef = useRef(null);
+    const echoRef = useRef(null);
+    const conversationChannelRef = useRef(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -23,12 +26,32 @@ const ClientChatWidget = () => {
         scrollToBottom();
     }, [conversation?.messages, isOpen]);
 
+    useEffect(() => {
+        if (!echoRef.current) {
+            echoRef.current = createEchoInstance();
+        }
+        return () => {
+            if (echoRef.current) {
+                echoRef.current.disconnect();
+            }
+        };
+    }, []);
+
     const ensureConversation = async () => {
         if (conversation || loading) return;
         setLoading(true);
         try {
             const list = await conversationService.getConversations();
-            const existing = list?.data?.[0];
+            // Debug: log danh sách hội thoại khách (dựa trên token hiện tại)
+            console.log("ClientChatWidget getConversations response:", list);
+            const items = Array.isArray(list)
+                ? list
+                : Array.isArray(list?.data)
+                    ? list.data
+                    : Array.isArray(list?.data?.data)
+                        ? list.data.data
+                        : [];
+            const existing = items?.[0];
 
             if (existing) {
                 const detail = await conversationService.getConversation(
@@ -88,6 +111,39 @@ const ClientChatWidget = () => {
         }
     };
 
+    // Subscribe realtime vào hội thoại đang mở
+    useEffect(() => {
+        if (!echoRef.current || !conversation?.id) return;
+
+        // Rời kênh cũ nếu có
+        if (conversationChannelRef.current) {
+            echoRef.current.leave(`conversation.${conversationChannelRef.current}`);
+            conversationChannelRef.current = null;
+        }
+
+        const channelName = `conversation.${conversation.id}`;
+        conversationChannelRef.current = conversation.id;
+
+        echoRef.current
+            .private(channelName)
+            .listen(".MessageCreated", (message) => {
+                if (message.conversation_id !== conversation.id) return;
+                setConversation((prev) => {
+                    if (!prev) return prev;
+                    return {
+                        ...prev,
+                        messages: [...(prev.messages || []), message],
+                        last_message_at: message.created_at,
+                        last_message: message,
+                    };
+                });
+            });
+
+        return () => {
+            echoRef.current.leave(channelName);
+        };
+    }, [conversation?.id]);
+
     return (
         <div className="client-chat">
             {isOpen && (
@@ -121,11 +177,10 @@ const ClientChatWidget = () => {
                                 return (
                                     <div
                                         key={message.id}
-                                        className={`client-chat__message ${
-                                            isClient
-                                                ? "client-chat__message--client"
-                                                : "client-chat__message--agent"
-                                        }`}
+                                        className={`client-chat__message ${isClient
+                                            ? "client-chat__message--client"
+                                            : "client-chat__message--agent"
+                                            }`}
                                     >
                                         <div className="client-chat__bubble">
                                             <p>{message.content}</p>

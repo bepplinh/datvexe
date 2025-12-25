@@ -1,5 +1,6 @@
 import axios from "axios";
 import Cookies from "js-cookie";
+import { toast } from "react-toastify";
 
 const API_BASE_URL =
     import.meta.env.VITE_API_URL || "http://localhost:8000/api";
@@ -61,16 +62,38 @@ axiosClient.interceptors.response.use(
             return Promise.reject(error); // để component (Login.jsx) tự xử lý
         }
 
-        // ❌ Nếu không có token (người dùng chưa đăng nhập) thì không refresh
+        // ❌ Nếu không có token (người dùng chưa đăng nhập) thì hiển thị thông báo và redirect về login
         const token = Cookies.get("access_token");
         if (!token) {
+            // Hiển thị toast thân thiện cho người dùng chưa đăng nhập
+            // Chỉ hiển thị 1 lần để tránh spam toast
+            const currentPath = window.location.pathname;
+            if (
+                !originalRequest._hasShownAuthToast &&
+                !currentPath.includes("/login")
+            ) {
+                originalRequest._hasShownAuthToast = true;
+                toast.error("Vui lòng đăng nhập để sử dụng chức năng này");
+                setTimeout(() => {
+                    window.location.href = "/login";
+                }, 1500);
+            }
             return Promise.reject(error);
         }
 
         // Nếu đã retry 1 lần mà vẫn 401 → coi như token hỏng, logout
         if (originalRequest._retry) {
             Cookies.remove("access_token");
-            window.location.href = "/login";
+            // Chỉ hiển thị toast nếu không đang ở trang login
+            const currentPath = window.location.pathname;
+            if (!currentPath.includes("/login")) {
+                toast.error(
+                    "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại"
+                );
+            }
+            setTimeout(() => {
+                window.location.href = "/login";
+            }, 1000);
             return Promise.reject(error);
         }
 
@@ -79,7 +102,7 @@ axiosClient.interceptors.response.use(
 
         try {
             const res = await refreshClient.post("/refresh");
-            const newAccessToken = res.data?.access_token;
+            const newAccessToken = res.data.access_token;
 
             if (newAccessToken) {
                 Cookies.set("access_token", newAccessToken, {
@@ -92,9 +115,18 @@ axiosClient.interceptors.response.use(
                 return axiosClient(originalRequest);
             }
         } catch (refreshError) {
-            // Refresh fail → xoá token, đưa về trang login
+            // Refresh fail → xoá token, hiển thị thông báo và đưa về trang login
             Cookies.remove("access_token");
-            window.location.href = "/login";
+            // Chỉ hiển thị toast nếu không đang ở trang login
+            const currentPath = window.location.pathname;
+            if (!currentPath.includes("/login")) {
+                toast.error(
+                    "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại"
+                );
+            }
+            setTimeout(() => {
+                window.location.href = "/login";
+            }, 1000);
             return Promise.reject(refreshError);
         }
 

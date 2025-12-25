@@ -18,11 +18,36 @@ const getLegTotal = (leg) => {
     return (leg?.seats || []).reduce((sum, seat) => sum + (seat.price || 0), 0);
 };
 
-function TicketSummary({ ticket, isLoading }) {
+function TicketSummary({ ticket, isLoading, isCouponValid = false, couponDiscount = 0 }) {
     const trips = ticket?.trips || [];
-    const pricingTotal =
-        ticket?.pricing?.total ??
+
+    // Tính subtotal từ ticket hoặc trips
+    const subtotal = ticket?.pricing?.subtotal ??
+        ticket?.total_price ??
         trips.reduce((sum, leg) => sum + getLegTotal(leg), 0);
+
+    // Tính discount: ưu tiên từ coupon nếu có, sau đó từ ticket.pricing
+    const discount = isCouponValid && couponDiscount > 0
+        ? couponDiscount
+        : (ticket?.pricing?.discount ?? 0);
+
+    // Tính total: 
+    // - Nếu có coupon hợp lệ ở frontend, luôn tính lại từ subtotal - discount
+    // - Nếu không có coupon, dùng ticket.pricing.total hoặc tính từ subtotal - discount
+    const pricingTotal = (isCouponValid && couponDiscount > 0)
+        ? Math.max(0, subtotal - discount)  // Tính lại khi có coupon
+        : (ticket?.pricing?.total ?? Math.max(0, subtotal - discount));  // Dùng giá trị từ backend hoặc tính lại
+
+    // Debug: Log để kiểm tra tính toán
+    console.log("🎫 TicketSummary pricing calculation:", {
+        subtotal,
+        discount,
+        isCouponValid,
+        couponDiscount,
+        ticketPricingTotal: ticket?.pricing?.total,
+        calculatedTotal: Math.max(0, subtotal - discount),
+        finalTotal: pricingTotal,
+    });
 
     return (
         <div className="summary__card">
@@ -110,23 +135,22 @@ function TicketSummary({ ticket, isLoading }) {
             {/* Tổng thanh toán */}
             {!isLoading && trips.length > 0 && (
                 <div className="summary__total summary__total--grand">
-                    {ticket?.pricing?.subtotal != null && (
+                    {/* Hiển thị subtotal */}
+                    <div className="summary__row">
+                        <span>Tổng tiền vé</span>
+                        <span className="price">
+                            {formatCurrency(subtotal)}
+                        </span>
+                    </div>
+                    {/* Hiển thị discount nếu có coupon được áp dụng hoặc từ ticket.pricing */}
+                    {discount > 0 && (
                         <div className="summary__row">
-                            <span>Tổng tiền vé</span>
-                            <span className="price">
-                                {formatCurrency(ticket.pricing.subtotal)}
+                            <span>Giảm giá</span>
+                            <span className="price discount">
+                                -{formatCurrency(discount)}
                             </span>
                         </div>
                     )}
-                    {ticket?.pricing?.discount != null &&
-                        ticket.pricing.discount > 0 && (
-                            <div className="summary__row">
-                                <span>Giảm giá</span>
-                                <span className="price discount">
-                                    -{formatCurrency(ticket.pricing.discount)}
-                                </span>
-                            </div>
-                        )}
                     <div className="summary__row">
                         <span className="summary__total-label">
                             Tổng thanh toán

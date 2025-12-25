@@ -10,16 +10,6 @@ const CouponCard = ({
     onDelete,
     onToggleActive,
 }) => {
-    const formatDate = (dateString) => {
-        if (!dateString) return "Không giới hạn";
-        const date = new Date(dateString);
-        return date.toLocaleDateString("vi-VN", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-        });
-    };
-
     const formatDateTime = (dateString) => {
         if (!dateString) return "Không giới hạn";
         const date = new Date(dateString);
@@ -60,7 +50,7 @@ const CouponCard = ({
     };
 
     const status = getStatus();
-    const usageCount = coupon.usages?.length || 0;
+    const usageCount = coupon.usages_count || 0;
     const usageLimit = coupon.usage_limit_global || "∞";
 
     return (
@@ -93,11 +83,10 @@ const CouponCard = ({
                         <Edit size={16} />
                     </button>
                     <button
-                        className={`coupon-card__action-btn coupon-card__action-btn--toggle ${
-                            coupon.is_active
-                                ? "coupon-card__action-btn--active"
-                                : ""
-                        }`}
+                        className={`coupon-card__action-btn coupon-card__action-btn--toggle ${coupon.is_active
+                            ? "coupon-card__action-btn--active"
+                            : ""
+                            }`}
                         onClick={(e) => {
                             e.stopPropagation();
                             onToggleActive?.(coupon);

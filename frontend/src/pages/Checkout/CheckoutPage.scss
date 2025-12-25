@@ -782,3 +782,61 @@
     color: #6a7189;
     font-style: italic;
 }
+
+// ==================== Payment Step Pricing Styles ====================
+.paymentStep__pricing {
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: #f8fafc;
+    border-top: 1px solid #e5e7eb;
+    border-radius: 0 0 8px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    @media (max-width: 768px) {
+        padding: 14px 16px;
+        gap: 8px;
+    }
+}
+
+.paymentStep__pricing-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    line-height: 1.6;
+
+    span:first-child {
+        color: #6a7189;
+        font-weight: 500;
+    }
+
+    &--total {
+        margin-top: 4px;
+        padding-top: 10px;
+        border-top: 1px solid #e5e7eb;
+
+        span:first-child {
+            color: #0c1e51;
+            font-weight: 600;
+            font-size: 15px;
+        }
+    }
+}
+
+.paymentStep__pricing-value {
+    color: #0c1e51;
+    font-weight: 600;
+    font-size: 14px;
+
+    &--discount {
+        color: #0f9d58;
+    }
+
+    &--total {
+        color: #ed1925;
+        font-size: 16px;
+        font-weight: 700;
+    }
+}

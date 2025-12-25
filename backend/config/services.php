@@ -58,7 +58,7 @@ return [
         'endpoint' => env('GEMINI_ENDPOINT'),
         'model' => env('GEMINI_MODEL'),
         'base' => env('GEMINI_BASE', 'https://generativeai.googleapis.com'),
-        'version' => env('GEMINI_VERSION', 'v1beta'),
+        'version' => env('GEMINI_VERSION', 'v1'),
         'timeout' => env('GEMINI_TIMEOUT', 20),
     ],
 

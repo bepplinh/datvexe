@@ -17,25 +17,25 @@ class CouponRepository
 
     public function all(): Collection
     {
-        return $this->model->all();
+        return $this->model->withCount('usages')->get();
     }
 
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
-        return $this->model->orderBy('created_at', 'desc')->paginate($perPage);
+        return $this->model->withCount('usages')->orderBy('created_at', 'desc')->paginate($perPage);
     }
 
     public function getFiltered(array $filters): LengthAwarePaginator
     {
-        $query = $this->model->query();
+        $query = $this->model->query()->withCount('usages');
 
         // Search filter
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -43,24 +43,24 @@ class CouponRepository
         if (!empty($filters['status']) && $filters['status'] !== 'all') {
             if ($filters['status'] === 'active') {
                 $query->where('is_active', true)
-                      ->where(function ($q) {
-                          $q->whereNull('valid_until')
+                    ->where(function ($q) {
+                        $q->whereNull('valid_until')
                             ->orWhere('valid_until', '>', now());
-                      })
-                      ->where(function ($q) {
-                          $q->whereNull('valid_from')
+                    })
+                    ->where(function ($q) {
+                        $q->whereNull('valid_from')
                             ->orWhere('valid_from', '<=', now());
-                      })
-                      ->where(function ($q) {
-                          $q->whereNull('max_usage')
+                    })
+                    ->where(function ($q) {
+                        $q->whereNull('max_usage')
                             ->orWhereRaw('used_count < max_usage');
-                      });
+                    });
             } elseif ($filters['status'] === 'inactive') {
                 $query->where(function ($q) {
                     $q->where('is_active', false)
-                      ->orWhere('valid_until', '<', now())
-                      ->orWhere('valid_from', '>', now())
-                      ->orWhereRaw('used_count >= max_usage');
+                        ->orWhere('valid_until', '<', now())
+                        ->orWhere('valid_from', '>', now())
+                        ->orWhereRaw('used_count >= max_usage');
                 });
             }
         }
@@ -84,12 +84,12 @@ class CouponRepository
 
     public function findById(int $id): ?Coupon
     {
-        return $this->model->find($id);
+        return $this->model->withCount('usages')->find($id);
     }
 
     public function findByCode(string $code): ?Coupon
     {
-        return $this->model->where('code', $code)->first();
+        return $this->model->withCount('usages')->where('code', $code)->first();
     }
 
     public function create(array $data): Coupon
@@ -109,7 +109,8 @@ class CouponRepository
 
     public function getActiveCoupons(): Collection
     {
-        return $this->model->where('is_active', true)
+        return $this->model->withCount('usages')
+            ->where('is_active', true)
             ->where(function ($query) {
                 $query->whereNull('valid_until')
                     ->orWhere('valid_until', '>', now());
@@ -137,4 +138,4 @@ class CouponRepository
             ->orWhere('description', 'like', "%{$keyword}%")
             ->get();
     }
-} 
+}

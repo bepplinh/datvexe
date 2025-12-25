@@ -41,7 +41,7 @@ class ClientTripSeatController extends Controller
         // -> cần lấy ra danh sách seat_id rồi mới flip để dùng như set
         $locked = collect($lockStatus['locked'] ?? [])
             ->pluck('seat_id')
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->flip();
 
         $layout = $this->layoutService->layoutFromSeats($seats, $trip->bus);
@@ -77,7 +77,7 @@ class ClientTripSeatController extends Controller
                 'trip_id' => $tripId,
                 'bus_id'  => $trip->bus_id,
                 'layout'  => $layout,
-                'seats'   => $payload,   
+                'seats'   => $payload,
             ],
         ]);
     }

@@ -52,33 +52,16 @@ const TripRouteDetail = () => {
             date_to: dateStr,
         };
 
-        console.log("Fetching trips with params:", params);
         dispatch(fetchTrips(params));
     }, [dispatch, routeId, selectedDate]);
 
-    // Log trips khi trips thay đổi
-    useEffect(() => {
-        console.log("Trips data:", trips);
-        console.log("Trips length:", trips?.length || 0);
-        if (trips && trips.length > 0) {
-            console.log("First trip sample:", trips[0]);
-        }
-    }, [trips]);
-
     const filteredTrips = useMemo(() => {
         if (!routeId || !selectedDate || !trips || trips.length === 0) {
-            console.log("Filtered trips: [] (no trips or empty)");
             return [];
         }
 
         const targetDate = selectedDate.format("YYYY-MM-DD");
         const targetRouteId = parseInt(routeId);
-
-        console.log("Filtering trips:", {
-            totalTrips: trips.length,
-            targetRouteId,
-            targetDate,
-        });
 
         const filtered = trips.filter((trip) => {
             if (!trip.departure_time) return false;
@@ -87,11 +70,6 @@ const TripRouteDetail = () => {
             const tripRouteId = trip.route_id ? parseInt(trip.route_id) : null;
 
             return tripRouteId === targetRouteId && tripDate === targetDate;
-        });
-
-        console.log("Filtered trips result:", {
-            filteredCount: filtered.length,
-            filteredTrips: filtered,
         });
 
         return filtered;

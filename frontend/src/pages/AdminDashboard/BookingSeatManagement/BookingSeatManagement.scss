@@ -1,0 +1,131 @@
+.booking-seat-management {
+    min-height: calc(100vh - 120px);
+    padding: 1rem 0.75rem 1.5rem;
+    background: #ffffff;
+
+    &__container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    &__header {
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+
+        @media (max-width: 960px) {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    &__title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0c1d4a;
+        margin-bottom: 0.35rem;
+    }
+
+    &__subtitle {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin: 0;
+    }
+
+    &__lookup {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+
+        input {
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            min-width: 220px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 14px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+
+            &:hover:not(:disabled) {
+                background: #1d4ed8;
+            }
+
+            &:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+        }
+    }
+
+    &__content {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 1.5rem;
+        align-items: stretch;
+        height: 360px;
+
+        @media (max-width: 1024px) {
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+            height: auto;
+        }
+    }
+
+    &__sidebar {
+        display: flex;
+        flex-direction: column;
+
+        @media (max-width: 1024px) {
+            position: static !important;
+        }
+    }
+
+    &__main {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    &__seat-map-section {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: 1fr 280px;
+        gap: 1.25rem;
+        align-items: flex-start;
+
+        @media (max-width: 1024px) {
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+    }
+
+    &__search-row {
+        margin-top: 1.25rem;
+    }
+
+    &__search-wrapper {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__seat-map-wrapper {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__selected-panel-wrapper {
+        display: flex;
+        flex-direction: column;
+    }
+}

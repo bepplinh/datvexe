@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\ConversationResource;
 use App\Http\Resources\MessageResource;
+use App\Events\ConversationCreated;
+use App\Events\MessageCreated;
 use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\JsonResponse;
@@ -71,6 +73,8 @@ class ConversationController extends Controller
             'last_message_at' => now(),
         ]);
 
+        broadcast(new ConversationCreated($conversation))->toOthers();
+
         return response()->json(new ConversationResource($conversation->load(['customer', 'agent'])), 201);
     }
 
@@ -112,6 +116,8 @@ class ConversationController extends Controller
             'agent_id' => $conversation->agent_id ?? ($request->user()->role === 'admin' ? $request->user()->id : $conversation->agent_id),
         ])->save();
 
+        broadcast(new MessageCreated($message))->toOthers();
+
         return response()->json(new MessageResource($message->load('sender')), 201);
     }
 
@@ -144,4 +150,3 @@ class ConversationController extends Controller
         abort_unless($isParticipant, 403, 'You are not authorized to access this conversation.');
     }
 }
-

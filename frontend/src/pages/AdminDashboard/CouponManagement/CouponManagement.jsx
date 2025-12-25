@@ -20,7 +20,6 @@ const CouponManagement = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortOption, setSortOption] = useState("newest");
     const [activeQuickFilter, setActiveQuickFilter] = useState("all");
-    const [selectedCoupon, setSelectedCoupon] = useState(null);
     const [showCouponForm, setShowCouponForm] = useState(false);
     const [editingCoupon, setEditingCoupon] = useState(null);
     const [formLoading, setFormLoading] = useState(false);
@@ -83,52 +82,7 @@ const CouponManagement = () => {
         };
     }, [fetchCoupons]);
 
-    useEffect(() => {
-        applyFilters();
-    }, [coupons, filters, searchQuery, sortOption]);
-
-    const stats = useMemo(() => {
-        const total = coupons.length;
-        const active = coupons.filter((coupon) => {
-            if (!coupon.is_active) return false;
-            const now = new Date();
-            const startDate = coupon.start_date ? new Date(coupon.start_date) : null;
-            const endDate = coupon.end_date ? new Date(coupon.end_date) : null;
-            if (startDate && now < startDate) return false;
-            if (endDate && now > endDate) return false;
-            return true;
-        }).length;
-        const expired = coupons.filter((coupon) => {
-            const endDate = coupon.end_date ? new Date(coupon.end_date) : null;
-            return endDate && new Date() > endDate;
-        }).length;
-        const inactive = coupons.filter((coupon) => !coupon.is_active).length;
-
-        return [
-            {
-                label: "Tổng số coupon",
-                value: total,
-                accent: "primary",
-            },
-            {
-                label: "Đang hoạt động",
-                value: active,
-                accent: "success",
-            },
-            {
-                label: "Hết hạn",
-                value: expired,
-                accent: "danger",
-            },
-            {
-                label: "Tạm ngưng",
-                value: inactive,
-                accent: "warning",
-            },
-        ];
-    }, [coupons]);
-
-    const applyFilters = () => {
+    const applyFilters = useCallback(() => {
         let filtered = [...coupons];
 
         // Lọc theo trạng thái
@@ -222,7 +176,52 @@ const CouponManagement = () => {
         });
 
         setFilteredCoupons(filtered);
-    };
+    }, [coupons, filters, searchQuery, sortOption]);
+
+    useEffect(() => {
+        applyFilters();
+    }, [applyFilters]);
+
+    const stats = useMemo(() => {
+        const total = coupons.length;
+        const active = coupons.filter((coupon) => {
+            if (!coupon.is_active) return false;
+            const now = new Date();
+            const startDate = coupon.start_date ? new Date(coupon.start_date) : null;
+            const endDate = coupon.end_date ? new Date(coupon.end_date) : null;
+            if (startDate && now < startDate) return false;
+            if (endDate && now > endDate) return false;
+            return true;
+        }).length;
+        const expired = coupons.filter((coupon) => {
+            const endDate = coupon.end_date ? new Date(coupon.end_date) : null;
+            return endDate && new Date() > endDate;
+        }).length;
+        const inactive = coupons.filter((coupon) => !coupon.is_active).length;
+
+        return [
+            {
+                label: "Tổng số coupon",
+                value: total,
+                accent: "primary",
+            },
+            {
+                label: "Đang hoạt động",
+                value: active,
+                accent: "success",
+            },
+            {
+                label: "Hết hạn",
+                value: expired,
+                accent: "danger",
+            },
+            {
+                label: "Tạm ngưng",
+                value: inactive,
+                accent: "warning",
+            },
+        ];
+    }, [coupons]);
 
     const handleFilterChange = (newFilters) => {
         setFilters(newFilters);
@@ -387,11 +386,10 @@ const CouponManagement = () => {
                                 <button
                                     key={filter.key}
                                     type="button"
-                                    className={`coupon-management__chip ${
-                                        activeQuickFilter === filter.key
-                                            ? "coupon-management__chip--active"
-                                            : ""
-                                    }`}
+                                    className={`coupon-management__chip ${activeQuickFilter === filter.key
+                                        ? "coupon-management__chip--active"
+                                        : ""
+                                        }`}
                                     onClick={() => handleQuickFilter(filter)}
                                 >
                                     {filter.label}
@@ -518,7 +516,6 @@ const CouponManagement = () => {
                                 <CouponCard
                                     key={coupon.id}
                                     coupon={coupon}
-                                    onClick={() => setSelectedCoupon(coupon)}
                                     onEdit={handleEdit}
                                     onDelete={handleDelete}
                                     onToggleActive={handleToggleActive}

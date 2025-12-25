@@ -21,7 +21,7 @@ export const createEchoInstance = () => {
                 const token = Cookies.get("access_token");
 
                 if (!token) {
-                    console.error("Echo Auth: Token not found.");
+                    console.error("Echo Auth: Token not found for channel", channel.name);
                     return callback(true, "Token not found");
                 }
 
@@ -40,7 +40,7 @@ export const createEchoInstance = () => {
                         callback(false, response.data);
                     })
                     .catch((error) => {
-                        console.error("Echo Auth Error:", error);
+                        console.error("Echo Auth Error for channel", channel.name, ":", error.response?.data || error.message);
                         callback(true, error);
                     });
             },

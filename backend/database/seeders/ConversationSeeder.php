@@ -52,7 +52,8 @@ class ConversationSeeder extends Seeder
                 ],
                 [
                     'from' => 'customer',
-                    'content' => 'Mã đơn là #ORD-' . $this->faker->numberBetween(10000, 99999),
+                    // dùng helper fake() thay vì $this->faker vì seeder không có property faker
+                    'content' => 'Mã đơn là #ORD-' . fake()->numberBetween(10000, 99999),
                 ],
                 [
                     'from' => 'admin',

@@ -5,10 +5,15 @@ namespace App\Http\Controllers\Client\Payment;
 use Illuminate\Http\Request;
 use App\Models\DraftCheckout;
 use Illuminate\Routing\Controller;
+use App\Services\SeatFlow\SeatReleaseService;
 use Illuminate\Support\Facades\Log;
 
 class PayOSRedirectController extends Controller
 {
+    public function __construct(
+        private SeatReleaseService $seatReleaseService,
+    ) {}
+
     public function success(Request $req)
     {
         // PayOS có thể gửi orderCode trong query params
@@ -69,11 +74,19 @@ class PayOSRedirectController extends Controller
             ->where('payment_intent_id', (string)$orderCode)
             ->first();
 
-        $draftId = $draft ? $draft->id : 0;
-        $frontendUrl = config('app.frontend_url', 'http://localhost:5173');
+        if ($draft && $draft->status !== 'paid') {
+            try {
+                $draft->update(['status' => 'cancelled']);
+                $this->seatReleaseService->cancelAllBySession($draft->session_token);
+            } catch (\Throwable $e) {
+                Log::error('PayOS redirect cancel: failed to cancel draft', [
+                    'draft_id' => $draft->id,
+                    'error'    => $e->getMessage(),
+                ]);
+            }
+        }
 
-        return redirect()->away(
-            $frontendUrl . '/checkout?draft_id=' . $draftId . '&payment_status=cancelled&message=' . urlencode('Bạn đã hủy thanh toán') . '&step=3'
-        );
+        $frontendUrl = rtrim(config('app.frontend_url', 'http://localhost:5173'), '/');
+        return redirect()->away($frontendUrl . '/');
     }
 }

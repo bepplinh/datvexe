@@ -1,0 +1,207 @@
+.selected-seats-panel {
+    background: #ffffff;
+    border: 1px solid #e4e6eb;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    max-height: calc(100vh - 200px);
+    position: sticky;
+    top: 20px;
+    overflow: hidden;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #e4e6eb;
+        background: #f6f8fc;
+        color: #1f2937;
+    }
+
+    &__header-icon {
+        width: 40px;
+        height: 40px;
+        background: #e7ecf5;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0 0 0.25rem 0;
+        color: #111827;
+    }
+
+    &__subtitle {
+        font-size: 0.85rem;
+        margin: 0;
+        color: #4b5563;
+    }
+
+    &__body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    &__seats-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        min-height: 0;
+
+        // Custom scrollbar
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+
+            &:hover {
+                background: #a8a8a8;
+            }
+        }
+    }
+
+    &__seat-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+            transform: translateX(4px);
+        }
+    }
+
+    &__seat-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    &__seat-label {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0c1d4a;
+    }
+
+    &__seat-type {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    &__seat-price {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #28a745;
+        white-space: nowrap;
+    }
+
+    &__seat-remove {
+        background: transparent;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        &:hover {
+            background: #ffebee;
+            transform: scale(1.1);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+    }
+
+    &__summary {
+        padding: 0.9rem 1.25rem;
+        border-top: 1px solid #e4e6eb;
+        background: #f9fafb;
+    }
+
+    &__summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    &__summary-label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #4b5563;
+    }
+
+    &__summary-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #28a745;
+    }
+
+    &__footer {
+        padding: 1.1rem 1.25rem;
+        border-top: 1px solid #e4e6eb;
+        background: #ffffff;
+    }
+
+    &__book-btn {
+        width: 100%;
+        padding: 0.85rem 1rem;
+        background: #2563eb;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.18);
+
+        &:hover {
+            transform: translateY(-1px);
+            background: #1d4ed8;
+            box-shadow: 0 10px 24px rgba(29, 78, 216, 0.2);
+        }
+
+        &:active {
+            transform: translateY(0);
+            background: #1b46c6;
+        }
+    }
+}

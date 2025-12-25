@@ -10,13 +10,11 @@ use Illuminate\Support\Facades\DB;
 
 class BusSeatLayoutService
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     public function format(Bus $bus): array
     {
-        $bus->loadMissing(['seats' => fn ($q) => $q->orderBy('deck')->orderBy('seat_number')]);
+        $bus->loadMissing(['seats' => fn($q) => $q->orderBy('deck')->orderBy('seat_number')]);
 
         $seats = $bus->seats;
         $layout = $this->layoutFromSeats($seats, $bus);
@@ -30,7 +28,7 @@ class BusSeatLayoutService
                 'type_bus_id' => $bus->type_bus_id,
             ],
             'layout' => $layout,
-            'seats' => $seats->map(fn (Seat $seat) => $this->formatSeat($seat))->values(),
+            'seats' => $seats->map(fn(Seat $seat) => $this->formatSeat($seat))->values(),
         ];
     }
 
@@ -65,8 +63,8 @@ class BusSeatLayoutService
                         'active' => false,
                         'layout_x' => null,
                         'layout_y' => null,
-                        'layout_w' => 48,
-                        'layout_h' => 48,
+                        'layout_w' => 40,
+                        'layout_h' => 40,
                         'layout_meta' => null,
                     ]);
             }
@@ -91,8 +89,8 @@ class BusSeatLayoutService
             'position' => [
                 'x' => $seat->layout_x ?? 0,
                 'y' => $seat->layout_y ?? 0,
-                'w' => $seat->layout_w ?? 48,
-                'h' => $seat->layout_h ?? 48,
+                'w' => $seat->layout_w ?? 40,
+                'h' => $seat->layout_h ?? 40,
             ],
             'meta' => $seat->layout_meta ?? [],
         ];
@@ -109,8 +107,8 @@ class BusSeatLayoutService
             'index_in_column' => (int) ($seat['index'] ?? 0),
             'layout_x' => (int) ($position['x'] ?? 0),
             'layout_y' => (int) ($position['y'] ?? 0),
-            'layout_w' => (int) ($position['w'] ?? 48),
-            'layout_h' => (int) ($position['h'] ?? 48),
+            'layout_w' => (int) ($position['w'] ?? 40),
+            'layout_h' => (int) ($position['h'] ?? 40),
             'seat_type' => $seat['seat_type'] ?? null,
             'layout_meta' => $seat['meta'] ?? null,
         ];
@@ -123,7 +121,7 @@ class BusSeatLayoutService
 
         return [
             'decks' => 1,
-            'cell_size' => 48,
+            'cell_size' => 40,
             'canvas' => [
                 'width' => $width,
                 'height' => $height,
@@ -151,10 +149,10 @@ class BusSeatLayoutService
         $maxDeck = max(1, $maxDeck);
 
         $maxRight = (int) $seats->max(function (Seat $s) {
-            return (int) ($s->layout_x ?? 0) + (int) ($s->layout_w ?? 48);
+            return (int) ($s->layout_x ?? 0) + (int) ($s->layout_w ?? 40);
         });
         $maxBottom = (int) $seats->max(function (Seat $s) {
-            return (int) ($s->layout_y ?? 0) + (int) ($s->layout_h ?? 48);
+            return (int) ($s->layout_y ?? 0) + (int) ($s->layout_h ?? 40);
         });
 
         $canvasWidth = max(720, $maxRight + 24);
@@ -173,7 +171,7 @@ class BusSeatLayoutService
 
         return [
             'decks' => $maxDeck,
-            'cell_size' => 48,
+            'cell_size' => 40,
             'canvas' => [
                 'width' => $canvasWidth,
                 'height' => $canvasHeight,
@@ -207,5 +205,24 @@ class BusSeatLayoutService
             $bus->layout_canvas_height = $this->sanitizeCanvasDimension($height, 480);
         }
     }
-}
 
+    public function deleteSeat(Bus $bus, Seat $seat): bool
+    {
+        // Kiểm tra ghế thuộc về bus này
+        if ($seat->bus_id !== $bus->id) {
+            throw new \InvalidArgumentException('Ghế không thuộc về xe này');
+        }
+
+        // Kiểm tra xem ghế có đang được sử dụng trong booking hoặc trip không
+        $hasBookings = $seat->bookingItems()->exists();
+        $hasTripStatuses = $seat->tripStatuses()->exists();
+
+        if ($hasBookings || $hasTripStatuses) {
+            throw new \RuntimeException('Không thể xóa ghế đã có lịch sử đặt vé hoặc trạng thái chuyến');
+        }
+
+        return DB::transaction(function () use ($seat) {
+            return $seat->delete();
+        });
+    }
+}

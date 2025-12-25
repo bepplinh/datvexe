@@ -76,16 +76,16 @@
 
     &__body {
         display: grid;
-        grid-template-columns: 320px 1fr;
+        grid-template-columns: 620px 1fr;
         gap: 1.5rem;
         flex: 1;
         min-height: 0;
     }
 
     &__sidebar {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
     }
 
     &__panel {
@@ -108,6 +108,19 @@
         margin-bottom: 0.75rem;
     }
 
+    &__badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 42px;
+        padding: 0.2rem 0.5rem;
+        border-radius: 999px;
+        background: #f1f5f9;
+        color: #0f172a;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+
     &__form {
         display: flex;
         flex-direction: column;
@@ -124,6 +137,53 @@
         color: #94a3b8;
         font-size: 0.9rem;
         margin: 0;
+    }
+
+    &__seat-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        max-height: 400px;
+        overflow: auto;
+        padding-right: 0.25rem;
+        margin-top: 20px;
+    }
+
+    &__seat-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.55rem 0.75rem;
+        background: #f8fafc;
+        cursor: pointer;
+        transition: border 0.15s ease, background 0.15s ease,
+            transform 0.15s ease;
+
+        &:hover {
+            background: #eef2ff;
+            border-color: #c7d2fe;
+            transform: translateY(-1px);
+        }
+
+        &--active {
+            background: #000000;
+            border-color: #000000;
+            color: #fff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+    }
+
+    &__seat-label {
+        font-weight: 700;
+    }
+
+    &__seat-meta {
+        font-size: 0.85rem;
+        color: inherit;
+        opacity: 0.8;
     }
 
     &__canvas-wrapper {
@@ -214,13 +274,11 @@
         }
 
         &__sidebar {
-            flex-direction: row;
-            flex-wrap: wrap;
+            grid-template-columns: 1fr;
         }
 
         &__panel {
-            flex: 1 1 280px;
+            width: 100%;
         }
     }
 }
-

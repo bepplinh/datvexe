@@ -10,6 +10,15 @@ import {
     Sparkles,
     Car,
     MessageCircle,
+    Tag,
+    Star,
+    Bell,
+    CreditCard,
+    Building2,
+    BarChart3,
+    History,
+    Calendar,
+    Sofa,
 } from "lucide-react";
 
 export const SIDEBAR_MENU = [
@@ -26,10 +35,28 @@ export const SIDEBAR_MENU = [
         path: "/admin/users",
     },
     {
+        id: "coupons",
+        label: "Quản lý mã giảm giá",
+        icon: Tag,
+        path: "/admin/coupons",
+    },
+    {
         id: "tickets",
         label: "Quản lý vé",
         icon: Ticket,
         path: "/admin/tickets",
+    },
+    {
+        id: "booking-seat",
+        label: "Đặt ghế qua sơ đồ",
+        icon: Sofa,
+        path: "/admin/booking-seat",
+    },
+    {
+        id: "payments",
+        label: "Quản lý thanh toán",
+        icon: CreditCard,
+        path: "/admin/payments",
     },
     {
         id: "trips",
@@ -72,6 +99,18 @@ export const SIDEBAR_MENU = [
         label: "Hỗ trợ khách hàng",
         icon: MessageCircle,
         path: "/admin/support-chat",
+    },
+    {
+        id: "ratings",
+        label: "Quản lý đánh giá",
+        icon: Star,
+        path: "/admin/ratings",
+    },
+    {
+        id: "notifications",
+        label: "Quản lý thông báo",
+        icon: Bell,
+        path: "/admin/notifications",
     },
     {
         id: "settings",

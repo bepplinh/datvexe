@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { authService } from "../../services/authService";
-import { useAuth } from "../../hooks/useAuth";
 import "./Register.scss";
 
-const OTP_COUNTDOWN = 60; 
+const OTP_COUNTDOWN = 60;
 
 const formatPhoneToE164 = (phone) => {
     const cleaned = phone.replace(/\D/g, "");
@@ -23,8 +22,6 @@ const formatPhoneToE164 = (phone) => {
 };
 
 const RegisterPage = () => {
-    const navigate = useNavigate();
-    const { login } = useAuth();
 
     const [step, setStep] = useState("PHONE"); // PHONE | OTP | COMPLETE
     const [phone, setPhone] = useState("");
@@ -216,15 +213,15 @@ const RegisterPage = () => {
                                 {step === "PHONE"
                                     ? "Đăng ký tài khoản mới"
                                     : step === "OTP"
-                                    ? "Xác thực OTP"
-                                    : "Hoàn tất đăng ký"}
+                                        ? "Xác thực OTP"
+                                        : "Hoàn tất đăng ký"}
                             </p>
                             <p className="login-card__subtitle">
                                 {step === "PHONE"
                                     ? "Nhập số điện thoại để nhận mã OTP xác thực."
                                     : step === "OTP"
-                                    ? "Nhập mã OTP đã được gửi đến số điện thoại của bạn."
-                                    : "Vui lòng điền thông tin để hoàn tất đăng ký."}
+                                        ? "Nhập mã OTP đã được gửi đến số điện thoại của bạn."
+                                        : "Vui lòng điền thông tin để hoàn tất đăng ký."}
                             </p>
                         </div>
                     </div>
@@ -426,12 +423,12 @@ const RegisterPage = () => {
                                     ? "Đang gửi mã..."
                                     : "Gửi mã OTP"
                                 : step === "OTP"
-                                ? isSending
-                                    ? "Đang xác thực..."
-                                    : "Xác nhận OTP"
-                                : isSending
-                                ? "Đang đăng ký..."
-                                : "Hoàn tất đăng ký"}
+                                    ? isSending
+                                        ? "Đang xác thực..."
+                                        : "Xác nhận OTP"
+                                    : isSending
+                                        ? "Đang đăng ký..."
+                                        : "Hoàn tất đăng ký"}
                         </button>
                     </form>
 

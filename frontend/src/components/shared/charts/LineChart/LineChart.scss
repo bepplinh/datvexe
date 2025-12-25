@@ -1,0 +1,48 @@
+.line-chart {
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    &__title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 20px 0;
+    }
+
+    &__tooltip {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    &__tooltip-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 8px 0;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    &__tooltip-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 13px;
+        margin: 4px 0;
+    }
+
+    &__tooltip-name {
+        color: #64748b;
+    }
+
+    &__tooltip-value {
+        font-weight: 600;
+        color: #1e293b;
+    }
+}
+

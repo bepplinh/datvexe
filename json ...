@@ -1,0 +1,173 @@
+
+## Quy trình hoạt động của Route Optimization
+
+### Tổng quan
+Hệ thống dùng Gemini AI để tối ưu thứ tự đón/trả khách cho một hoặc nhiều trip, giảm quãng đường di chuyển.
+
+---
+
+### Flow chi tiết
+
+#### Bước 1: Nhận request (Controller)
+```
+API Endpoint: GET /api/admin/route-optimization/trip/{tripId}
+              POST /api/admin/route-optimization/trips
+```
+
+Input:
+- `tripId`: ID của trip cần tối ưu
+- `start_pickup_location` (optional): Điểm bắt đầu đón khách
+- `start_dropoff_location` (optional): Điểm bắt đầu trả khách
+- `optimize_type`: `pickup` hoặc `dropoff` (mặc định: `dropoff`)
+
+---
+
+#### Bước 2: Validate & Fetch Data (TripDataFetcher)
+```php
+RouteOptimizationService::optimizeTripRoute()
+  ↓
+TripDataFetcher::getBookingLegs($tripId)
+  - Lấy tất cả BookingLeg của trip
+  - Load relationship: booking
+  
+TripDataFetcher::getTrip($tripId)
+  - Lấy thông tin Trip
+  - Load: route.fromCity, route.toCity
+```
+
+Validation:
+- Kiểm tra trip có booking legs không
+- Kiểm tra trip có route và fromCity/toCity không
+
+---
+
+#### Bước 3: Collect Locations (LocationCollector)
+```php
+LocationCollector::collectByType($bookingLegs, $optimizeType)
+```
+
+Tạo LocationDTO cho mỗi booking leg:
+- Pickup: `id = "pickup_{leg_id}"`, `address = pickup_address`
+- Dropoff: `id = "dropoff_{leg_id}"`, `address = dropoff_address`
+
+Mỗi LocationDTO chứa:
+- `id`: pickup_1, dropoff_1, ...
+- `address`: Địa chỉ đầy đủ
+- `type`: "pickup" hoặc "dropoff"
+- `bookingLegId`: ID của booking leg
+- `bookingCode`: Mã booking
+- `passengerName`: Tên hành khách
+
+---
+
+#### Bước 4: Build Prompt (PromptBuilder)
+```php
+PromptBuilder::buildPayload($trip, $locations, $optimizeType, $startLocation)
+```
+
+Payload gửi cho Gemini:
+
+1. System Prompt:
+   - Vai trò: chuyên gia tối ưu tuyến đường
+   - Yêu cầu: đón trước trả, tối ưu quãng đường, hiểu địa lý Việt Nam
+
+2. User Prompt:
+   - Thông tin trip: ID, thời gian khởi hành, tuyến đường
+   - Điểm bắt đầu (nếu có)
+   - Danh sách địa điểm cần tối ưu (JSON format)
+   - Yêu cầu: sắp xếp thứ tự tối ưu
+
+3. Generation Config:
+   - `temperature: 0.3` (độ chính xác cao)
+   - `responseMimeType: 'application/json'` (yêu cầu JSON)
+
+---
+
+#### Bước 5: Gọi Gemini AI (GeminiClient)
+```php
+GeminiClient::firstTurn($payload)
+```
+
+Xử lý:
+- Nếu có `responseMimeType` → tự động loại bỏ (v1 không hỗ trợ)
+- Gọi API: `POST /v1/models/gemini-2.5-flash:generateContent`
+- Timeout: 20 giây
+
+---
+
+#### Bước 6: Parse Response (ResponseParser)
+```php
+ResponseParser::parse($geminiResponse, $fallbackLocations)
+```
+
+Xử lý:
+1. Extract text từ response
+2. Clean JSON: loại bỏ markdown code block (```json ... ```)
+3. Parse JSON → array
+4. Convert → OptimizedRouteDTO
+
+OptimizedRouteDTO chứa:
+- `optimized_order`: Array các địa điểm đã sắp xếp
+- `total_distance_estimate`: Ước tính tổng khoảng cách
+- `reasoning`: Lý do sắp xếp
+
+---
+
+#### Bước 7: Return Result
+```php
+<code_block_to_apply_changes_from>
+```
+
+Response JSON:
+```json
+{
+  "success": true,
+  "data": {
+    "optimized_order": [
+      {
+        "id": "dropoff_13",
+        "address": "Hào, Triệu Sơn, Thanh Hóa",
+        "type": "dropoff",
+        "booking_leg_id": 13,
+        "order": 1,
+        "booking_code": "G8W6UH",
+        "passenger_name": "Nguyễn Văn A"
+      },
+      ...
+    ],
+    "total_distance_estimate": "khoảng 125 km",
+    "reasoning": "Giải thích lý do sắp xếp..."
+  }
+}
+```
+
+---
+
+### Error Handling
+
+1. Không có booking → trả về empty với lý do
+2. Không có trip → trả về empty với lý do
+3. Không có địa điểm → trả về empty với lý do
+4. Gemini API lỗi → log error, trả về fallback (thứ tự gốc)
+5. Parse JSON lỗi → log warning, trả về fallback
+
+---
+
+### Các API endpoints hỗ trợ
+
+1. `GET /api/admin/route-optimization/trip/{tripId}`: Tối ưu 1 trip
+2. `POST /api/admin/route-optimization/trips`: Tối ưu nhiều trips
+3. `GET /api/admin/route-optimization/trip/{tripId}/locations`: Lấy danh sách địa điểm để chọn điểm bắt đầu
+4. `GET /api/admin/route-optimization/trips/list`: Danh sách trips theo ngày
+
+---
+
+### Lưu ý
+
+- Chỉ tối ưu một loại tại một thời điểm: pickup hoặc dropoff
+- Có thể chỉ định điểm bắt đầu (từ from_city cho pickup, từ to_city cho dropoff)
+- AI dựa trên kiến thức địa lý Việt Nam để ước tính khoảng cách
+- Kết quả là gợi ý, admin có thể điều chỉnh
+
+Bạn có muốn tôi giải thích thêm phần nào không?
+

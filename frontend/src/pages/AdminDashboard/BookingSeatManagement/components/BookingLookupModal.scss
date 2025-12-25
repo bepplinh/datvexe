@@ -1,0 +1,133 @@
+.booking-lookup-modal {
+    &__subtitle {
+        margin: 0.25rem 0 0;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    &__body {
+        padding: 1.5rem;
+        background: #f9fafb;
+    }
+
+    &__legs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1rem;
+    }
+
+    &__leg-card {
+        background: #ffffff;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        padding: 1rem 1.1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    }
+
+    &__leg-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    &__leg-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+    &__trip-id {
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+
+    &__leg-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    &__time {
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+
+    &__route {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.86rem;
+        color: #111827;
+    }
+
+    &__route-part {
+        max-width: 180px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__route-icon {
+        color: #9ca3af;
+    }
+
+    &__seats {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.86rem;
+    }
+
+    &__seats-label {
+        font-weight: 600;
+        color: #4b5563;
+    }
+
+    &__seats-value {
+        color: #111827;
+    }
+
+    &__actions {
+        margin-top: 0.4rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    &__btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.9rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &--primary {
+            background: #2563eb;
+            color: #ffffff;
+
+            &:hover {
+                background: #1d4ed8;
+            }
+        }
+    }
+
+    &__empty {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+}
+
+

@@ -1,6 +1,7 @@
 import HomePage from "../pages/HomePage/HomePage";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
+import ForgotPassword from "../pages/ForgotPassword/ForgotPassword";
 import Profile from "../pages/Profile/Profile";
 import TicketManagement from "../pages/TicketManagement/TicketManagement";
 import Trip from "../pages/Trip/Trip";
@@ -20,6 +21,10 @@ import TripRouteDetail from "../pages/AdminDashboard/TripManagement/TripRouteDet
 import TripStationManagement from "../pages/AdminDashboard/TripStation/TripStationManagement";
 import SupportChat from "../pages/AdminDashboard/SupportChat/SupportChat";
 import CouponManagement from "../pages/AdminDashboard/CouponManagement/CouponManagement";
+import RatingManagement from "../pages/AdminDashboard/RatingManagement/RatingManagement";
+import PaymentManagement from "../pages/AdminDashboard/PaymentManagement/PaymentManagement";
+import BookingSeatManagement from "../pages/AdminDashboard/BookingSeatManagement/BookingSeatManagement";
+import RevenueDashboard from "../pages/AdminDashboard/RevenueDashboard/RevenueDashboard";
 import { CheckoutProvider } from "../contexts/CheckoutProvider";
 import Test from "../pages/test";
 
@@ -27,6 +32,7 @@ export const CLIENT_ROUTES = [
     { path: "/", element: <HomePage /> },
     { path: "/login", element: <Login /> },
     { path: "/register", element: <Register /> },
+    { path: "/forgot-password", element: <ForgotPassword /> },
     { path: "/profile", element: <Profile /> },
     { path: "/tickets", element: <TicketManagement /> },
     { path: "/trip", element: <Trip /> },
@@ -39,7 +45,7 @@ export const CLIENT_ROUTES = [
         ),
     },
     { path: "/book", element: <BookSeat /> },
-    {path: "/test", element: <Test />}
+    { path: "/test", element: <Test /> }
 ];
 
 export const ADMIN_ROUTES = [
@@ -57,5 +63,9 @@ export const ADMIN_ROUTES = [
     { path: "/admin/notifications", element: <Notifications /> },
     { path: "/admin/support-chat", element: <SupportChat /> },
     { path: "/admin/coupons", element: <CouponManagement /> },
+    { path: "/admin/ratings", element: <RatingManagement /> },
+    { path: "/admin/payments", element: <PaymentManagement /> },
+    { path: "/admin/booking-seat", element: <BookingSeatManagement /> },
+    { path: "/admin/revenue", element: <RevenueDashboard /> },
 ];
 

@@ -55,5 +55,9 @@ export const adminTripService = {
         const response = await axiosClient.delete(`/trips/${id}`);
         return response.data;
     },
-};
 
+    async getTripSeats(tripId) {
+        const response = await axiosClient.get(`/admin/trips/${tripId}/seats`);
+        return response.data;
+    },
+};

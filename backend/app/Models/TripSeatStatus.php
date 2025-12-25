@@ -26,4 +26,9 @@ class TripSeatStatus extends Model
     {
         return $this->belongsTo(User::class, 'booked_by');
     }
+
+    public function booking(): BelongsTo
+    {
+        return $this->belongsTo(Booking::class);
+    }
 }

@@ -23,7 +23,7 @@ class SeatLayoutBackfillSeeder extends Seeder
             return;
         }
 
-        $cellSize = 56;
+        $cellSize = 45;
         $gap = 16;
         $paddingX = 32;
         $paddingY = 32;
@@ -61,25 +61,24 @@ class SeatLayoutBackfillSeeder extends Seeder
             ) {
                 /** @var Seat $seat */
                 foreach ($seats as $seat) {
-                    // Chỉ backfill cho ghế chưa có vị trí
-                    if ($seat->layout_x !== null && $seat->layout_y !== null) {
-                        continue;
-                    }
-
                     $busId = (int) $seat->bus_id;
                     $deck = (int) ($seat->deck ?? 1);
                     $group = $seat->column_group;
 
-                    $colIndex = $resolveColumnIndex($columnMap, $busId, $deck, $group);
-                    $rowIndex = (int) ($seat->index_in_column ?? 0);
+                    // Chỉ tính lại tọa độ nếu chưa có
+                    if ($seat->layout_x === null || $seat->layout_y === null) {
+                        $colIndex = $resolveColumnIndex($columnMap, $busId, $deck, $group);
+                        $rowIndex = (int) ($seat->index_in_column ?? 0);
 
-                    $seat->layout_x = $paddingX + $colIndex * ($cellSize + $gap);
-                    $seat->layout_y = $paddingY + $rowIndex * ($cellSize + $gap);
+                        $seat->layout_x = $paddingX + $colIndex * ($cellSize + $gap);
+                        $seat->layout_y = $paddingY + $rowIndex * ($cellSize + $gap);
+                    }
 
-                    if ($seat->layout_w === null) {
+                    // Luôn chuẩn hóa kích thước ghế về cellSize
+                    if ((int) $seat->layout_w !== $cellSize) {
                         $seat->layout_w = $cellSize;
                     }
-                    if ($seat->layout_h === null) {
+                    if ((int) $seat->layout_h !== $cellSize) {
                         $seat->layout_h = $cellSize;
                     }
 
@@ -88,5 +87,3 @@ class SeatLayoutBackfillSeeder extends Seeder
             });
     }
 }
-
-

@@ -1,0 +1,69 @@
+.change-trip-modal {
+    &__top-section {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    &__filters {
+        // FilterPanel styles
+    }
+
+    &__trip-list {
+        overflow-y: auto;
+        max-height: 400px;
+    }
+
+    &__content {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        min-height: 400px;
+    }
+
+    &__seat-map {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1rem;
+        overflow-y: auto;
+        max-height: 500px;
+    }
+
+    &__seat-map-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e0e0e0;
+
+        h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+    }
+}
+
+.seat-map--compact {
+    padding: 0;
+    box-shadow: none;
+    border: none;
+    margin: 0;
+
+    .seat-map__floors {
+        margin: 0;
+    }
+}
+
+@media (max-width: 1024px) {
+    .change-trip-modal__content {
+        grid-template-columns: 1fr;
+    }
+}
+

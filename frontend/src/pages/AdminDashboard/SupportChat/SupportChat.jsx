@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Mail,
     MapPin,
@@ -15,6 +15,7 @@ import "dayjs/locale/vi";
 import { toast } from "react-toastify";
 import { conversationService } from "../../../services/conversationService";
 import { useAdminAuth } from "../../../hooks/useAdminAuth";
+import { createEchoInstance } from "../../../lib/echo";
 import "./SupportChat.scss";
 
 dayjs.extend(relativeTime);
@@ -52,12 +53,25 @@ const SupportChat = () => {
     const [listLoading, setListLoading] = useState(true);
     const [conversationLoading, setConversationLoading] = useState(false);
     const [sendingMessage, setSendingMessage] = useState(false);
+    const echoRef = useRef(null);
+    const adminChannelRef = useRef(null);
+    const conversationChannelRef = useRef(null);
+    const messagesEndRef = useRef(null);
 
     const fetchConversations = useCallback(async () => {
         setListLoading(true);
         try {
             const data = await conversationService.getConversations();
-            const items = data?.data ?? [];
+            // Debug: xem raw data trả về từ API
+            console.log("SupportChat getConversations response:", data);
+            // Chuẩn hoá dữ liệu: API đôi khi trả mảng trực tiếp, đôi khi trong data/data.data
+            const items = Array.isArray(data)
+                ? data
+                : Array.isArray(data?.data)
+                    ? data.data
+                    : Array.isArray(data?.data?.data)
+                        ? data.data.data
+                        : [];
             setConversations(items);
         } catch (error) {
             console.error("Failed to load conversations", error);
@@ -70,6 +84,37 @@ const SupportChat = () => {
     useEffect(() => {
         fetchConversations();
     }, [fetchConversations]);
+
+    // Khởi tạo Echo (Reverb)
+    useEffect(() => {
+        if (!echoRef.current) {
+            echoRef.current = createEchoInstance();
+        }
+        return () => {
+            if (echoRef.current) {
+                echoRef.current.disconnect();
+            }
+        };
+    }, []);
+
+    // Lắng nghe kênh tạo hội thoại mới cho admin
+    useEffect(() => {
+        if (!echoRef.current) return;
+
+        const channelName = "admin.conversations";
+        adminChannelRef.current = echoRef.current
+            .private(channelName)
+            .listen(".ConversationCreated", (payload) => {
+                setConversations((prev) => {
+                    if (prev.some((c) => c.id === payload.id)) return prev;
+                    return [payload, ...prev];
+                });
+            });
+
+        return () => {
+            echoRef.current.leave(channelName);
+        };
+    }, []);
 
     useEffect(() => {
         if (!activeConversationId && conversations.length > 0) {
@@ -97,6 +142,51 @@ const SupportChat = () => {
         }
         fetchConversationDetail(activeConversationId);
     }, [activeConversationId, fetchConversationDetail]);
+
+    // Lắng nghe realtime tin nhắn của cuộc hội thoại đang mở
+    useEffect(() => {
+        if (!echoRef.current || !activeConversationId) return;
+
+        // Rời kênh cũ nếu có
+        if (conversationChannelRef.current) {
+            echoRef.current.leave(`conversation.${conversationChannelRef.current}`);
+            conversationChannelRef.current = null;
+        }
+
+        const channelName = `conversation.${activeConversationId}`;
+        conversationChannelRef.current = activeConversationId;
+
+        echoRef.current
+            .private(channelName)
+            .listen(".MessageCreated", (message) => {
+                setActiveConversation((prev) => {
+                    if (!prev || prev.id !== message.conversation_id) return prev;
+                    const nextMessages = [...(prev.messages || []), message];
+                    return {
+                        ...prev,
+                        messages: nextMessages,
+                        last_message_at: message.created_at,
+                        last_message: message,
+                    };
+                });
+
+                setConversations((prev) =>
+                    prev.map((c) =>
+                        c.id === message.conversation_id
+                            ? {
+                                ...c,
+                                last_message: message,
+                                last_message_at: message.created_at,
+                            }
+                            : c
+                    )
+                );
+            });
+
+        return () => {
+            echoRef.current.leave(channelName);
+        };
+    }, [activeConversationId]);
 
     const filteredConversations = useMemo(() => {
         if (!searchQuery.trim()) {
@@ -140,10 +230,10 @@ const SupportChat = () => {
                 prev.map((conversation) =>
                     conversation.id === activeConversationId
                         ? {
-                              ...conversation,
-                              last_message: newMessage,
-                              last_message_at: newMessage.created_at,
-                          }
+                            ...conversation,
+                            last_message: newMessage,
+                            last_message_at: newMessage.created_at,
+                        }
                         : conversation
                 )
             );
@@ -186,6 +276,13 @@ const SupportChat = () => {
         setActiveConversationId(conversationId);
     };
 
+    // Tự động scroll xuống cuối khi đổi cuộc trò chuyện hoặc có thêm tin nhắn
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [activeConversationId, activeConversation?.messages?.length]);
+
     return (
         <div className="support-chat">
             <div className="support-chat__panel support-chat__panel--list">
@@ -219,11 +316,10 @@ const SupportChat = () => {
                             <button
                                 key={conversation.id}
                                 type="button"
-                                className={`support-chat__conversation-card ${
-                                    activeConversationId === conversation.id
-                                        ? "support-chat__conversation-card--active"
-                                        : ""
-                                }`}
+                                className={`support-chat__conversation-card ${activeConversationId === conversation.id
+                                    ? "support-chat__conversation-card--active"
+                                    : ""
+                                    }`}
                                 onClick={() => handleSelectConversation(conversation.id)}
                             >
                                 <div className="support-chat__conversation-avatar">
@@ -293,9 +389,8 @@ const SupportChat = () => {
                                     return (
                                         <div
                                             key={message.id}
-                                            className={`support-chat__message ${
-                                                isAgent ? "support-chat__message--agent" : ""
-                                            }`}
+                                            className={`support-chat__message ${isAgent ? "support-chat__message--agent" : ""
+                                                }`}
                                         >
                                             <div className="support-chat__bubble">
                                                 <p>{message.content}</p>
@@ -309,6 +404,7 @@ const SupportChat = () => {
                                     Chưa có tin nhắn nào trong hội thoại này
                                 </div>
                             )}
+                            <div ref={messagesEndRef} />
                         </div>
 
                         <form className="support-chat__composer" onSubmit={handleSendMessage}>

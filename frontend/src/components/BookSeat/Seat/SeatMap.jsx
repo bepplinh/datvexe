@@ -5,24 +5,30 @@ import "./SeatMap.scss";
 import { useEcho } from "../../../contexts/EchoContext";
 import axiosClient from "../../../apis/axiosClient";
 
-export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
+export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded, onRealtimeEvent }) {
     const echo = useEcho();
     const [seats, setSeats] = useState({});
     const [layout, setLayout] = useState(null);
     const [loading, setLoading] = useState(false);
     const onSeatSelectRef = useRef(onSeatSelect);
     const onSeatsLoadedRef = useRef(onSeatsLoaded);
+    const onRealtimeEventRef = useRef(onRealtimeEvent);
 
     useEffect(() => {
-        if (!trip?.trip_id) return;
+        // Support both trip_id and id
+        const tripId = trip?.trip_id || trip?.id;
+        if (!tripId) {
+            console.warn("SeatMap: Missing trip_id or id", trip);
+            return;
+        }
 
         async function loadSeatLayout() {
             try {
                 setLoading(true);
                 const { data } = await axiosClient.get(
-                    `/client/trips/${trip.trip_id}/seats`
+                    `/client/trips/${tripId}/seats`
                 );
-                console.log(data);
+
                 if (!data.success) return;
 
                 const seatMap = {};
@@ -40,6 +46,7 @@ export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
                         };
                     });
                 });
+
                 setSeats(seatMap);
                 setLayout(data.data.layout || null);
                 // ✅ Notify parent component về seats data
@@ -57,20 +64,29 @@ export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
     useEffect(() => {
         onSeatSelectRef.current = onSeatSelect;
         onSeatsLoadedRef.current = onSeatsLoaded;
-    }, [onSeatSelect, onSeatsLoaded]);
+        onRealtimeEventRef.current = onRealtimeEvent;
+    }, [onSeatSelect, onSeatsLoaded, onRealtimeEvent]);
 
     const updateSeatStatus = (seatLabels = [], status) => {
         setSeats((current) => {
             const next = { ...current };
-            let hasChange = false;
+            let updated = false;
 
             seatLabels.forEach((label) => {
                 const seat = next[label];
-                if (seat && seat.status !== status) {
-                    next[label] = { ...seat, status };
-                    hasChange = true;
+                if (seat) {
+                    if (seat.status !== status) {
+                        next[label] = { ...seat, status };
+                        updated = true;
+                    }
+                } else {
+                    console.warn(`SeatMap: Seat ${label} not found in current seats`);
                 }
             });
+
+            if (!updated) {
+                console.warn("SeatMap: No seats were updated");
+            }
 
             return next;
         });
@@ -109,18 +125,40 @@ export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
         const channelName = `trip.${trip.trip_id}`;
         const channel = echo.private(channelName);
 
+        // Subscribe callback để kiểm tra xem đã subscribe thành công chưa
+        channel.subscribed(() => {
+        });
+
         channel
             .error((error) => {
                 console.error("SeatMap: Channel subscription error", error);
             })
-            .listen(".SeatLocked", ({ locks }) => {
+            .listen(".SeatLocked", (payload) => {
+                const { locks, session_token } = payload || {};
+                if (!locks || !Array.isArray(locks)) {
+                    console.warn("SeatMap: Invalid locks data", locks);
+                    return;
+                }
+
                 const seatLabels = locks.flatMap(
                     (lock) => lock.seat_labels ?? []
                 );
-                updateSeatStatus(seatLabels, "locked");
+
+                if (seatLabels.length > 0) {
+                    updateSeatStatus(seatLabels, "locked");
+                    // Notify parent component about realtime event
+                    onRealtimeEventRef.current?.({
+                        type: "SeatLocked",
+                        seatLabels,
+                        session_token,
+                        payload,
+                    });
+                } else {
+                    console.warn("SeatMap: No seat labels found in locks");
+                }
             })
             .listen(".SeatUnlocked", (payload) => {
-                const { unlocks } = payload || {};
+                const { unlocks, session_token } = payload || {};
                 const currentTripId = trip?.trip_id;
 
                 if (!currentTripId || !unlocks || !Array.isArray(unlocks)) {
@@ -144,12 +182,37 @@ export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
                 }
 
                 updateSeatStatus(seatLabels, "available");
+                // Notify parent component about realtime event
+                onRealtimeEventRef.current?.({
+                    type: "SeatUnlocked",
+                    seatLabels,
+                    session_token,
+                    payload,
+                });
             })
-            .listen(".SeatBooked", ({ booked }) => {
+            .listen(".SeatBooked", (payload) => {
+                const { booked, session_token } = payload || {};
+                if (!booked || !Array.isArray(booked)) {
+                    console.warn("SeatMap: Invalid booked data", booked);
+                    return;
+                }
+
                 const seatLabels = booked.flatMap(
                     (item) => item.seat_labels ?? []
                 );
-                updateSeatStatus(seatLabels, "booked");
+
+                if (seatLabels.length > 0) {
+                    updateSeatStatus(seatLabels, "booked");
+                    // Notify parent component about realtime event
+                    onRealtimeEventRef.current?.({
+                        type: "SeatBooked",
+                        seatLabels,
+                        session_token,
+                        payload,
+                    });
+                } else {
+                    console.warn("SeatMap: No seat labels found in booked");
+                }
             });
 
         return () => {
@@ -159,22 +222,29 @@ export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
 
     const getSeatClassName = (status) => {
         const baseClass = "seat-map__seat";
+        let className;
         switch (status) {
             case "booked":
-                return `${baseClass} ${baseClass}--booked`;
+                className = `${baseClass} ${baseClass}--booked`;
+                break;
             case "selected":
-                return `${baseClass} ${baseClass}--selected`;
+                className = `${baseClass} ${baseClass}--selected`;
+                break;
             case "locked":
-                return `${baseClass} ${baseClass}--locked`;
+                className = `${baseClass} ${baseClass}--locked`;
+                break;
             default:
-                return `${baseClass} ${baseClass}--available`;
+                className = `${baseClass} ${baseClass}--available`;
         }
+
+        return className;
     };
 
     const groupedByDeck = Object.values(seats || {}).reduce((acc, seat) => {
         const deckKey = `deck_${seat.deck}`;
         if (!acc[deckKey]) acc[deckKey] = [];
         acc[deckKey].push(seat);
+
         return acc;
     }, {});
 
@@ -376,9 +446,9 @@ export default function SeatMap({ trip, onSeatSelect, onSeatsLoaded }) {
                                                         )}
                                                         disabled={
                                                             seat.status ===
-                                                                "booked" ||
+                                                            "booked" ||
                                                             seat.status ===
-                                                                "locked"
+                                                            "locked"
                                                         }
                                                         aria-label={`Ghế ${seat.label}`}
                                                     >

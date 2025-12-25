@@ -13,6 +13,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\RatingController;
 use App\Http\Controllers\BusTypeController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\SeatFlowController;
@@ -20,12 +21,21 @@ use App\Http\Controllers\CouponUserController;
 use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\TripStationController;
 use App\Http\Controllers\Auth\OtpAuthController;
+use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\RatingAdminController;
+use App\Http\Controllers\Admin\RevenueController;
+use App\Http\Controllers\Admin\StatisticsController;
+use App\Http\Controllers\Admin\TripPerformanceController;
+use App\Http\Controllers\Admin\FinancialController;
+use App\Http\Controllers\Admin\ExportController;
+use App\Http\Controllers\Admin\RealTimeController;
 use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\Client\GeminiChatController;
 use App\Http\Controllers\Client\TripSearchController;
 use App\Http\Controllers\Admin\AdminBookingController;
 use App\Http\Controllers\SeatLayoutTemplateController;
-use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\Admin\AdminTripSeatController;
 use App\Http\Controllers\Admin\BusSeatLayoutController;
 use App\Http\Controllers\Client\ClientBookingController;
 use App\Http\Controllers\Client\ClientProfileController;
@@ -71,10 +81,6 @@ Route::post('payos/webhook', [PayOSWebhookController::class, 'handle']);
 Route::get('/payos/redirect/success', [PayOSRedirectController::class, 'success']);
 Route::get('/payos/redirect/cancel', [PayOSRedirectController::class, 'cancel']);
 
-// Test route để kiểm tra ngrok
-Route::get('/payos/test', function () {
-    return response()->json(['message' => 'PayOS route is working', 'time' => now()]);
-});
 
 Route::middleware(['auth:api', 'x-session-token'])->group(function () {
     // Rate limit cho draft access để chống brute force
@@ -95,15 +101,33 @@ Route::middleware(['auth:api', 'x-session-token'])->group(function () {
     });
 
     Route::post('coupons/validate', [CouponController::class, 'validate']);
+
+    // Rating routes
+    Route::get('ratings/pending', [RatingController::class, 'index']);
+    Route::post('trips/{trip}/ratings', [RatingController::class, 'store']);
 });
 
 Route::middleware(['auth:api', 'role:admin'])
     ->prefix('admin')
     ->group(function () {
         Route::post('bookings', [AdminBookingController::class, 'store']);
+        Route::get('bookings/lookup', [AdminBookingController::class, 'lookupByCode']);
+
+        // Group booking modification routes to ensure proper route model binding
+        Route::prefix('bookings/{booking}')->group(function () {
+            Route::post('mark-paid', [AdminBookingController::class, 'markAsPaid']);
+            Route::post('mark-additional-payment-paid', [AdminBookingController::class, 'markAdditionalPaymentPaid']);
+            Route::post('change-seat', [AdminBookingController::class, 'changeSeat']);
+            Route::post('change-trip', [AdminBookingController::class, 'changeTrip']);
+            Route::get('refund-policy', [AdminBookingController::class, 'getRefundPolicy']);
+            Route::post('refund-price-difference', [AdminBookingController::class, 'refundPriceDifference']);
+            Route::post('refund', [AdminBookingController::class, 'refund']);
+        });
+        Route::get('trips/{tripId}/seats', [AdminTripSeatController::class, 'show']);
 
         Route::get('buses/{bus}/seat-layout', [BusSeatLayoutController::class, 'show']);
         Route::put('buses/{bus}/seat-layout', [BusSeatLayoutController::class, 'update']);
+        Route::delete('buses/{bus}/seat-layout/{seat}', [BusSeatLayoutController::class, 'destroy']);
 
         Route::get('notifications', [AdminNotificationController::class, 'index']);
         Route::post('notifications/{notification}/read', [AdminNotificationController::class, 'markAsRead']);
@@ -116,6 +140,65 @@ Route::middleware(['auth:api', 'role:admin'])
             Route::get('/trip/{tripId}', [RouteOptimizationController::class, 'optimizeTrip']);
             Route::get('/trips', [RouteOptimizationController::class, 'listTripsForDate']);
             Route::post('/trips', [RouteOptimizationController::class, 'optimizeMultipleTrips']);
+        });
+
+        // Ratings management
+        Route::get('ratings', [RatingAdminController::class, 'index']);
+        Route::get('ratings/summary', [RatingAdminController::class, 'summary']);
+
+        // Payments management
+        Route::get('payments', [PaymentController::class, 'index']);
+        Route::get('payments/stats', [PaymentController::class, 'stats']);
+        Route::get('payments/{id}', [PaymentController::class, 'show']);
+
+        // Revenue management
+        Route::prefix('revenue')->group(function () {
+            Route::get('/dashboard', [RevenueController::class, 'dashboard']);
+            Route::get('/trend', [RevenueController::class, 'trend']);
+            Route::get('/top-routes', [RevenueController::class, 'topRoutes']);
+            Route::get('/top-trips', [RevenueController::class, 'topTrips']);
+            Route::get('/analysis', [RevenueController::class, 'analysis']);
+        });
+
+        // Statistics management
+        Route::prefix('statistics')->group(function () {
+            Route::get('/bookings', [StatisticsController::class, 'bookings']);
+            Route::get('/top-customers', [StatisticsController::class, 'topCustomers']);
+            Route::get('/customer-segmentation', [StatisticsController::class, 'customerSegmentation']);
+            Route::get('/customer-distribution', [StatisticsController::class, 'customerDistribution']);
+            Route::get('/customer-history/{userId}', [StatisticsController::class, 'customerHistory']);
+        });
+
+        // Trip Performance management
+        Route::prefix('trip-performance')->group(function () {
+            Route::get('/occupancy', [TripPerformanceController::class, 'occupancy']);
+            Route::get('/low-occupancy', [TripPerformanceController::class, 'lowOccupancy']);
+            Route::get('/average-revenue', [TripPerformanceController::class, 'averageRevenue']);
+            Route::get('/popular-trips', [TripPerformanceController::class, 'popularTrips']);
+            Route::get('/popular-departure-times', [TripPerformanceController::class, 'popularDepartureTimes']);
+            Route::get('/most-booked-seats', [TripPerformanceController::class, 'mostBookedSeats']);
+            Route::get('/least-booked-seats', [TripPerformanceController::class, 'leastBookedSeats']);
+            Route::get('/seat-usage-by-type', [TripPerformanceController::class, 'seatUsageByType']);
+        });
+
+        // Financial management
+        Route::prefix('financial')->group(function () {
+            Route::get('/payment-report', [FinancialController::class, 'paymentReport']);
+            Route::get('/coupon-analysis', [FinancialController::class, 'couponAnalysis']);
+            Route::get('/top-coupons', [FinancialController::class, 'topCoupons']);
+            Route::get('/report-by-period', [FinancialController::class, 'reportByPeriod']);
+        });
+
+        // Export management
+        Route::prefix('export')->group(function () {
+            Route::get('/', [ExportController::class, 'export']);
+        });
+
+        // Real-time management
+        Route::prefix('realtime')->group(function () {
+            Route::get('/metrics', [RealTimeController::class, 'metrics']);
+            Route::get('/today-revenue-by-hour', [RealTimeController::class, 'todayRevenueByHour']);
+            Route::get('/upcoming-trips', [RealTimeController::class, 'upcomingTrips']);
         });
     });
 
@@ -155,13 +238,7 @@ Route::get('client/trips/{tripId}/seats', [ClientTripSeatController::class, 'sho
 Route::post('/ai/chat', [GeminiChatController::class, 'chat']);
 
 
-Route::get('test', function () {
-    $booking = \App\Models\Booking::with(['legs.trip', 'legs.items'])
-        ->findOrFail(1);
-    return view('emails.booking_success', [
-        'booking' => $booking,
-    ]);
-});
+
 
 Route::get('/test-send-mail', function () {
     // 1. Chỉ cần findOrFail. 
@@ -172,4 +249,17 @@ Route::get('/test-send-mail', function () {
     Mail::to('bep2702@gmail.com')->send(new BookingSuccessMail($booking));
 
     return "Đã gửi mail! (Hãy kiểm tra Mailtrap inbox của bạn)";
+});
+
+
+// Route::get('test', function () {
+//     $booking = \App\Models\Booking::with(['legs.trip', 'legs.items'])
+//         ->findOrFail(1);
+//     return view('emails.booking_success', [
+//         'booking' => $booking,
+//     ]);
+// });
+
+Route::get('/test', function () {
+    return "hello world";
 });

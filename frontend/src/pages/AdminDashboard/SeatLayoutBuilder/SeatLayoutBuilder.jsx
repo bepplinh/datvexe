@@ -15,7 +15,7 @@ const DEFAULT_LEGEND = [
 
 const applyLayoutDefaults = (layout = {}) => ({
     decks: layout.decks ?? 1,
-    cell_size: layout.cell_size ?? 48,
+    cell_size: layout.cell_size ?? 40,
     canvas: {
         width: layout.canvas?.width ?? 720,
         height: layout.canvas?.height ?? 480,
@@ -24,8 +24,8 @@ const applyLayoutDefaults = (layout = {}) => ({
 });
 
 const createClientId = () =>
-    (globalThis.crypto?.randomUUID?.() ??
-        Math.random().toString(36).slice(2));
+(globalThis.crypto?.randomUUID?.() ??
+    Math.random().toString(36).slice(2));
 
 const normalizeClientId = (seat) =>
     seat?.seat_id !== undefined && seat?.seat_id !== null
@@ -42,10 +42,10 @@ const buildClientSeat = (seat) => ({
     seat_type: seat?.seat_type ?? "standard",
     active: seat?.active ?? true,
     position: {
-        x: seat?.position?.x ?? 24,
-        y: seat?.position?.y ?? 24,
-        w: seat?.position?.w ?? 48,
-        h: seat?.position?.h ?? 48,
+        x: seat?.position?.x ?? 20,
+        y: seat?.position?.y ?? 20,
+        w: seat?.position?.w ?? 40,
+        h: seat?.position?.h ?? 40,
     },
     meta: seat?.meta ?? {},
 });
@@ -89,10 +89,12 @@ export default function SeatLayoutBuilder() {
     const [selectedBusId, setSelectedBusId] = useState("");
     const [layout, setLayout] = useState(applyLayoutDefaults());
     const [seats, setSeats] = useState([]);
+    const [seatSearch, setSeatSearch] = useState("");
     const [activeSeat, setActiveSeat] = useState(null);
     const [activeDeck, setActiveDeck] = useState(1);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         async function loadBuses() {
@@ -105,12 +107,13 @@ export default function SeatLayoutBuilder() {
                 if (list.length && !selectedBusId) {
                     setSelectedBusId(list[0].id);
                 }
-            } catch (error) {
+            } catch (e) {
+                console.error(e);
                 toast.error("Không thể tải danh sách xe");
             }
         }
         loadBuses();
-    }, []);
+    }, [selectedBusId]);
 
     useEffect(() => {
         if (!selectedBusId) return;
@@ -130,7 +133,8 @@ export default function SeatLayoutBuilder() {
                     );
                     setActiveDeck(1);
                 }
-            } catch (error) {
+            } catch (e) {
+                console.error(e);
                 toast.error("Không thể tải sơ đồ ghế");
             } finally {
                 setLoading(false);
@@ -149,6 +153,19 @@ export default function SeatLayoutBuilder() {
         [seats, activeSeat]
     );
 
+    const filteredSeats = useMemo(() => {
+        const keyword = seatSearch.trim().toLowerCase();
+        return seats
+            .filter((seat) => seat.deck === activeDeck)
+            .filter((seat) =>
+                keyword ? seat.label.toLowerCase().includes(keyword) : true
+            )
+            .sort((a, b) => a.label.localeCompare(b.label, "vi", { numeric: true }));
+    }, [seats, activeDeck, seatSearch]);
+
+    const snapToGrid = (value) =>
+        Math.round(value / layout.cell_size) * layout.cell_size;
+
     const handleDragEnd = (event) => {
         const { active, delta } = event;
         if (!active?.id) return;
@@ -163,8 +180,8 @@ export default function SeatLayoutBuilder() {
                     ...seat,
                     position: {
                         ...seat.position,
-                        x: clamp(nextX, 0, canvasWidth),
-                        y: clamp(nextY, 0, canvasHeight),
+                        x: clamp(snapToGrid(nextX), 0, canvasWidth),
+                        y: clamp(snapToGrid(nextY), 0, canvasHeight),
                     },
                 };
             })
@@ -177,12 +194,12 @@ export default function SeatLayoutBuilder() {
             prev.map((seat) =>
                 seat.clientId === selectedSeat.clientId
                     ? {
-                          ...seat,
-                          [field]:
-                              field === "deck" || field === "index"
-                                  ? Number(value)
-                                  : value,
-                      }
+                        ...seat,
+                        [field]:
+                            field === "deck" || field === "index"
+                                ? Number(value)
+                                : value,
+                    }
                     : seat
             )
         );
@@ -202,12 +219,12 @@ export default function SeatLayoutBuilder() {
             prev.map((seat) =>
                 seat.clientId === selectedSeat.clientId
                     ? {
-                          ...seat,
-                          position: {
-                              ...seat.position,
-                              [field]: safeValue,
-                          },
-                      }
+                        ...seat,
+                        position: {
+                            ...seat.position,
+                            [field]: safeValue,
+                        },
+                    }
                     : seat
             )
         );
@@ -217,7 +234,7 @@ export default function SeatLayoutBuilder() {
         const newSeat = buildClientSeat({
             label: `N${seats.length + 1}`,
             deck: activeDeck,
-            position: { x: 24, y: 24, w: 48, h: 48 },
+            position: { x: 20, y: 20, w: 40, h: 40 },
             column_group: "A",
             index: seats.length,
         });
@@ -225,12 +242,34 @@ export default function SeatLayoutBuilder() {
         setActiveSeat(newSeat.clientId);
     };
 
-    const handleDeleteSeat = () => {
+    const handleDeleteSeat = async () => {
         if (!selectedSeat) return;
-        setSeats((prev) =>
-            prev.filter((seat) => seat.clientId !== selectedSeat.clientId)
+        const confirmed = window.confirm(
+            `Bạn có chắc muốn xoá ghế ${selectedSeat.label}?`
         );
-        setActiveSeat(null);
+        if (!confirmed) return;
+
+        try {
+            setDeleting(true);
+            // Nếu ghế đã có seat_id thì gọi API xoá trước
+            if (selectedSeat.seat_id && selectedBusId) {
+                await axiosClient.delete(
+                    `/admin/buses/${selectedBusId}/seat-layout/${selectedSeat.seat_id}`
+                );
+            }
+            setSeats((prev) =>
+                prev.filter((seat) => seat.clientId !== selectedSeat.clientId)
+            );
+            setActiveSeat(null);
+            toast.success("Đã xoá ghế khỏi sơ đồ");
+        } catch (error) {
+            console.error(error);
+            toast.error(
+                error?.response?.data?.message || "Không thể xoá ghế, vui lòng thử lại"
+            );
+        } finally {
+            setDeleting(false);
+        }
     };
 
     const handleSave = async () => {
@@ -311,58 +350,48 @@ export default function SeatLayoutBuilder() {
             <div className="seat-builder__body">
                 <aside className="seat-builder__sidebar">
                     <div className="seat-builder__panel">
-                        <h3>Thông số bố cục</h3>
-                        <div className="seat-builder__field">
-                            <label>Số tầng</label>
-                            <input
-                                type="number"
-                                min="1"
-                                max="4"
-                                value={layout.decks}
-                                onChange={(e) =>
-                                    setLayout((prev) => ({
-                                        ...prev,
-                                        decks: Number(e.target.value) || 1,
-                                    }))
-                                }
-                            />
+                        <div className="seat-builder__panel-header">
+                            <h3>Danh sách ghế</h3>
+                            <span className="seat-builder__badge">
+                                {filteredSeats.length}/{visibleSeats.length}
+                            </span>
                         </div>
                         <div className="seat-builder__field">
-                            <label>Chiều rộng canvas(px)</label>
                             <input
-                                type="number"
-                                min="200"
-                                max="2000"
-                                value={layout.canvas.width}
-                                onChange={(e) =>
-                                    setLayout((prev) => ({
-                                        ...prev,
-                                        canvas: {
-                                            ...prev.canvas,
-                                            width: Number(e.target.value) || 200,
-                                        },
-                                    }))
-                                }
+                                type="text"
+                                placeholder="Tìm theo nhãn ghế..."
+                                value={seatSearch}
+                                onChange={(e) => setSeatSearch(e.target.value)}
                             />
                         </div>
-                        <div className="seat-builder__field">
-                            <label>Chiều cao canvas(px)</label>
-                            <input
-                                type="number"
-                                min="200"
-                                max="2000"
-                                value={layout.canvas.height}
-                                onChange={(e) =>
-                                    setLayout((prev) => ({
-                                        ...prev,
-                                        canvas: {
-                                            ...prev.canvas,
-                                            height:
-                                                Number(e.target.value) || 200,
-                                        },
-                                    }))
-                                }
-                            />
+                        <div className="seat-builder__seat-list">
+                            {filteredSeats.length === 0 ? (
+                                <p className="seat-builder__empty">
+                                    Không tìm thấy ghế
+                                </p>
+                            ) : (
+                                filteredSeats.map((seat) => (
+                                    <button
+                                        key={seat.clientId}
+                                        type="button"
+                                        className={`seat-builder__seat-item ${activeSeat === seat.clientId
+                                            ? "seat-builder__seat-item--active"
+                                            : ""
+                                            }`}
+                                        onClick={() => {
+                                            setActiveDeck(seat.deck);
+                                            setActiveSeat(seat.clientId);
+                                        }}
+                                    >
+                                        <span className="seat-builder__seat-label">
+                                            {seat.label}
+                                        </span>
+                                        <span className="seat-builder__seat-meta">
+                                            Tầng {seat.deck}
+                                        </span>
+                                    </button>
+                                ))
+                            )}
                         </div>
                     </div>
 
@@ -373,8 +402,9 @@ export default function SeatLayoutBuilder() {
                                 <button
                                     className="seat-builder__button seat-builder__button--danger"
                                     onClick={handleDeleteSeat}
+                                    disabled={deleting}
                                 >
-                                    Xoá
+                                    {deleting ? "Đang xoá..." : "Xoá"}
                                 </button>
                             )}
                         </div>
@@ -514,6 +544,62 @@ export default function SeatLayoutBuilder() {
                             </p>
                         )}
                     </div>
+
+                    <div className="seat-builder__panel">
+                        <h3>Thông số bố cục</h3>
+                        <div className="seat-builder__field">
+                            <label>Số tầng</label>
+                            <input
+                                type="number"
+                                min="1"
+                                max="4"
+                                value={layout.decks}
+                                onChange={(e) =>
+                                    setLayout((prev) => ({
+                                        ...prev,
+                                        decks: Number(e.target.value) || 1,
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div className="seat-builder__field">
+                            <label>Chiều rộng canvas(px)</label>
+                            <input
+                                type="number"
+                                min="200"
+                                max="2000"
+                                value={layout.canvas.width}
+                                onChange={(e) =>
+                                    setLayout((prev) => ({
+                                        ...prev,
+                                        canvas: {
+                                            ...prev.canvas,
+                                            width: Number(e.target.value) || 200,
+                                        },
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div className="seat-builder__field">
+                            <label>Chiều cao canvas(px)</label>
+                            <input
+                                type="number"
+                                min="200"
+                                max="2000"
+                                value={layout.canvas.height}
+                                onChange={(e) =>
+                                    setLayout((prev) => ({
+                                        ...prev,
+                                        canvas: {
+                                            ...prev.canvas,
+                                            height:
+                                                Number(e.target.value) || 200,
+                                        },
+                                    }))
+                                }
+                            />
+                        </div>
+                    </div>
                 </aside>
 
                 <section className="seat-builder__canvas-wrapper">
@@ -521,11 +607,10 @@ export default function SeatLayoutBuilder() {
                         {decks.map((deck) => (
                             <button
                                 key={deck}
-                                className={`seat-builder__deck-tab ${
-                                    activeDeck === deck
-                                        ? "seat-builder__deck-tab--active"
-                                        : ""
-                                }`}
+                                className={`seat-builder__deck-tab ${activeDeck === deck
+                                    ? "seat-builder__deck-tab--active"
+                                    : ""
+                                    }`}
                                 onClick={() => setActiveDeck(deck)}
                             >
                                 Tầng {deck}
@@ -546,6 +631,8 @@ export default function SeatLayoutBuilder() {
                             style={{
                                 width: layout.canvas.width,
                                 height: layout.canvas.height,
+                                backgroundImage:
+                                    "linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px)",
                                 backgroundSize: `${layout.cell_size}px ${layout.cell_size}px`,
                             }}
                             onClick={() => setActiveSeat(null)}

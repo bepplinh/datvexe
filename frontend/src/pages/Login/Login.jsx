@@ -164,9 +164,9 @@ const Login = () => {
                         </div>
 
                         <div className="login-form__forgot">
-                            <a href="#" className="login-form__forgot-link">
+                            <Link to="/forgot-password" className="login-form__forgot-link">
                                 Quên mật khẩu?
-                            </a>
+                            </Link>
                         </div>
 
                         {error && <p className="login-form__error">{error}</p>}

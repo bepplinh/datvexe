@@ -10,7 +10,7 @@ use App\Models\Seat;
 
 class SeatLockService
 {
-    const DEFAULT_TTL = 300;
+    const DEFAULT_TTL = 360;
 
     public function __construct(
         private DraftCheckoutService $drafts,

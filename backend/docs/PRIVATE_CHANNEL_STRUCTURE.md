@@ -67,13 +67,13 @@ SeatUnselecting::dispatch(
 // Laravel Echo
 Echo.private(`trip.123`)
     .listen('seat.selecting', (e) => {
-        console.log('Seat selecting:', e);
+        // Handle seat selecting event
     })
     .listen('seat.booked', (e) => {
-        console.log('Seat booked:', e);
+        // Handle seat booked event
     })
     .listen('seat.unselecting', (e) => {
-        console.log('Seat unselecting:', e);
+        // Handle seat unselecting event
     });
 ```
 
@@ -82,13 +82,13 @@ Echo.private(`trip.123`)
 // Laravel Echo
 Echo.private(`trip.123`)
     .listen('seat.selecting', (e) => {
-        console.log('Seat selecting in trip:', e);
+        // Handle seat selecting in trip event
     })
     .listen('seat.booked', (e) => {
-        console.log('Seat booked in trip:', e);
+        // Handle seat booked in trip event
     })
     .listen('seat.unselecting', (e) => {
-        console.log('Seat unselecting in trip:', e);
+        // Handle seat unselecting in trip event
     });
 ```
 
