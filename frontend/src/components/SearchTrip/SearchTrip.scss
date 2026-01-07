@@ -5,10 +5,13 @@
     background-color: #ffffff;
     font-family: "Lexend";
     max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     user-select: none;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     font-size: 15px;
+    box-sizing: border-box;
+    overflow: visible;
 
     @media (max-width: 1024px) {
         padding: 24px;
@@ -32,6 +35,8 @@
         flex-wrap: nowrap;
         min-height: 70px;
         position: relative;
+        width: 100%;
+        box-sizing: border-box;
 
         @media (max-width: 1024px) {
             gap: 16px;
@@ -67,7 +72,36 @@
 
         @media (max-width: 480px) {
             gap: 12px;
-            flex-direction: column;
+            width: 100%;
+            flex: 1 1 100%;
+        }
+    }
+
+    &__dates {
+        display: flex;
+        align-items: stretch;
+        gap: 16px;
+        flex: 0 0 auto;
+
+        @media (max-width: 1024px) {
+            gap: 14px;
+        }
+
+        @media (max-width: 768px) {
+            width: 100%;
+        }
+
+        @media (max-width: 480px) {
+            width: 100%;
+            gap: 12px;
+
+            .date-field-wrapper {
+                flex: 1 1 50%;
+            }
+
+            .date-field-wrapper:nth-child(1):only-child {
+                flex: 1 1 100%;
+            }
         }
     }
 }

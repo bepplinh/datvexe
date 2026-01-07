@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { tripPerformanceService } from "../../../services/admin/tripPerformanceService";
 import { toast } from "react-toastify";
-import { Loader2, TrendingUp, TrendingDown, Clock, MapPin, Seat } from "lucide-react";
+import { Loader2, TrendingUp, TrendingDown, Clock, MapPin } from "lucide-react";
 import dayjs from "dayjs";
 import DateRangeFilter from "../../../components/shared/DateRangeFilter/DateRangeFilter";
 import StatsCard from "../../../components/shared/StatsCard/StatsCard";
@@ -23,7 +23,6 @@ export default function TripPerformance() {
     const [popularTimes, setPopularTimes] = useState([]);
     const [mostBookedSeats, setMostBookedSeats] = useState([]);
     const [seatUsage, setSeatUsage] = useState([]);
-    const [avgRevenue, setAvgRevenue] = useState(0);
     const [activeTab, setActiveTab] = useState("overview");
 
     const loadData = useCallback(async () => {
@@ -36,7 +35,6 @@ export default function TripPerformance() {
                 timesRes,
                 seatsRes,
                 usageRes,
-                avgRes,
             ] = await Promise.all([
                 tripPerformanceService.getOccupancy({
                     from_date: fromDate,
@@ -66,10 +64,6 @@ export default function TripPerformance() {
                     from_date: fromDate,
                     to_date: toDate,
                 }),
-                tripPerformanceService.getAverageRevenue({
-                    from_date: fromDate,
-                    to_date: toDate,
-                }),
             ]);
 
             if (occupancyRes.success) {
@@ -89,9 +83,6 @@ export default function TripPerformance() {
             }
             if (usageRes.success) {
                 setSeatUsage(usageRes.data.seat_usage_by_type || []);
-            }
-            if (avgRes.success) {
-                setAvgRevenue(avgRes.data.average_revenue_per_trip || 0);
             }
         } catch (error) {
             console.error("Error loading trip performance:", error);
@@ -131,20 +122,15 @@ export default function TripPerformance() {
             render: (value) => (
                 <span
                     className={`occupancy-badge ${value >= 80
-                            ? "occupancy-badge--high"
-                            : value >= 50
-                                ? "occupancy-badge--medium"
-                                : "occupancy-badge--low"
+                        ? "occupancy-badge--high"
+                        : value >= 50
+                            ? "occupancy-badge--medium"
+                            : "occupancy-badge--low"
                         }`}
                 >
                     {formatPercentage(value)}
                 </span>
             ),
-        },
-        {
-            key: "revenue",
-            header: "Doanh thu",
-            format: formatCurrency,
         },
     ];
 
@@ -233,13 +219,6 @@ export default function TripPerformance() {
             {activeTab === "overview" && (
                 <>
                     <div className="trip-performance__stats">
-                        <StatsCard
-                            title="Doanh thu TB/Chuyến"
-                            value={avgRevenue}
-                            unit="đ"
-                            formatValue={formatCurrency}
-                            icon={TrendingUp}
-                        />
                         <StatsCard
                             title="Chuyến phổ biến"
                             value={popularTrips.length}

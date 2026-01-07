@@ -31,6 +31,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsToMany(Coupon::class, 'coupon_user')->withPivot('is_used', 'used_at')->withTimestamps();
     }
 
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
     public function getAvatarUrlAttribute(): string
     {
         if ($this->avatar) {

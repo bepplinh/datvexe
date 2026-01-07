@@ -18,12 +18,6 @@ class RealTimeService
         $today = Carbon::today();
         $now = Carbon::now();
 
-        // Doanh thu hôm nay (real-time)
-        $todayRevenue = Payment::where('status', 'succeeded')
-            ->whereNotNull('paid_at')
-            ->whereDate('paid_at', $today)
-            ->sum(DB::raw('amount - COALESCE(refund_amount, 0)'));
-
         // Số vé đang chờ thanh toán
         $pendingBookings = Booking::where('status', 'pending')
             ->where('created_at', '>=', $today)
@@ -50,25 +44,8 @@ class RealTimeService
             ->whereDate('paid_at', $today)
             ->count();
 
-        // Doanh thu so với hôm qua cùng giờ
-        $yesterdaySameTime = $now->copy()->subDay();
-        $yesterdayRevenue = Payment::where('status', 'succeeded')
-            ->whereNotNull('paid_at')
-            ->whereBetween('paid_at', [
-                $yesterdaySameTime->copy()->startOfDay(),
-                $yesterdaySameTime->copy()->setTime($now->hour, $now->minute, $now->second)
-            ])
-            ->sum(DB::raw('amount - COALESCE(refund_amount, 0)'));
-
-        $revenueChange = $yesterdayRevenue > 0 
-            ? (($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100 
-            : ($todayRevenue > 0 ? 100 : 0);
-
         return [
             'timestamp' => $now->format('Y-m-d H:i:s'),
-            'today_revenue' => (float) $todayRevenue,
-            'yesterday_same_time_revenue' => (float) $yesterdayRevenue,
-            'revenue_change_percent' => round($revenueChange, 2),
             'today_bookings' => $todayBookings,
             'pending_bookings' => $pendingBookings,
             'upcoming_trips' => $upcomingTrips,
@@ -89,30 +66,38 @@ class RealTimeService
         $trips = Trip::query()
             ->join('routes', 'trips.route_id', '=', 'routes.id')
             ->join('buses', 'trips.bus_id', '=', 'buses.id')
-            ->leftJoin('booking_legs', 'trips.id', '=', 'booking_legs.trip_id')
-            ->leftJoin('booking_items', 'booking_legs.id', '=', 'booking_items.booking_leg_id')
-            ->leftJoin('bookings', 'booking_legs.booking_id', '=', 'bookings.id')
-            ->leftJoin('payments', function ($join) {
-                $join->on('bookings.id', '=', 'payments.booking_id')
-                    ->where('payments.status', '=', 'succeeded');
-            })
             ->whereBetween('trips.departure_time', [$fromDate, $toDate])
             ->where('trips.status', 'active')
-            ->whereNotNull('payments.paid_at')
             ->select(
                 'trips.id as trip_id',
                 'trips.departure_time',
+                'trips.bus_id',
                 'routes.name as route_name',
-                DB::raw('COUNT(DISTINCT booking_items.seat_id) as booked_seats'),
-                DB::raw('(SELECT COUNT(*) FROM seats WHERE seats.bus_id = buses.id AND seats.active = 1) as total_seats')
+                DB::raw('(SELECT COUNT(*) FROM seats WHERE seats.bus_id = trips.bus_id AND seats.active = 1) as total_seats')
             )
-            ->groupBy('trips.id', 'trips.departure_time', 'routes.name', 'buses.id')
-            ->havingRaw('(COUNT(DISTINCT booking_items.seat_id) / (SELECT COUNT(*) FROM seats WHERE seats.bus_id = buses.id AND seats.active = 1)) * 100 > 80')
             ->get()
             ->map(function ($trip) {
+                // Đếm số ghế đã đặt (chỉ tính các booking đã thanh toán)
+                $bookedSeats = (int) DB::selectOne(
+                    "SELECT COUNT(DISTINCT booking_items.seat_id) as count
+                     FROM booking_items
+                     INNER JOIN booking_legs ON booking_items.booking_leg_id = booking_legs.id
+                     INNER JOIN bookings ON booking_legs.booking_id = bookings.id
+                     INNER JOIN payments ON bookings.id = payments.booking_id
+                     WHERE booking_legs.trip_id = ?
+                     AND booking_items.seat_id IS NOT NULL
+                     AND payments.status = 'succeeded'
+                     AND payments.paid_at IS NOT NULL",
+                    [$trip->trip_id]
+                )->count ?? 0;
+
                 $totalSeats = (int) $trip->total_seats;
-                $bookedSeats = (int) $trip->booked_seats;
                 $occupancyRate = $totalSeats > 0 ? ($bookedSeats / $totalSeats) * 100 : 0;
+
+                // Chỉ trả về chuyến có tỷ lệ lấp đầy > 80%
+                if ($occupancyRate <= 80) {
+                    return null;
+                }
 
                 return [
                     'trip_id' => $trip->trip_id,
@@ -124,44 +109,13 @@ class RealTimeService
                     'occupancy_rate' => round($occupancyRate, 2),
                 ];
             })
+            ->filter() // Loại bỏ các giá trị null
+            ->values() // Reset keys
             ->toArray();
 
         return $trips;
     }
 
-    /**
-     * Lấy doanh thu theo giờ hôm nay
-     */
-    public function getTodayRevenueByHour(): array
-    {
-        $today = Carbon::today();
-        $data = [];
-
-        $hourlyData = Payment::where('status', 'succeeded')
-            ->whereNotNull('paid_at')
-            ->whereDate('paid_at', $today)
-            ->select(
-                DB::raw('HOUR(paid_at) as hour'),
-                DB::raw('SUM(amount - COALESCE(refund_amount, 0)) as revenue'),
-                DB::raw('COUNT(DISTINCT booking_id) as booking_count')
-            )
-            ->groupBy(DB::raw('HOUR(paid_at)'))
-            ->orderBy('hour')
-            ->get()
-            ->keyBy('hour');
-
-        for ($hour = 0; $hour < 24; $hour++) {
-            $hourData = $hourlyData->get($hour);
-            $data[] = [
-                'hour' => $hour,
-                'hour_label' => sprintf('%02d:00', $hour),
-                'revenue' => $hourData ? (float) $hourData->revenue : 0,
-                'booking_count' => $hourData ? (int) $hourData->booking_count : 0,
-            ];
-        }
-
-        return $data;
-    }
 
     /**
      * Lấy chuyến sắp khởi hành hôm nay
@@ -174,30 +128,34 @@ class RealTimeService
         $trips = Trip::query()
             ->join('routes', 'trips.route_id', '=', 'routes.id')
             ->join('buses', 'trips.bus_id', '=', 'buses.id')
-            ->leftJoin('booking_legs', 'trips.id', '=', 'booking_legs.trip_id')
-            ->leftJoin('booking_items', 'booking_legs.id', '=', 'booking_items.booking_leg_id')
-            ->leftJoin('bookings', 'booking_legs.booking_id', '=', 'bookings.id')
-            ->leftJoin('payments', function ($join) {
-                $join->on('bookings.id', '=', 'payments.booking_id')
-                    ->where('payments.status', '=', 'succeeded');
-            })
             ->whereBetween('trips.departure_time', [$now, $endOfDay])
             ->where('trips.status', 'active')
-            ->whereNotNull('payments.paid_at')
             ->select(
                 'trips.id as trip_id',
                 'trips.departure_time',
                 'routes.name as route_name',
-                DB::raw('COUNT(DISTINCT booking_items.seat_id) as booked_seats'),
+                'buses.id as bus_id',
                 DB::raw('(SELECT COUNT(*) FROM seats WHERE seats.bus_id = buses.id AND seats.active = 1) as total_seats')
             )
-            ->groupBy('trips.id', 'trips.departure_time', 'routes.name', 'buses.id')
             ->orderBy('trips.departure_time')
             ->limit($limit)
             ->get()
             ->map(function ($trip) {
+                // Đếm số ghế đã đặt (chỉ tính các booking đã thanh toán)
+                $bookedSeats = (int) DB::selectOne(
+                    "SELECT COUNT(DISTINCT booking_items.seat_id) as count
+                     FROM booking_items
+                     INNER JOIN booking_legs ON booking_items.booking_leg_id = booking_legs.id
+                     INNER JOIN bookings ON booking_legs.booking_id = bookings.id
+                     INNER JOIN payments ON bookings.id = payments.booking_id
+                     WHERE booking_legs.trip_id = ?
+                     AND booking_items.seat_id IS NOT NULL
+                     AND payments.status = 'succeeded'
+                     AND payments.paid_at IS NOT NULL",
+                    [$trip->trip_id]
+                )->count ?? 0;
+
                 $totalSeats = (int) $trip->total_seats;
-                $bookedSeats = (int) $trip->booked_seats;
                 $occupancyRate = $totalSeats > 0 ? ($bookedSeats / $totalSeats) * 100 : 0;
 
                 return [
@@ -215,4 +173,3 @@ class RealTimeService
         return $trips;
     }
 }
-

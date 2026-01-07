@@ -8,6 +8,15 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    box-sizing: border-box;
+
+    @media (max-width: 768px) {
+        padding: 24px 0;
+    }
+
+    @media (max-width: 480px) {
+        padding: 20px 0;
+    }
 }
 .section {
     position: relative;
@@ -42,6 +51,20 @@
     align-items: center;
     gap: 16px;
     margin-bottom: 20px;
+    padding: 0 20px;
+    box-sizing: border-box;
+
+    @media (max-width: 768px) {
+        gap: 12px;
+        margin-bottom: 16px;
+        padding: 0 16px;
+    }
+
+    @media (max-width: 480px) {
+        gap: 10px;
+        margin-bottom: 14px;
+        padding: 0 12px;
+    }
 }
 .icon {
     width: 40px;
@@ -49,6 +72,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+
+    @media (max-width: 768px) {
+        width: 36px;
+        height: 30px;
+    }
+
+    @media (max-width: 480px) {
+        width: 32px;
+        height: 28px;
+    }
 }
 .icon img {
     width: 100%;
@@ -61,6 +95,15 @@
     font-size: 20px;
     color: rgba(0, 0, 0, 0.85);
     margin: 0;
+    line-height: 1.2;
+
+    @media (max-width: 768px) {
+        font-size: 18px;
+    }
+
+    @media (max-width: 480px) {
+        font-size: 16px;
+    }
 }
 
 /* grid of cards */
@@ -69,8 +112,34 @@
     z-index: 2;
     display: grid;
     gap: 20px;
+    padding: 0 20px;
+    box-sizing: border-box;
     /* responsive: try to fit 4,3,2,1 */
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+
+    @media (max-width: 1024px) {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 18px;
+        padding: 0 20px;
+    }
+
+    @media (max-width: 768px) {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        padding: 0 16px;
+    }
+
+    @media (max-width: 600px) {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        padding: 0 12px;
+    }
+
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 0 12px;
+    }
 }
 
 /* card */
@@ -79,6 +148,14 @@
     flex-direction: column;
     min-height: 260px;
     background: transparent;
+
+    @media (max-width: 768px) {
+        min-height: 240px;
+    }
+
+    @media (max-width: 480px) {
+        min-height: 220px;
+    }
 }
 
 /* top image with rounded top corners */
@@ -89,6 +166,14 @@
     overflow: hidden;
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
+
+    @media (max-width: 768px) {
+        height: 160px;
+    }
+
+    @media (max-width: 480px) {
+        height: 150px;
+    }
 }
 .cardImage img {
     position: absolute;
@@ -111,6 +196,16 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+
+    @media (max-width: 768px) {
+        padding: 14px;
+        gap: 10px;
+    }
+
+    @media (max-width: 480px) {
+        padding: 12px;
+        gap: 8px;
+    }
 }
 
 .cardTitle {
@@ -120,6 +215,14 @@
     color: #2d2d2f;
     margin: 0;
     line-height: 1.4;
+
+    @media (max-width: 768px) {
+        font-size: 15px;
+    }
+
+    @media (max-width: 480px) {
+        font-size: 14px;
+    }
 }
 
 /* info box (pale background with calendar and date + btn) */
@@ -141,6 +244,12 @@
     background: #f7f7f7;
     padding: 8px;
     border-radius: 16px;
+
+    @media (max-width: 480px) {
+        gap: 8px;
+        padding: 6px;
+        border-radius: 12px;
+    }
 }
 
 /* small calendar icon */
@@ -150,11 +259,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+
+    @media (max-width: 480px) {
+        width: 30px;
+        height: 32px;
+    }
 }
 .iconSmall img {
     width: 33px;
     height: 33px;
     display: block;
+
+    @media (max-width: 480px) {
+        width: 28px;
+        height: 28px;
+    }
 }
 
 /* label and date */
@@ -162,12 +282,20 @@
     font-family: "Lexend", sans-serif;
     font-size: 10px;
     color: #666666;
+
+    @media (max-width: 480px) {
+        font-size: 9px;
+    }
 }
 .date {
     font-family: "Lexend", sans-serif;
     font-weight: 600;
     font-size: 14px;
     color: rgba(0, 0, 0, 0.85);
+
+    @media (max-width: 480px) {
+        font-size: 12px;
+    }
 }
 
 /* CTA */
@@ -184,6 +312,23 @@
     font-family: "Lexend", sans-serif;
     font-size: 14px;
     cursor: pointer;
+    transition: all 0.3s ease;
+
+    @media (max-width: 768px) {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    @media (max-width: 480px) {
+        padding: 10px 12px;
+        font-size: 12px;
+        border-radius: 10px;
+    }
+
+    &:hover {
+        background: #d01620;
+        transform: translateY(-1px);
+    }
 }
 
 /* subtle dashed border block around CTA (mimic Figma) */
@@ -201,28 +346,10 @@
     .bgImg {
         display: none; /* reduce clutter on small screens */
     }
-
-    .heading {
-        font-size: 18px;
-    }
-
-    .cardImage {
-        height: 150px;
-    }
 }
 
-@media (max-width: 480px) {
-    .grid {
-        grid-template-columns: 1fr;
-    }
-    .cardImage {
-        height: 140px;
-    }
-    .icon {
-        width: 32px;
-        height: 28px;
-    }
-    .heading {
-        font-size: 16px;
+@media (max-width: 600px) {
+    .section {
+        padding: 0 12px;
     }
 }

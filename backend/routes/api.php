@@ -24,12 +24,9 @@ use App\Http\Controllers\Auth\OtpAuthController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\RatingAdminController;
-use App\Http\Controllers\Admin\RevenueController;
-use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\TripPerformanceController;
-use App\Http\Controllers\Admin\FinancialController;
-use App\Http\Controllers\Admin\ExportController;
-use App\Http\Controllers\Admin\RealTimeController;
+
+use App\Http\Controllers\Admin\RevenueController;
 use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\Client\GeminiChatController;
 use App\Http\Controllers\Client\TripSearchController;
@@ -53,6 +50,7 @@ use App\Http\Controllers\Client\Checkout\DraftCheckoutController;
 
 Route::post('/login',    [AuthController::class, 'login']);
 Route::post('auth/register/complete', [OtpAuthController::class, 'completeRegister']);
+Route::get('/auth/google/client-id', [SocialAuthController::class, 'getGoogleClientId']);
 Route::post('/auth/social/{provider}', [SocialAuthController::class, 'loginWithToken'])
     ->whereIn('provider', ['google', 'facebook']);
 
@@ -110,6 +108,7 @@ Route::middleware(['auth:api', 'x-session-token'])->group(function () {
 Route::middleware(['auth:api', 'role:admin'])
     ->prefix('admin')
     ->group(function () {
+        Route::get('bookings', [AdminBookingController::class, 'index']);
         Route::post('bookings', [AdminBookingController::class, 'store']);
         Route::get('bookings/lookup', [AdminBookingController::class, 'lookupByCode']);
 
@@ -134,6 +133,15 @@ Route::middleware(['auth:api', 'role:admin'])
         Route::post('notifications/{notification}/unread', [AdminNotificationController::class, 'markAsUnread']);
         Route::post('notifications/read-all', [AdminNotificationController::class, 'markAllAsRead']);
 
+        // Revenue management
+        Route::prefix('revenue')->group(function () {
+            Route::get('/dashboard', [RevenueController::class, 'dashboard']);
+            Route::get('/trend', [RevenueController::class, 'trend']);
+            Route::get('/top-routes', [RevenueController::class, 'topRoutes']);
+            Route::get('/top-trips', [RevenueController::class, 'topTrips']);
+            Route::get('/analysis', [RevenueController::class, 'analysis']);
+        });
+
         // Route optimization
         Route::prefix('route-optimization')->group(function () {
             Route::get('/trip/{tripId}/locations', [RouteOptimizationController::class, 'getTripLocations']);
@@ -149,57 +157,6 @@ Route::middleware(['auth:api', 'role:admin'])
         // Payments management
         Route::get('payments', [PaymentController::class, 'index']);
         Route::get('payments/stats', [PaymentController::class, 'stats']);
-        Route::get('payments/{id}', [PaymentController::class, 'show']);
-
-        // Revenue management
-        Route::prefix('revenue')->group(function () {
-            Route::get('/dashboard', [RevenueController::class, 'dashboard']);
-            Route::get('/trend', [RevenueController::class, 'trend']);
-            Route::get('/top-routes', [RevenueController::class, 'topRoutes']);
-            Route::get('/top-trips', [RevenueController::class, 'topTrips']);
-            Route::get('/analysis', [RevenueController::class, 'analysis']);
-        });
-
-        // Statistics management
-        Route::prefix('statistics')->group(function () {
-            Route::get('/bookings', [StatisticsController::class, 'bookings']);
-            Route::get('/top-customers', [StatisticsController::class, 'topCustomers']);
-            Route::get('/customer-segmentation', [StatisticsController::class, 'customerSegmentation']);
-            Route::get('/customer-distribution', [StatisticsController::class, 'customerDistribution']);
-            Route::get('/customer-history/{userId}', [StatisticsController::class, 'customerHistory']);
-        });
-
-        // Trip Performance management
-        Route::prefix('trip-performance')->group(function () {
-            Route::get('/occupancy', [TripPerformanceController::class, 'occupancy']);
-            Route::get('/low-occupancy', [TripPerformanceController::class, 'lowOccupancy']);
-            Route::get('/average-revenue', [TripPerformanceController::class, 'averageRevenue']);
-            Route::get('/popular-trips', [TripPerformanceController::class, 'popularTrips']);
-            Route::get('/popular-departure-times', [TripPerformanceController::class, 'popularDepartureTimes']);
-            Route::get('/most-booked-seats', [TripPerformanceController::class, 'mostBookedSeats']);
-            Route::get('/least-booked-seats', [TripPerformanceController::class, 'leastBookedSeats']);
-            Route::get('/seat-usage-by-type', [TripPerformanceController::class, 'seatUsageByType']);
-        });
-
-        // Financial management
-        Route::prefix('financial')->group(function () {
-            Route::get('/payment-report', [FinancialController::class, 'paymentReport']);
-            Route::get('/coupon-analysis', [FinancialController::class, 'couponAnalysis']);
-            Route::get('/top-coupons', [FinancialController::class, 'topCoupons']);
-            Route::get('/report-by-period', [FinancialController::class, 'reportByPeriod']);
-        });
-
-        // Export management
-        Route::prefix('export')->group(function () {
-            Route::get('/', [ExportController::class, 'export']);
-        });
-
-        // Real-time management
-        Route::prefix('realtime')->group(function () {
-            Route::get('/metrics', [RealTimeController::class, 'metrics']);
-            Route::get('/today-revenue-by-hour', [RealTimeController::class, 'todayRevenueByHour']);
-            Route::get('/upcoming-trips', [RealTimeController::class, 'upcomingTrips']);
-        });
     });
 
 Route::apiResource('/users', UserController::class);
@@ -249,17 +206,4 @@ Route::get('/test-send-mail', function () {
     Mail::to('bep2702@gmail.com')->send(new BookingSuccessMail($booking));
 
     return "Đã gửi mail! (Hãy kiểm tra Mailtrap inbox của bạn)";
-});
-
-
-// Route::get('test', function () {
-//     $booking = \App\Models\Booking::with(['legs.trip', 'legs.items'])
-//         ->findOrFail(1);
-//     return view('emails.booking_success', [
-//         'booking' => $booking,
-//     ]);
-// });
-
-Route::get('/test', function () {
-    return "hello world";
 });

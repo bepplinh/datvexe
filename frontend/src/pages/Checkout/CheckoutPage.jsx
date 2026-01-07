@@ -14,6 +14,10 @@ import { updateDraftPayment as updateDraftPaymentService } from "../../services/
 import { validateCoupon } from "../../services/couponService";
 import { mapContactFormToDraftPayload } from "./utils/contactMapper";
 import CountdownTimer from "./components/CountdownTimer/CountdownTimer";
+import { Button, Typography, Box, Paper } from "@mui/material";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import BlockIcon from "@mui/icons-material/Block";
 
 function CheckoutPage() {
     const navigate = useNavigate();
@@ -43,6 +47,18 @@ function CheckoutPage() {
     const [isCouponValid, setIsCouponValid] = useState(false);
     const [couponDiscount, setCouponDiscount] = useState(0);
     const couponTimerRef = useRef(null);
+
+    // Track last valid draft ID
+    const lastValidDraftId = useRef(null);
+    const [fatalError, setFatalError] = useState(null);
+
+    // Update last valid draft ID when draftData loads successfully
+    useEffect(() => {
+        if (draftData && draftId) {
+            lastValidDraftId.current = draftId;
+            setFatalError(null);
+        }
+    }, [draftData, draftId]);
 
     // Xử lý redirect từ PayOS
     useEffect(() => {
@@ -290,30 +306,36 @@ function CheckoutPage() {
             const errorStatus = draftError.status || draftError.response?.status;
             const errorMessage = draftError.message || draftError.response?.data?.message;
 
+            // Check if we have a previously known valid draft ID
+            if (lastValidDraftId.current && lastValidDraftId.current !== draftId) {
+                // If user changed URL manually from a valid one, revert it
+                toast.warning("Bạn không có quyền truy cập đơn đặt vé này. Đã quay lại đơn cũ.");
+                setSearchParams({ draft_id: lastValidDraftId.current }, { replace: true });
+                return;
+            }
+
+            // If no previous valid ID (direct access to invalid URL), show fatal error
             if (errorStatus === 403 || errorMessage?.includes("không có quyền")) {
-                toast.error(
-                    errorMessage || "Bạn không có quyền truy cập đơn đặt vé này. Vui lòng tạo đơn mới."
-                );
-                setTimeout(() => {
-                    navigate("/trip");
-                }, 2000);
+                setFatalError({
+                    title: "Không có quyền truy cập",
+                    subTitle: errorMessage || "Bạn không có quyền xem đơn đặt vé này.",
+                    status: "403"
+                });
             } else if (errorStatus === 404 || errorMessage?.includes("không tồn tại")) {
-                toast.error(
-                    errorMessage || "Đơn đặt vé không tồn tại hoặc đã hết hạn."
-                );
-                setTimeout(() => {
-                    navigate("/trip");
-                }, 2000);
+                setFatalError({
+                    title: "Không tìm thấy",
+                    subTitle: errorMessage || "Đơn đặt vé không tồn tại hoặc đã hết hạn.",
+                    status: "404"
+                });
             } else if (errorStatus === 422 || errorMessage?.includes("hết hiệu lực")) {
-                toast.error(
-                    errorMessage || "Đơn đặt vé này đã hết hiệu lực hoặc đã được xử lý."
-                );
-                setTimeout(() => {
-                    navigate("/trip");
-                }, 2000);
+                setFatalError({
+                    title: "Đơn hết hiệu lực",
+                    subTitle: errorMessage || "Đơn đặt vé này đã hết hiệu lực hoặc đã được xử lý.",
+                    status: "error"
+                });
             }
         }
-    }, [draftError, isLoadingDraft, navigate]);
+    }, [draftError, isLoadingDraft, draftId, setSearchParams]);
 
     const renderStepContent = () => {
         switch (currentStep) {
@@ -354,6 +376,54 @@ function CheckoutPage() {
             : currentStep === 2
                 ? "Đặt vé"
                 : "Hoàn tất";
+
+    if (fatalError) {
+        let IconComponent = ErrorOutlineIcon;
+        let color = "error";
+
+        if (fatalError.title.includes("quyền")) {
+            IconComponent = BlockIcon;
+        } else if (fatalError.title.includes("tìm thấy")) {
+            IconComponent = WarningAmberIcon;
+            color = "warning";
+        }
+
+        return (
+            <MainLayout>
+                <div style={{ padding: "50px 20px", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+                    <Paper
+                        elevation={3}
+                        sx={{
+                            p: 4,
+                            textAlign: 'center',
+                            maxWidth: 500,
+                            borderRadius: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 2
+                        }}
+                    >
+                        <IconComponent sx={{ fontSize: 60 }} color={color} />
+                        <Typography variant="h5" component="h2" gutterBottom>
+                            {fatalError.title}
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" paragraph>
+                            {fatalError.subTitle}
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => navigate("/trip")}
+                            size="large"
+                        >
+                            Về trang tìm vé
+                        </Button>
+                    </Paper>
+                </div>
+            </MainLayout>
+        );
+    }
 
     return (
         <MainLayout>

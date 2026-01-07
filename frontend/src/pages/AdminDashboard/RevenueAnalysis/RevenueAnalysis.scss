@@ -37,19 +37,20 @@
 
     &__filters {
         display: flex;
-        flex-direction: column;
         gap: 16px;
+        align-items: flex-end;
+        flex-wrap: wrap;
         margin-bottom: 24px;
+        background: #fff;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     &__group-by {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 16px;
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        gap: 8px;
     }
 
     &__group-label {
@@ -58,16 +59,18 @@
         gap: 6px;
         font-size: 14px;
         font-weight: 500;
-        color: #64748b;
+        color: #475569;
+        white-space: nowrap;
     }
 
     &__group-select {
-        padding: 10px 12px;
+        padding: 8px 12px;
         border: 1px solid #e2e8f0;
         border-radius: 6px;
         font-size: 14px;
-        min-width: 250px;
-        cursor: pointer;
+        color: #1e293b;
+        background: #fff;
+        min-width: 200px;
         transition: all 0.2s;
 
         &:focus {
@@ -96,6 +99,7 @@
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         overflow: hidden;
+        padding: 20px;
     }
 
     &__table {

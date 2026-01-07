@@ -3,7 +3,8 @@
     width: 100vw;
     left: 50%;
     margin-left: -50vw;
-    height: 550px; /* 👈 chỉnh chiều cao tại đây */
+    min-height: 300px;
+    max-height: 600px;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -14,8 +15,9 @@
 .bannerContainer img {
     width: 100%;
     max-width: 1950px; /* giới hạn chiều rộng tối đa trên desktop */
-    height: 100%; /* ảnh cao bằng container */
-    object-fit: contain; /* thu nhỏ ảnh nhưng vẫn hiển thị đủ nội dung, không crop */
+    height: auto; /* tự động điều chỉnh chiều cao theo tỷ lệ */
+    max-height: 600px; /* giới hạn chiều cao tối đa */
+    object-fit: contain; /* hiển thị đầy đủ ảnh, không crop */
     object-position: center; /* căn giữa ảnh theo trục dọc và ngang */
     display: block;
     margin: 0 auto; /* căn giữa ảnh trong container */
@@ -24,20 +26,35 @@
 /* Responsive - Tablet */
 @media (max-width: 1024px) {
     .bannerContainer {
-        height: 450px;
+        max-height: 500px;
+        min-height: 250px;
+    }
+
+    .bannerContainer img {
+        max-height: 500px;
     }
 }
 
 /* Responsive - Mobile */
 @media (max-width: 768px) {
     .bannerContainer {
-        height: 350px;
+        max-height: 400px;
+        min-height: 200px;
+    }
+
+    .bannerContainer img {
+        max-height: 400px;
     }
 }
 
 /* Responsive - Mobile nhỏ */
 @media (max-width: 480px) {
     .bannerContainer {
-        height: 250px;
+        max-height: 300px;
+        min-height: 150px;
+    }
+
+    .bannerContainer img {
+        max-height: 300px;
     }
 }

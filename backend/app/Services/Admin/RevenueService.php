@@ -299,13 +299,23 @@ class RevenueService
             ->limit($limit)
             ->get()
             ->map(function ($item) {
+                // Parse departure_time nếu là string hoặc Carbon instance
+                $departureTime = null;
+                if ($item->departure_time) {
+                    if (is_string($item->departure_time)) {
+                        $departureTime = Carbon::parse($item->departure_time)->format('Y-m-d H:i:s');
+                    } elseif ($item->departure_time instanceof Carbon) {
+                        $departureTime = $item->departure_time->format('Y-m-d H:i:s');
+                    }
+                }
+
                 return [
                     'trip_id' => $item->id,
                     'route_id' => $item->route_id,
                     'route_name' => $item->route_name,
                     'from_city' => $item->from_city,
                     'to_city' => $item->to_city,
-                    'departure_time' => $item->departure_time ? $item->departure_time->format('Y-m-d H:i:s') : null,
+                    'departure_time' => $departureTime,
                     'revenue' => (float) $item->revenue,
                     'booking_count' => (int) $item->booking_count,
                     'leg_count' => (int) $item->leg_count,
@@ -507,3 +517,4 @@ class RevenueService
         };
     }
 }
+

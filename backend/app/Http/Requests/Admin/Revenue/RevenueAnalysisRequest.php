@@ -14,10 +14,11 @@ class RevenueAnalysisRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'group_by' => 'nullable|in:route,bus_type,payment_method,source,hour',
             'from_date' => 'nullable|date',
             'to_date' => 'nullable|date|after_or_equal:from_date',
-            'group_by' => 'nullable|string|in:route,bus_type,payment_method,source,hour',
         ];
     }
 }
+
 

@@ -16,18 +16,14 @@ import {
     CreditCard,
     Building2,
     BarChart3,
-    History,
-    Calendar,
     Sofa,
+    Activity,
+    TrendingUp,
+    LineChart,
 } from "lucide-react";
 
 export const SIDEBAR_MENU = [
-    {
-        id: "dashboard",
-        label: "Tổng quan",
-        icon: LayoutDashboard,
-        path: "/admin",
-    },
+
     {
         id: "users",
         label: "Quản lý người dùng",
@@ -111,6 +107,32 @@ export const SIDEBAR_MENU = [
         label: "Quản lý thông báo",
         icon: Bell,
         path: "/admin/notifications",
+    },
+    {
+        id: "reports",
+        label: "Báo cáo & Thống kê",
+        icon: BarChart3,
+        path: null,
+        children: [
+            {
+                id: "revenue",
+                label: "Báo cáo Doanh thu",
+                icon: TrendingUp,
+                path: "/admin/revenue",
+            },
+            {
+                id: "revenue-analysis",
+                label: "Phân tích Doanh thu",
+                icon: LineChart,
+                path: "/admin/revenue/analysis",
+            },
+            {
+                id: "trip-performance",
+                label: "Hiệu suất Chuyến xe",
+                icon: Bus,
+                path: "/admin/trip-performance",
+            },
+        ],
     },
     {
         id: "settings",

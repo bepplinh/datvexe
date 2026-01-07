@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./login.scss";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../hooks/useAuth";
+import { authService } from "../../services/authService";
+import apiClient from "../../apis/axiosClient";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -14,6 +16,8 @@ const Login = () => {
     const [rememberMe, setRememberMe] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
+    const [loadingGoogle, setLoadingGoogle] = useState(false);
+    const [googleClientId, setGoogleClientId] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -76,6 +80,168 @@ const Login = () => {
             toast.error(errorMessage);
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    // Load Google Client ID from backend
+    useEffect(() => {
+        const fetchGoogleClientId = async () => {
+            try {
+                // Ưu tiên lấy từ environment variable (nếu có)
+                const envClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+                if (envClientId) {
+                    setGoogleClientId(envClientId);
+                    return;
+                }
+
+                // Nếu không có trong env, lấy từ backend
+                const res = await apiClient.get("/auth/google/client-id");
+                setGoogleClientId(res.data.client_id);
+            } catch (err) {
+                console.error("Failed to fetch Google Client ID:", err);
+                // Không hiển thị lỗi để tránh làm phiền user
+                // Nút Google sẽ bị disable nếu không có Client ID
+            }
+        };
+
+        fetchGoogleClientId();
+    }, []);
+
+    // Load Google Identity Services script
+    useEffect(() => {
+        if (!googleClientId) return;
+
+        const script = document.createElement("script");
+        script.src = "https://accounts.google.com/gsi/client";
+        script.async = true;
+        script.defer = true;
+        document.body.appendChild(script);
+
+        return () => {
+            // Cleanup script on unmount
+            const existingScript = document.querySelector(
+                'script[src="https://accounts.google.com/gsi/client"]'
+            );
+            if (existingScript) {
+                document.body.removeChild(existingScript);
+            }
+        };
+    }, [googleClientId]);
+
+    const handleGoogleLogin = async () => {
+        try {
+            setLoadingGoogle(true);
+            setError("");
+
+            // Check if Google Client ID is available
+            if (!googleClientId) {
+                toast.error(
+                    "Google Client ID chưa được cấu hình. Vui lòng liên hệ quản trị viên."
+                );
+                setLoadingGoogle(false);
+                return;
+            }
+
+            // Wait for Google script to load
+            if (typeof window.google === "undefined") {
+                toast.error("Google OAuth chưa sẵn sàng. Vui lòng thử lại sau.");
+                setLoadingGoogle(false);
+                return;
+            }
+
+            // Get current origin for redirect URI
+            const currentOrigin = window.location.origin;
+
+            // Log debug information
+            console.log("🔍 Debug Google OAuth:");
+            console.log("  - Current origin:", currentOrigin);
+            console.log("  - Full URL:", window.location.href);
+            console.log("  - Google Client ID:", googleClientId?.substring(0, 20) + "...");
+            console.log("  - Redirect URI sẽ sử dụng:", currentOrigin);
+            console.log("  - ⚠️  Đảm bảo redirect URI sau đã được thêm vào Google Cloud Console:");
+            console.log("     " + currentOrigin);
+
+            // Use Google OAuth 2.0 to get access token
+            // Note: Cần chỉ định redirect_uri rõ ràng để tránh lỗi redirect_uri_mismatch
+            const tokenClient = window.google.accounts.oauth2.initTokenClient({
+                client_id: googleClientId,
+                scope: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+                redirect_uri: currentOrigin, // ✅ Chỉ định rõ redirect URI
+                callback: async (tokenResponse) => {
+                    try {
+                        if (tokenResponse.error) {
+                            let errorMsg = "Đăng nhập Google bị hủy hoặc có lỗi xảy ra.";
+
+                            // Hiển thị lỗi chi tiết hơn
+                            if (tokenResponse.error === "popup_closed_by_user") {
+                                errorMsg = "Bạn đã đóng cửa sổ đăng nhập.";
+                            } else if (tokenResponse.error === "access_denied") {
+                                errorMsg = "Bạn đã từ chối quyền truy cập.";
+                            } else if (tokenResponse.error === "redirect_uri_mismatch") {
+                                const currentOrigin = window.location.origin;
+                                errorMsg = `Lỗi cấu hình: Redirect URI không khớp.\n\n` +
+                                    `Redirect URI hiện tại: ${currentOrigin}\n\n` +
+                                    `Vui lòng thêm redirect URI sau vào Google Cloud Console:\n` +
+                                    `1. Truy cập: https://console.cloud.google.com/\n` +
+                                    `2. Vào APIs & Services > Credentials\n` +
+                                    `3. Chọn OAuth 2.0 Client ID của bạn\n` +
+                                    `4. Thêm "${currentOrigin}" vào Authorized redirect URIs\n` +
+                                    `5. Lưu và đợi 1-2 phút\n` +
+                                    `6. Thử lại`;
+                                console.error("❌ Redirect URI mismatch!");
+                                console.error("  - Redirect URI đang sử dụng:", currentOrigin);
+                                console.error("  - Hãy thêm redirect URI này vào Google Cloud Console");
+                            }
+
+                            toast.error(errorMsg);
+                            setLoadingGoogle(false);
+                            return;
+                        }
+
+                        if (!tokenResponse.access_token) {
+                            toast.error("Không nhận được access token từ Google.");
+                            setLoadingGoogle(false);
+                            return;
+                        }
+
+                        // Call backend with Google access token
+                        await authService.loginWithGoogle(
+                            tokenResponse.access_token
+                        );
+
+                        toast.success("Đăng nhập bằng Google thành công");
+                        // Reload page để AuthProvider tự động lấy user từ token
+                        window.location.href = "/";
+                    } catch (err) {
+                        console.error("Google login error:", err);
+                        const errorMessage =
+                            err.response?.data?.message ||
+                            "Đăng nhập bằng Google thất bại. Vui lòng thử lại.";
+                        toast.error(errorMessage);
+                        setLoadingGoogle(false);
+                    }
+                },
+            });
+
+            // Request access token (this will open Google sign-in popup)
+            // Note: Với initTokenClient, redirect URI được tự động lấy từ origin
+            // Nhưng cần được cấu hình trong Google Cloud Console
+            tokenClient.requestAccessToken({ prompt: "consent" });
+        } catch (err) {
+            console.error("Google login initialization error:", err);
+
+            // Hiển thị lỗi chi tiết hơn
+            if (err.message?.includes("redirect_uri_mismatch")) {
+                toast.error(
+                    "Lỗi cấu hình Google OAuth: Redirect URI không khớp. " +
+                    "Vui lòng thêm redirect URI sau vào Google Cloud Console: " +
+                    window.location.origin
+                );
+            } else {
+                toast.error("Không thể khởi tạo Google OAuth. Vui lòng thử lại.");
+            }
+
+            setLoadingGoogle(false);
         }
     };
 
@@ -193,7 +359,13 @@ const Login = () => {
 
                     {/* Google button */}
                     <div className="login-card__social">
-                        <button className="btn btn--google" type="button">
+                        <button
+                            className="btn btn--google"
+                            type="button"
+                            onClick={handleGoogleLogin}
+                            disabled={loadingGoogle || submitting || !googleClientId}
+                            title={!googleClientId ? "Google Client ID chưa được cấu hình" : ""}
+                        >
                             <svg
                                 className="btn__google-icon"
                                 height="48"
@@ -218,7 +390,9 @@ const Login = () => {
                                     fill="#1565c0"
                                 ></path>
                             </svg>
-                            Đăng nhập bằng Google
+                            {loadingGoogle
+                                ? "Đang xử lý..."
+                                : "Đăng nhập bằng Google"}
                         </button>
                     </div>
 

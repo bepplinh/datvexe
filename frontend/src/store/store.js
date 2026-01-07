@@ -5,6 +5,8 @@ import routeReducer from "./slices/routeSlice";
 import busTypeReducer from "./slices/busTypeSlice";
 import busReducer from "./slices/busSlice";
 import tripReducer from "./slices/tripSlice";
+import dashboardReducer from "./slices/dashboardSlice";
+import financialReportReducer from "./slices/financialReportSlice";
 
 export const store = configureStore({
     reducer: {
@@ -14,5 +16,7 @@ export const store = configureStore({
         busType: busTypeReducer,
         bus: busReducer,
         trip: tripReducer,
+        dashboard: dashboardReducer,
+        financialReport: financialReportReducer,
     },
 });

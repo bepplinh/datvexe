@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\Revenue\RevenueTrendRequest;
 use App\Http\Requests\Admin\Revenue\RevenueAnalysisRequest;
 use App\Services\Admin\RevenueService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class RevenueController extends Controller
@@ -208,3 +209,5 @@ class RevenueController extends Controller
         }
     }
 }
+
+

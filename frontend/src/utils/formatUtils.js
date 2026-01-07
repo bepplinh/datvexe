@@ -28,9 +28,10 @@ export const formatPercentage = (value, decimals = 1) => {
 /**
  * Format date
  */
+import dayjs from "dayjs";
+
 export const formatDate = (date, format = "DD/MM/YYYY") => {
     if (!date) return "-";
-    const dayjs = require("dayjs");
     return dayjs(date).format(format);
 };
 
@@ -39,7 +40,6 @@ export const formatDate = (date, format = "DD/MM/YYYY") => {
  */
 export const formatDateTime = (date, format = "DD/MM/YYYY HH:mm") => {
     if (!date) return "-";
-    const dayjs = require("dayjs");
     return dayjs(date).format(format);
 };
 

@@ -6,9 +6,7 @@ export const revenueService = {
      * @param {Object} params - { period: 'day'|'week'|'month'|'quarter'|'year', date: 'YYYY-MM-DD' }
      */
     async getDashboard(params = {}) {
-        const {
-            period = "day", date
-        } = params;
+        const { period = "day", date } = params;
         const queryParams = new URLSearchParams({
             period,
         });
@@ -25,9 +23,7 @@ export const revenueService = {
      * @param {Object} params - { period: 'day'|'week'|'month'|'quarter'|'year', from_date: 'YYYY-MM-DD', to_date: 'YYYY-MM-DD' }
      */
     async getTrend(params = {}) {
-        const {
-            period = "day", from_date, to_date
-        } = params;
+        const { period = "day", from_date, to_date } = params;
         const queryParams = new URLSearchParams({
             period,
         });
@@ -45,9 +41,7 @@ export const revenueService = {
      * @param {Object} params - { limit: number, from_date: 'YYYY-MM-DD', to_date: 'YYYY-MM-DD' }
      */
     async getTopRoutes(params = {}) {
-        const {
-            limit = 10, from_date, to_date
-        } = params;
+        const { limit = 10, from_date, to_date } = params;
         const queryParams = new URLSearchParams({
             limit: limit.toString(),
         });
@@ -65,9 +59,7 @@ export const revenueService = {
      * @param {Object} params - { limit: number, from_date: 'YYYY-MM-DD', to_date: 'YYYY-MM-DD' }
      */
     async getTopTrips(params = {}) {
-        const {
-            limit = 10, from_date, to_date
-        } = params;
+        const { limit = 10, from_date, to_date } = params;
         const queryParams = new URLSearchParams({
             limit: limit.toString(),
         });
@@ -85,9 +77,7 @@ export const revenueService = {
      * @param {Object} params - { group_by: 'route'|'bus_type'|'payment_method'|'source'|'hour', from_date: 'YYYY-MM-DD', to_date: 'YYYY-MM-DD' }
      */
     async getAnalysis(params = {}) {
-        const {
-            group_by = "route", from_date, to_date
-        } = params;
+        const { group_by = "route", from_date, to_date } = params;
         const queryParams = new URLSearchParams({
             group_by,
         });

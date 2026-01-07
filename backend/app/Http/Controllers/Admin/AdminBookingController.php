@@ -24,6 +24,34 @@ class AdminBookingController extends Controller
     ) {}
 
     /**
+     * Danh sách booking (có thể filter theo user_id)
+     * GET /api/admin/bookings?user_id=123
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $query = Booking::query()
+            ->with([
+                'legs.trip.route',
+                'legs.trip.bus',
+                'legs.items.seat',
+                'legs.pickupLocation',
+                'legs.dropoffLocation',
+            ])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->has('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        $bookings = $query->paginate($request->input('per_page', 15));
+
+        return response()->json([
+            'success' => true,
+            'data' => $bookings
+        ]);
+    }
+
+    /**
      * Tra cứu booking theo mã code.
      * GET /api/admin/bookings/lookup?code=ABC123
      */

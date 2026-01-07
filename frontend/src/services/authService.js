@@ -22,14 +22,17 @@ export const authService = {
             "Authorization"
         ] = `Bearer ${access_token}`;
 
-        return { user, token: access_token };
+        return {
+            user,
+            token: access_token,
+        };
     },
 
     async logout() {
         try {
             await apiClient.post("/logout");
-        } catch (err) {
-            toast.error("Server logout failed, doing client cleanup");
+        } catch {
+            // Silently fail - client cleanup will proceed
         }
 
         Cookies.remove(TOKEN_KEY);
@@ -107,6 +110,36 @@ export const authService = {
             ] = `Bearer ${access_token}`;
         }
 
-        return { user, token: access_token };
+        return {
+            user,
+            token: access_token,
+        };
+    },
+
+    // ✅ Đăng nhập bằng Google OAuth
+    async loginWithGoogle(accessToken) {
+        const res = await apiClient.post("/auth/social/google", {
+            access_token: accessToken,
+        });
+
+        const { access_token, expires_in } = res.data;
+
+        // Lưu token vào cookie
+        Cookies.set(TOKEN_KEY, access_token, {
+            expires: expires_in ? expires_in / (60 * 60 * 24) : 7, // Convert seconds to days
+        });
+
+        apiClient.defaults.headers.common[
+            "Authorization"
+        ] = `Bearer ${access_token}`;
+
+        // Lấy thông tin user sau khi đăng nhập
+        const userRes = await apiClient.get("/me");
+        const user = userRes.data;
+
+        return {
+            user,
+            token: access_token,
+        };
     },
 };

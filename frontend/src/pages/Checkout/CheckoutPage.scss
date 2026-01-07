@@ -783,6 +783,51 @@
     font-style: italic;
 }
 
+// Mobile-specific tweaks for confirmation step
+@media (max-width: 480px) {
+    .confirmationCard__body {
+        padding: 14px 12px;
+        gap: 8px;
+    }
+
+    .confirmationStatus {
+        padding: 10px 12px;
+        gap: 8px;
+        align-items: flex-start;
+        border-radius: 10px;
+        flex-wrap: wrap;
+
+        &__icon {
+            font-size: 18px;
+        }
+
+        &__text {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+    }
+
+    .confirmationCard__section {
+        padding-bottom: 8px;
+        gap: 6px;
+    }
+
+    .confirmationCard__label {
+        font-size: 12px;
+    }
+
+    .confirmationCard__value {
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .confirmationCard__note {
+        font-size: 12px;
+        line-height: 1.6;
+        margin-top: 6px;
+    }
+}
+
 // ==================== Payment Step Pricing Styles ====================
 .paymentStep__pricing {
     margin-top: 20px;

@@ -118,31 +118,33 @@ const SearchTrip = ({ onSubmit }) => {
                         />
                     </div>
 
-                    <DateField
-                        label="Ngày đi"
-                        value={departDate}
-                        onChange={handleDepartDateChange}
-                        minDate={getMinDate()}
-                        maxDate={getMaxDate()}
-                        isOpen={openDepartDatePicker}
-                        onOpen={() => setOpenDepartDatePicker(true)}
-                        onClose={() => setOpenDepartDatePicker(false)}
-                    />
+                    <div className="search-trip__dates">
+                        <DateField
+                            label="Ngày đi"
+                            value={departDate}
+                            onChange={handleDepartDateChange}
+                            minDate={getMinDate()}
+                            maxDate={getMaxDate()}
+                            isOpen={openDepartDatePicker}
+                            onOpen={() => setOpenDepartDatePicker(true)}
+                            onClose={() => setOpenDepartDatePicker(false)}
+                        />
 
-                    <DateField
-                        label="Ngày về"
-                        value={returnDate}
-                        onChange={setReturnDate}
-                        minDate={departDate || getMinDate()}
-                        maxDate={getMaxDate()}
-                        isOpen={openReturnDatePicker}
-                        onOpen={() =>
-                            tripType === "roundtrip" &&
-                            setOpenReturnDatePicker(true)
-                        }
-                        onClose={() => setOpenReturnDatePicker(false)}
-                        disabled={tripType !== "roundtrip"}
-                    />
+                        {tripType === "roundtrip" && (
+                            <DateField
+                                label="Ngày về"
+                                value={returnDate}
+                                onChange={setReturnDate}
+                                minDate={departDate || getMinDate()}
+                                maxDate={getMaxDate()}
+                                isOpen={openReturnDatePicker}
+                                onOpen={() => setOpenReturnDatePicker(true)}
+                                onClose={() =>
+                                    setOpenReturnDatePicker(false)
+                                }
+                            />
+                        )}
+                    </div>
 
                     <SearchButton onClick={onSubmit} />
                 </div>

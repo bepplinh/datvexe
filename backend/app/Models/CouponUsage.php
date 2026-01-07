@@ -16,20 +16,17 @@ class CouponUsage extends Model
         'discount_amount',
     ];
 
-    // Quan hệ: Một lần sử dụng thuộc về một Coupon
+
     public function coupon()
     {
         return $this->belongsTo(Coupon::class);
     }
 
-    // Quan hệ: Một lần sử dụng thuộc về một User (giả định có Model User)
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-
-    // Quan hệ: Một lần sử dụng thuộc về một Order (giả định có Model Order)
-    public function bookings()
+    public function booking()
     {
         return $this->belongsTo(Booking::class);
     }

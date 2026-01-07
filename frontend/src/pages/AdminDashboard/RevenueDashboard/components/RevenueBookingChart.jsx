@@ -1,14 +1,4 @@
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
-} from "recharts";
-import { formatNumber } from "../utils/formatUtils";
+import LineChart from "../../../../components/shared/charts/LineChart/LineChart";
 
 export default function RevenueBookingChart({ data }) {
     if (!data || data.length === 0) {
@@ -18,24 +8,20 @@ export default function RevenueBookingChart({ data }) {
     }
 
     return (
-        <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip
-                    formatter={(value) => formatNumber(value)}
-                    labelStyle={{ color: "#333" }}
-                />
-                <Legend />
-                <Bar
-                    dataKey="booking_count"
-                    fill="#00C49F"
-                    name="Số vé"
-                    radius={[8, 8, 0, 0]}
-                />
-            </BarChart>
-        </ResponsiveContainer>
+        <LineChart
+            data={data}
+            xKey="label"
+            dataKey="booking_count"
+            lines={[
+                {
+                    key: "booking_count",
+                    name: "Số vé",
+                    stroke: "#10b981",
+                    strokeWidth: 2,
+                },
+            ]}
+            height={350}
+        />
     );
 }
 

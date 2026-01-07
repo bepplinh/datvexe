@@ -58,7 +58,11 @@ function TripContent() {
             });
         }
 
-        if (Array.isArray(results.return) && results.return.length > 0) {
+        if (
+            tripType === "roundtrip" &&
+            Array.isArray(results.return) &&
+            results.return.length > 0
+        ) {
             items.push({
                 id: "returnTrip",
                 title: "Chọn chiều về",
@@ -68,7 +72,7 @@ function TripContent() {
         }
 
         return items;
-    }, [results]);
+    }, [results, tripType]);
 
     return (
         <>

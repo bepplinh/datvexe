@@ -26,7 +26,7 @@ class TripStationSeeder extends Seeder
                 ->where('type', 'district')
                 ->pluck('id')
                 ->toArray();
-            
+
             $toDistricts = DB::table('locations')
                 ->where('parent_id', $route->to_city)
                 ->where('type', 'district')
@@ -38,7 +38,7 @@ class TripStationSeeder extends Seeder
                 ->where('parent_id', $route->from_city)
                 ->where('type', 'district')
                 ->get();
-            
+
             $toDistrictLocations = DB::table('locations')
                 ->where('parent_id', $route->to_city)
                 ->where('type', 'district')
@@ -52,7 +52,7 @@ class TripStationSeeder extends Seeder
                     ->where('type', 'ward')
                     ->get();
             }
-            
+
             $toWardLocations = collect();
             if (!empty($toDistricts)) {
                 $toWardLocations = DB::table('locations')
@@ -72,16 +72,17 @@ class TripStationSeeder extends Seeder
 
             // Tạo trip stations cho tất cả các cặp from_location -> to_location
             $tripStations = [];
-            
+
             foreach ($fromLocations as $fromLocation) {
                 foreach ($toLocations as $toLocation) {
-                    // Tính giá dựa trên khoảng cách (giả định)
-                    // Giá cơ bản từ 100k đến 500k
-                    $basePrice = rand(100000, 500000);
-                    
-                    // Tính duration (giả định 60-300 phút)
-                    $duration = rand(60, 300);
-                    
+                    // Giá random: 100k, 200k, hoặc 300k
+                    $priceOptions = [100000, 200000, 300000];
+                    $basePrice = $priceOptions[array_rand($priceOptions)];
+
+                    // Duration random: 90, 120, 150, hoặc 180 phút
+                    $durationOptions = [90, 120, 150, 180];
+                    $duration = $durationOptions[array_rand($durationOptions)];
+
                     $tripStations[] = [
                         'route_id' => $route->id,
                         'from_location_id' => $fromLocation->id,
@@ -100,4 +101,4 @@ class TripStationSeeder extends Seeder
             }
         }
     }
-} 
+}

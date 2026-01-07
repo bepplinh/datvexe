@@ -41,23 +41,6 @@ export const tripPerformanceService = {
         return res.data;
     },
 
-    /**
-     * Doanh thu trung bình mỗi chuyến
-     * @param {Object} params - { from_date: 'YYYY-MM-DD', to_date: 'YYYY-MM-DD' }
-     */
-    async getAverageRevenue(params = {}) {
-        const {
-            from_date, to_date
-        } = params;
-        const queryParams = new URLSearchParams();
-        if (from_date) queryParams.append("from_date", from_date);
-        if (to_date) queryParams.append("to_date", to_date);
-
-        const res = await apiClient.get(
-            `/admin/trip-performance/average-revenue?${queryParams.toString()}`
-        );
-        return res.data;
-    },
 
     /**
      * Chuyến phổ biến nhất

@@ -24,10 +24,6 @@ class BookingSeeder extends Seeder
             ->whereIn('type', ['ward', 'district'])
             ->get();
 
-        $userId = 3;
-        $numberOfBookings = 10; // Số lượng booking muốn tạo
-        $numberOfRoundTripBookings = 3; // Ít nhất bao nhiêu booking sẽ có cả chiều đi và về
-
         if ($trips->isEmpty() || $seats->isEmpty() || $locations->isEmpty()) {
             $this->command?->warn('⚠️ Cannot seed bookings: missing trips, seats, or locations.');
             return;
@@ -35,7 +31,39 @@ class BookingSeeder extends Seeder
 
         $this->command->info("📊 Found {$trips->count()} trips, {$seats->count()} seats, {$locations->count()} locations");
 
-        $this->command->info("🚀 Creating {$numberOfBookings} bookings for user_id = {$userId}...");
+        // Tạo 50 booking cho năm 2024
+        $this->command->info("🚀 Creating 50 bookings for year 2024...");
+        $this->createBookingsForYear(2024, 50, $trips, $seats, $locations);
+
+        // Tạo 500 booking cho năm 2025, phân bổ đều các tháng
+        $this->command->info("🚀 Creating 500 bookings for year 2025 (distributed across 12 months)...");
+        $bookingsPerMonth = intval(500 / 12); // ~41 bookings per month
+        $remainingBookings = 500 % 12; // 8 bookings còn lại
+
+        for ($month = 1; $month <= 12; $month++) {
+            $bookingsThisMonth = $bookingsPerMonth;
+            if ($month <= $remainingBookings) {
+                $bookingsThisMonth++; // Phân bổ các booking còn lại vào các tháng đầu
+            }
+            $this->command->info("  Creating {$bookingsThisMonth} bookings for month {$month}/2025...");
+            $this->createBookingsForYear(2025, $bookingsThisMonth, $trips, $seats, $locations, $month);
+        }
+
+        $this->command->info("✅ Successfully created all bookings!");
+    }
+
+    /**
+     * Tạo bookings cho một năm cụ thể
+     */
+    private function createBookingsForYear(
+        int $year,
+        int $numberOfBookings,
+        $trips,
+        $seats,
+        $locations,
+        ?int $specificMonth = null
+    ): void {
+        $userId = 3;
 
         for ($i = 0; $i < $numberOfBookings; $i++) {
             // Tạo booking code unique
@@ -47,18 +75,11 @@ class BookingSeeder extends Seeder
             $isCancelled = rand(1, 100) <= 30;
             $status = $isCancelled ? 'cancelled' : 'paid';
 
-            // Xác định leg types cho booking này
-            // - Một vài booking đầu chắc chắn có cả OUT + RETURN
-            // - Các booking còn lại giữ nguyên random như cũ
-            if ($i < $numberOfRoundTripBookings) {
-                $legTypes = ['OUT', 'RETURN'];
-            } else {
-                // Random số lượng legs (1 hoặc 2 - OUT hoặc OUT+RETURN)
-                $hasReturn = rand(1, 100) <= 50; // 50% có return leg
-                $legTypes = ['OUT'];
-                if ($hasReturn) {
-                    $legTypes[] = 'RETURN';
-                }
+            // Random số lượng legs (1 hoặc 2 - OUT hoặc OUT+RETURN)
+            $hasReturn = rand(1, 100) <= 50; // 50% có return leg
+            $legTypes = ['OUT'];
+            if ($hasReturn) {
+                $legTypes[] = 'RETURN';
             }
 
             // Tính toán giá
@@ -74,6 +95,21 @@ class BookingSeeder extends Seeder
                 }
             }
 
+            // Tạo ngày tháng cho booking
+            if ($specificMonth !== null) {
+                // Nếu có tháng cụ thể, tạo ngày trong tháng đó
+                $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $specificMonth, $year);
+                $day = rand(1, $daysInMonth);
+                $bookingDate = \Carbon\Carbon::create($year, $specificMonth, $day, rand(8, 20), rand(0, 59), 0);
+            } else {
+                // Nếu không có tháng cụ thể, phân bổ đều trong năm
+                $startOfYear = \Carbon\Carbon::create($year, 1, 1);
+                $endOfYear = \Carbon\Carbon::create($year, 12, 31);
+                $daysDiff = $startOfYear->diffInDays($endOfYear);
+                $randomDays = rand(0, $daysDiff);
+                $bookingDate = $startOfYear->copy()->addDays($randomDays)->setTime(rand(8, 20), rand(0, 59), 0);
+            }
+
             // Tạo booking
             $booking = Booking::create([
                 'code' => $bookingCode,
@@ -85,15 +121,15 @@ class BookingSeeder extends Seeder
                 'status' => $status,
                 'payment_provider' => 'payos',
                 'payment_intent_id' => 'payos_' . Str::random(20),
-                'passenger_name' => 'Nguyễn Văn ' . ['A', 'B', 'C', 'D', 'E'][rand(0, 4)],
+                'passenger_name' => 'Nguyễn Văn ' . ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'][rand(0, 9)],
                 'passenger_phone' => '0' . rand(100000000, 999999999),
-                'passenger_email' => 'passenger' . ($i + 1) . '@example.com',
+                'passenger_email' => 'passenger' . $year . '_' . ($i + 1) . '@example.com',
                 'source' => 'client',
                 'booked_by_admin_id' => null,
-                'paid_at' => $status === 'paid' ? now()->subDays(rand(1, 30)) : null,
-                'cancelled_at' => $status === 'cancelled' ? now()->subDays(rand(1, 10)) : null,
-                'created_at' => now()->subDays(rand(1, 30)),
-                'updated_at' => now()->subDays(rand(1, 30)),
+                'paid_at' => $status === 'paid' ? $bookingDate->copy() : null,
+                'cancelled_at' => $status === 'cancelled' ? $bookingDate->copy()->addDays(rand(1, 5)) : null,
+                'created_at' => $bookingDate,
+                'updated_at' => $bookingDate,
             ]);
 
             // Tạo booking legs
@@ -111,10 +147,10 @@ class BookingSeeder extends Seeder
                 }
 
                 // Helper function để tạo địa chỉ đầy đủ
-                $buildAddress = function($location) use ($locations) {
+                $buildAddress = function ($location) {
                     $parts = [$location->name];
                     $parentId = $location->parent_id;
-                    
+
                     while ($parentId) {
                         $parent = DB::table('locations')->where('id', $parentId)->first();
                         if ($parent) {
@@ -124,7 +160,7 @@ class BookingSeeder extends Seeder
                             break;
                         }
                     }
-                    
+
                     return implode(', ', $parts);
                 };
 
@@ -189,9 +225,9 @@ class BookingSeeder extends Seeder
                 'discount_amount' => $discountAmount,
             ]);
 
-            $this->command->info("✓ Created booking #{$booking->code} ({$status}) with " . count($legTypes) . " leg(s)");
+            if (($i + 1) % 10 === 0) {
+                $this->command->info("  ✓ Created " . ($i + 1) . " bookings...");
+            }
         }
-
-        $this->command->info("✅ Successfully created {$numberOfBookings} bookings!");
     }
 }

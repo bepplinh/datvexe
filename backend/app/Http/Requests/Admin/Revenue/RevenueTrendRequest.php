@@ -14,10 +14,11 @@ class RevenueTrendRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'period' => 'nullable|string|in:day,week,month,quarter,year',
+            'period' => 'nullable|in:day,week,month,quarter,year',
             'from_date' => 'nullable|date',
             'to_date' => 'nullable|date|after_or_equal:from_date',
         ];
     }
 }
+
 

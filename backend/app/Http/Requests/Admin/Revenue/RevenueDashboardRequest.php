@@ -14,9 +14,8 @@ class RevenueDashboardRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'period' => 'nullable|string|in:day,week,month,quarter,year',
+            'period' => 'nullable|in:day,week,month,quarter,year',
             'date' => 'nullable|date',
         ];
     }
 }
-

@@ -24,7 +24,9 @@ import CouponManagement from "../pages/AdminDashboard/CouponManagement/CouponMan
 import RatingManagement from "../pages/AdminDashboard/RatingManagement/RatingManagement";
 import PaymentManagement from "../pages/AdminDashboard/PaymentManagement/PaymentManagement";
 import BookingSeatManagement from "../pages/AdminDashboard/BookingSeatManagement/BookingSeatManagement";
+import TripPerformance from "../pages/AdminDashboard/TripPerformance/TripPerformance";
 import RevenueDashboard from "../pages/AdminDashboard/RevenueDashboard/RevenueDashboard";
+import RevenueAnalysis from "../pages/AdminDashboard/RevenueAnalysis/RevenueAnalysis";
 import { CheckoutProvider } from "../contexts/CheckoutProvider";
 import Test from "../pages/test";
 
@@ -66,6 +68,10 @@ export const ADMIN_ROUTES = [
     { path: "/admin/ratings", element: <RatingManagement /> },
     { path: "/admin/payments", element: <PaymentManagement /> },
     { path: "/admin/booking-seat", element: <BookingSeatManagement /> },
+
+    { path: "/admin/trip-performance", element: <TripPerformance /> },
     { path: "/admin/revenue", element: <RevenueDashboard /> },
+    { path: "/admin/revenue/analysis", element: <RevenueAnalysis /> },
 ];
+
 

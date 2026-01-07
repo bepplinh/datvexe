@@ -9,13 +9,6 @@ export const realTimeService = {
         return res.data;
     },
 
-    /**
-     * Doanh thu theo giờ hôm nay
-     */
-    async getTodayRevenueByHour() {
-        const res = await apiClient.get("/admin/realtime/today-revenue-by-hour");
-        return res.data;
-    },
 
     /**
      * Chuyến sắp khởi hành hôm nay

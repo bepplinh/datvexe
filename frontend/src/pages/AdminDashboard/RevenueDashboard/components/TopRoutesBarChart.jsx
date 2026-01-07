@@ -1,14 +1,5 @@
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
-} from "recharts";
-import { formatCurrency, formatNumber } from "../utils/formatUtils";
+import BarChart from "../../../../components/shared/charts/BarChart/BarChart";
+import { formatCurrency } from "../utils/formatUtils";
 
 export default function TopRoutesBarChart({ data }) {
     if (!data || data.length === 0) {
@@ -17,40 +8,28 @@ export default function TopRoutesBarChart({ data }) {
         );
     }
 
+    const chartData = data.map((route) => ({
+        name: route.route_name || `${route.from_city} → ${route.to_city}`,
+        revenue: route.revenue,
+        booking_count: route.booking_count,
+    }));
+
     return (
-        <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-                data={data}
-                layout="vertical"
-                margin={{ left: 100 }}
-            >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                    type="number"
-                    tick={{ fontSize: 12 }}
-                    tickFormatter={(value) =>
-                        formatNumber(value / 1000000) + "M"
-                    }
-                />
-                <YAxis
-                    type="category"
-                    dataKey="route_name"
-                    tick={{ fontSize: 12 }}
-                    width={100}
-                />
-                <Tooltip
-                    formatter={(value) => formatCurrency(value)}
-                    labelStyle={{ color: "#333" }}
-                />
-                <Legend />
-                <Bar
-                    dataKey="revenue"
-                    fill="#8884D8"
-                    name="Doanh thu"
-                    radius={[0, 8, 8, 0]}
-                />
-            </BarChart>
-        </ResponsiveContainer>
+        <BarChart
+            data={chartData}
+            xKey="name"
+            dataKey="revenue"
+            bars={[
+                {
+                    key: "revenue",
+                    name: "Doanh thu",
+                    fill: "#3b82f6",
+                },
+            ]}
+            height={350}
+            formatValue={formatCurrency}
+            layout="vertical"
+        />
     );
 }
 

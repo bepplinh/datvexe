@@ -9,6 +9,7 @@ import LineChart from "../../../components/shared/charts/LineChart/LineChart";
 import BarChart from "../../../components/shared/charts/BarChart/BarChart";
 import PieChart from "../../../components/shared/charts/PieChart/PieChart";
 import DataTable from "../../../components/shared/DataTable/DataTable";
+import { formatCurrency } from "../../../utils/formatUtils";
 import "./RevenueAnalysis.scss";
 
 const GROUP_BY_OPTIONS = [
@@ -74,13 +75,6 @@ export default function RevenueAnalysis() {
     useEffect(() => {
         loadAnalysis();
     }, [loadAnalysis]);
-
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(value);
-    };
 
     const getColumns = () => {
         const baseColumns = [
@@ -218,6 +212,14 @@ export default function RevenueAnalysis() {
         }));
     };
 
+    const getXKey = () => {
+        if (groupBy === "hour") return "hour_label";
+        if (groupBy === "route") return "route_name";
+        if (groupBy === "bus_type") return "bus_type_name";
+        if (groupBy === "payment_method") return "payment_method";
+        return "source_label";
+    };
+
     if (loading && !analysisData.length) {
         return (
             <div className="revenue-analysis revenue-analysis--loading">
@@ -300,17 +302,7 @@ export default function RevenueAnalysis() {
                         title={`Top 10 ${getGroupByLabel()}`}
                         data={getChartData()}
                         dataKey="revenue"
-                        xKey={
-                            groupBy === "hour"
-                                ? "hour_label"
-                                : groupBy === "route"
-                                ? "route_name"
-                                : groupBy === "bus_type"
-                                ? "bus_type_name"
-                                : groupBy === "payment_method"
-                                ? "payment_method"
-                                : "source_label"
-                        }
+                        xKey={getXKey()}
                         height={350}
                         formatValue={formatCurrency}
                     />
