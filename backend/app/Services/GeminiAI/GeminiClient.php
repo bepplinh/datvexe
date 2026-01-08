@@ -74,8 +74,10 @@ class GeminiClient
 
         $url = "{$this->base}/{$useVersion}/models/{$this->model}:generateContent";
         $resp = Http::withOptions(['timeout' => $this->timeout])
+            ->timeout($this->timeout)
             ->acceptJson()
-            ->post($url . '?key=' . $this->apiKey, $cleanPayload);
+            ->withQueryParameters(['key' => $this->apiKey])
+            ->post($url, $cleanPayload);
 
         if (!$resp->ok()) {
             $errorBody = $resp->json();
@@ -154,8 +156,10 @@ class GeminiClient
 
         $url = "{$this->base}/{$useVersion}/models/{$this->model}:generateContent";
         $resp = Http::withOptions(['timeout' => $this->timeout])
+            ->timeout($this->timeout)
             ->acceptJson()
-            ->post($url . '?key=' . $this->apiKey, $functionResponsePayload);
+            ->withQueryParameters(['key' => $this->apiKey])
+            ->post($url, $functionResponsePayload);
 
         if (!$resp->ok()) {
             $errorBody = $resp->json();

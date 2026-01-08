@@ -196,7 +196,6 @@ Route::post('/ai/chat', [GeminiChatController::class, 'chat']);
 
 
 
-
 Route::get('/test-send-mail', function () {
     // 1. Chỉ cần findOrFail. 
     // Mailable sẽ tự lo phần load relations.
