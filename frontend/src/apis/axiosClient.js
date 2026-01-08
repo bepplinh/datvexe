@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 import { toast } from "react-toastify";
 
 const API_BASE_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+    import.meta.env.VITE_API_URL;
 
 const axiosClient = axios.create({
     baseURL: API_BASE_URL,

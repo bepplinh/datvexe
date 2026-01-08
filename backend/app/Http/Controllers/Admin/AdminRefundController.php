@@ -1,5 +1,9 @@
 <?php
 
+namespace App\Http\Controllers\Admin;
+
+use DomainException;
+use RuntimeException;
 use App\Models\Booking;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;

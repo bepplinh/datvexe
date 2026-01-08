@@ -20,22 +20,27 @@ const adminProtectedLayout = (
     </AdminAuthProvider>
 );
 
+import { Suspense } from "react";
+import FullScreenLoading from "./components/Loading/FullScreenLoading";
+
 function App() {
     return (
         <BrowserRouter>
-            <Routes>
-                <Route element={<ClientLayout />}>{renderRoutes(CLIENT_ROUTES)}</Route>
+            <Suspense fallback={<FullScreenLoading />}>
+                <Routes>
+                    <Route element={<ClientLayout />}>{renderRoutes(CLIENT_ROUTES)}</Route>
 
-                <Route
-                    path="/admin/login"
-                    element={
-                        <AdminAuthProvider>
-                            <AdminLogin />
-                        </AdminAuthProvider>
-                    }
-                />
-                <Route element={adminProtectedLayout}>{renderRoutes(ADMIN_ROUTES)}</Route>
-            </Routes>
+                    <Route
+                        path="/admin/login"
+                        element={
+                            <AdminAuthProvider>
+                                <AdminLogin />
+                            </AdminAuthProvider>
+                        }
+                    />
+                    <Route element={adminProtectedLayout}>{renderRoutes(ADMIN_ROUTES)}</Route>
+                </Routes>
+            </Suspense>
         </BrowserRouter>
     );
 }
