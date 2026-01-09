@@ -12,8 +12,8 @@ export const createEchoInstance = () => {
         wsHost: import.meta.env.VITE_REVERB_HOST,
         wsPort: import.meta.env.VITE_REVERB_PORT,
         wssPort: import.meta.env.VITE_REVERB_PORT,
-        forceTLS: false,
-        encrypted: false,
+        forceTLS: (import.meta.env.VITE_REVERB_SCHEME || "http") === "https",
+        encrypted: (import.meta.env.VITE_REVERB_SCHEME || "http") === "https",
         enableStats: false,
         enabledTransports: ["ws", "wss"],
         authorizer: (channel) => ({
