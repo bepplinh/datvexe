@@ -103,9 +103,8 @@ export default function Header() {
 
             {user ? (
                 <div
-                    className={`site-header__profile ${
-                        isProfileMenuOpen ? "site-header__profile--open" : ""
-                    }`}
+                    className={`site-header__profile ${isProfileMenuOpen ? "site-header__profile--open" : ""
+                        }`}
                     ref={profileRef}
                 >
                     <button
@@ -170,26 +169,21 @@ export default function Header() {
 
     return (
         <header
-            className={`site-header ${
-                isScrolled ? "site-header--scrolled" : ""
-            }`}
+            className={`site-header ${isScrolled ? "site-header--scrolled" : ""
+                }`}
         >
             <div className="site-header__inner">
-                {/* Logo */}
                 <Link
                     to="/"
                     className="site-header__logo"
                     onClick={closeMobileMenu}
                 >
-                    <div className="site-header__logo-icon">
-                        <img src={LOGO_ICON} alt="Nhà xe Ngọc Sơn" />
-                    </div>
                     <div className="site-header__logo-text">
                         <span className="site-header__logo-line site-header__logo-line--top">
-                            NHÀ XE
+                            DucAnh
                         </span>
                         <span className="site-header__logo-line site-header__logo-line--bottom">
-                            NGỌC SƠN
+                            Transport
                         </span>
                     </div>
                 </Link>
@@ -197,9 +191,8 @@ export default function Header() {
                 {/* Nút hamburger (mobile) */}
                 <button
                     type="button"
-                    className={`site-header__toggle ${
-                        isMobileOpen ? "site-header__toggle--active" : ""
-                    }`}
+                    className={`site-header__toggle ${isMobileOpen ? "site-header__toggle--active" : ""
+                        }`}
                     onClick={toggleMobileMenu}
                     aria-label="Mở/đóng menu"
                     aria-expanded={isMobileOpen}
@@ -211,9 +204,8 @@ export default function Header() {
 
                 {/* Navigation */}
                 <nav
-                    className={`site-header__nav ${
-                        isMobileOpen ? "site-header__nav--open" : ""
-                    }`}
+                    className={`site-header__nav ${isMobileOpen ? "site-header__nav--open" : ""
+                        }`}
                 >
                     <ul className="site-header__nav-list">
                         {NAV_ITEMS.map((item) => (
@@ -223,11 +215,10 @@ export default function Header() {
                             >
                                 <a
                                     href={item.href}
-                                    className={`site-header__nav-link ${
-                                        item.label === "Trang chủ"
-                                            ? "site-header__nav-link--active"
-                                            : ""
-                                    }`}
+                                    className={`site-header__nav-link ${item.label === "Trang chủ"
+                                        ? "site-header__nav-link--active"
+                                        : ""
+                                        }`}
                                     onClick={closeMobileMenu}
                                 >
                                     {item.label}

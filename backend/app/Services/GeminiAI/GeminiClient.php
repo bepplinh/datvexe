@@ -22,6 +22,16 @@ class GeminiClient
         $this->version = $this->version ?? $cfg['version'];
         $this->timeout = $cfg['timeout'] ?? $this->timeout;
 
+        // Debug log để kiểm tra config đang được load
+        Log::info('GeminiClient initialized', [
+            'base_url' => $this->base,
+            'model' => $this->model,
+            'version' => $this->version,
+            'api_key_length' => strlen($this->apiKey ?? ''),
+            'api_key_preview' => substr($this->apiKey ?? '', 0, 10) . '...',
+            'config_base' => $cfg['base'] ?? 'not set',
+        ]);
+
         // Validate API key
         if (empty($this->apiKey)) {
             Log::error('Gemini API key is missing or empty', [

@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import SearchTrip from "../../components/SearchTrip/SearchTrip";
@@ -17,15 +18,30 @@ import {
 import { TripFilterProvider } from "../../contexts/TripFilterProvider";
 
 function TripContent() {
+    const location = useLocation();
     const {
         results,
         handleSearchTrip,
         tripType,
         departDate,
         setDepartDate,
+        from,
+        to,
     } = useSearchTrip();
 
     const { isActiveTabWay, setIsActiveTabWay } = useActiveTabWay();
+
+    // Auto search khi navigate từ Popular Routes
+    useEffect(() => {
+        // Scroll to top khi vào trang
+        window.scrollTo(0, 0);
+
+        if (location.state?.autoSearch && from && to) {
+            handleSearchTrip();
+            // Clear state để không search lại khi component re-render
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state?.autoSearch, from, to]);
 
     const onSubmit = async () => {
         const result = await handleSearchTrip();

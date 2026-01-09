@@ -277,6 +277,7 @@ class PayOSWebhookController extends Controller
                             booked: $bookedBlocks,
                             userId: (int)$booking->user_id
                         ));
+                        Mail::to($booking->email)->send(new BookingSuccessMail($booking));
                     } catch (Throwable $e) {
                         Log::error('AfterCommit dispatch error', ['e' => $e->getMessage()]);
                     }

@@ -1,186 +1,327 @@
 .profile-page {
-    max-width: 40rem;
+    max-width: 28rem;
     margin: 0 auto;
-    padding: 2rem 1rem;
+    padding: 1.5rem 1rem;
     box-sizing: border-box;
 
     @media (max-width: 768px) {
-        padding: 1.5rem 1rem;
+        padding: 1rem;
     }
 
     @media (max-width: 480px) {
-        padding: 1rem 0.75rem;
+        padding: 0.75rem;
     }
 
     &__title {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         font-weight: 700;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.375rem;
         text-align: center;
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
 
         @media (max-width: 768px) {
-            font-size: 1.25rem;
+            font-size: 1.125rem;
         }
     }
 
     &__subtitle {
-        color: #4b5563;
-        margin-bottom: 1.5rem;
+        color: #6b7280;
+        font-size: 0.8125rem;
+        margin-bottom: 1rem;
         text-align: center;
 
         @media (max-width: 480px) {
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
+            font-size: 0.75rem;
+            margin-bottom: 0.75rem;
         }
     }
 
     &__loading {
-        padding: 2.5rem 0;
+        padding: 1.5rem 0;
         text-align: center;
         color: #6b7280;
+        font-size: 0.875rem;
     }
 
     &__error {
-        margin-bottom: 1rem;
-        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem 0.75rem;
         border-radius: 0.375rem;
-        background-color: #fee2e2;
-        color: #b91c1c;
-        font-size: 0.9rem;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        font-size: 0.8125rem;
     }
 
     &__card {
-        background-color: #ffffff;
+        background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
         border-radius: 0.75rem;
-        padding: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1.25rem;
+        box-shadow: 
+            0 2px 4px -1px rgba(0, 0, 0, 0.1),
+            0 1px 2px -1px rgba(0, 0, 0, 0.06);
 
         @media (max-width: 768px) {
-            padding: 1.25rem;
-        }
-
-        @media (max-width: 480px) {
             padding: 1rem;
-            border-radius: 0.5rem;
         }
-    }
-
-    form {
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
 
         @media (max-width: 480px) {
-            gap: 1rem;
+            padding: 0.875rem;
+            border-radius: 0.5rem;
         }
     }
 
-    .profile-form__gender {
+    .profile-form {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 1rem;
 
-        &-title {
-            font-weight: 500;
-            color: #111827;
-        }
-
-        &-select {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-
-        &-option {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.5rem 1rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            background-color: #ffffff;
-            color: #374151;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            user-select: none;
-
-            &:hover {
-                border-color: #2563eb;
-                color: #1d4ed8;
-            }
-
-            span {
-                pointer-events: none;
-                font-size: 0.95rem;
-            }
-        }
-
-        &-option--active {
-            border-color: #2563eb;
-            background-color: rgba(37, 99, 235, 0.08);
-            color: #1d4ed8;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-        }
-
-        &-radio {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        &-error {
-            font-size: 0.875rem;
-            color: #b91c1c;
+        @media (max-width: 480px) {
+            gap: 0.875rem;
         }
     }
 
+    // Custom Input Fields
+    .profile-form__field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .profile-form__label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.125rem;
+    }
+
+    .profile-form__input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .profile-form__input {
+        width: 100%;
+        padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+        font-size: 0.8125rem;
+        color: #1f2937;
+        background-color: #f9fafb;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 0.5rem;
+        outline: none;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+
+        &::placeholder {
+            color: #9ca3af;
+            font-size: 0.8125rem;
+        }
+
+        &:hover {
+            border-color: #d1d5db;
+            background-color: #ffffff;
+        }
+
+        &:focus {
+            border-color: #2563eb;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        &--error {
+            border-color: #dc2626;
+            background-color: #fef2f2;
+
+            &:focus {
+                border-color: #dc2626;
+                box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+            }
+        }
+    }
+
+    .profile-form__input-icon {
+        position: absolute;
+        left: 0.625rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        pointer-events: none;
+        transition: color 0.2s ease;
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+    .profile-form__input:focus + .profile-form__input-icon,
+    .profile-form__input-wrapper:focus-within .profile-form__input-icon {
+        color: #2563eb;
+    }
+
+    .profile-form__error {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.6875rem;
+        color: #dc2626;
+        margin-top: 0.125rem;
+
+        &::before {
+            content: "⚠";
+            font-size: 0.625rem;
+        }
+    }
+
+    // Gender Selection
+    .profile-form__gender-select {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .profile-form__gender-option {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+        padding: 0.4rem 0.875rem;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 0.5rem;
+        background-color: #f9fafb;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        font-weight: 500;
+
+        &:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            background-color: #ffffff;
+        }
+
+        svg {
+            width: 12px;
+            height: 12px;
+            transition: transform 0.2s ease;
+        }
+
+        span {
+            pointer-events: none;
+            font-size: 0.75rem;
+        }
+
+        &--active {
+            border-color: #2563eb;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%);
+            color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+
+            svg {
+                transform: scale(1.1);
+            }
+        }
+    }
+
+    .profile-form__gender-radio {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    // Action Buttons
     .profile-form__actions {
         display: flex;
-        gap: 0.75rem;
-        margin-top: 1rem;
-        align-items: center;
+        gap: 0.625rem;
+        margin-top: 0.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
 
         @media (max-width: 480px) {
-            flex-direction: column;
+            flex-direction: column-reverse;
             gap: 0.5rem;
-            width: 100%;
-
-            .profile-form__btn {
-                width: 100%;
-            }
         }
     }
 
     .profile-form__btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
         padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
-        transition: background-color 0.2s ease;
+        border-radius: 0.5rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
         border: none;
         cursor: pointer;
+
+        svg {
+            width: 14px;
+            height: 14px;
+            transition: transform 0.2s ease;
+        }
+
+        &:hover:not(:disabled) svg {
+            transform: scale(1.1);
+        }
     }
 
     .profile-form__btn--submit {
-        background-color: #2563eb;
+        flex: 1;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         color: #ffffff;
-    }
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 
-    .profile-form__btn--submit:hover:not(:disabled) {
-        background-color: #1d4ed8;
+        &:hover:not(:disabled) {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+            transform: translateY(-1px);
+        }
+
+        &:active:not(:disabled) {
+            transform: translateY(0);
+        }
     }
 
     .profile-form__btn--cancel {
-        background-color: #e5e7eb;
-        color: #111827;
-    }
+        background-color: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
 
-    .profile-form__btn--cancel:hover:not(:disabled) {
-        background-color: #d1d5db;
+        &:hover:not(:disabled) {
+            background-color: #e5e7eb;
+            color: #4b5563;
+        }
     }
 
     .profile-form__btn:disabled {
         opacity: 0.6;
         cursor: not-allowed;
+        transform: none;
+    }
+
+    // Loading Spinner
+    .profile-form__spinner {
+        width: 0.875rem;
+        height: 0.875rem;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
     }
 }

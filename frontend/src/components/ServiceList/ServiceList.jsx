@@ -10,19 +10,19 @@ const data = [
         image: service_img_1,
         url: service,
         label: "Xe phòng VIP",
-        text: "Xe 22 phòng VIP Ngọc Sơn với phiên bản 22 giường thuộc xe bus giường nằm cao cấp thế hệ mới.",
+        text: "Xe 22 phòng VIP với phiên bản 22 giường thuộc xe bus giường nằm cao cấp thế hệ mới.",
     },
     {
         image: service_img_1,
         url: service,
         label: "Vận chuyển hàng hoá",
-        text: "Ngọc Sơn cung cấp dịch vụ vận chuyển hàng hoá nhanh với giá cước hợp lý tuyến Thọ Xuân đi Hà Nội và ngược lại.",
+        text: "DucAnhTransport cung cấp dịch vụ vận chuyển hàng hoá nhanh với giá cước hợp lý tuyến Thọ Xuân đi Hà Nội và ngược lại.",
     },
     {
         image: service_img_1,
         url: service,
         label: "Xe trung chuyển",
-        text: "Nhà xe Ngọc Sơn có hệ thống Xe trung chuyển đón/trả tận nơi, miễn phí tại Thọ Xuân với giá vé không đổi",
+        text: "DucAnhTransport có hệ thống Xe trung chuyển đón/trả tận nơi, miễn phí tại Thọ Xuân với giá vé không đổi",
     },
 ];
 

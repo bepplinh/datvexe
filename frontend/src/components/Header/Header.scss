@@ -42,42 +42,48 @@
     &__logo {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
         text-decoration: none;
-        color: inherit;
+        gap: 0; // Removed gap as there is no icon
     }
 
+    // Keeping icon class just in case it is added back later
     &__logo-icon {
         width: 48px;
         height: 48px;
         flex-shrink: 0;
-
-        img {
-            width: 100%;
-            height: 100%;
-            display: block;
-            object-fit: contain;
-        }
+        margin-right: 12px; // Move gap here if icon exists
+        display: none; // Hide by default if not used, or keep as is. 
+        // Actually, let's just leave the icon styles alone in case they use it, but modify the logo-text strongly.
     }
 
     &__logo-text {
         display: flex;
         flex-direction: column;
-        line-height: 1.1;
+        justify-content: center;
+        line-height: 1;
     }
 
     &__logo-line {
-        font-weight: 700;
-        letter-spacing: 0.08em;
+        display: block;
+        font-family: "Lexend", sans-serif;
 
         &--top {
-            font-size: 10px;
-            color: #666666;
+            font-size: 26px;
+            font-weight: 800;
+            color: #0347aa;
+            text-transform: uppercase;
+            letter-spacing: -0.03em;
+            line-height: 1;
         }
 
         &--bottom {
-            font-size: 14px;
-            color: #0347aa;
+            font-size: 10px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            margin-top: 4px;
+            margin-left: 2px; // Optical alignment
         }
     }
 

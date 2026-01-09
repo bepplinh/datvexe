@@ -206,3 +206,5 @@ Route::get('/test-send-mail', function () {
 
     return "Đã gửi mail! (Hãy kiểm tra Mailtrap inbox của bạn)";
 });
+
+
