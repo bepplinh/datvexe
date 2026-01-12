@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Client\Checkout;
 
 use Throwable;
 use App\Models\DraftCheckout;
+use App\Mail\BookingSuccessMail;
 use App\Services\SeatFlowService;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redis;
 use App\Services\Checkout\PayOSService;
 use App\Services\Checkout\BookingService;
@@ -166,7 +168,12 @@ class CheckoutController extends Controller
                 ));
 
                 $this->adminNotificationService->notifyBookingPaid($booking);
-                
+                // Gửi email xác nhận tới hành khách
+                $recipientEmail = $booking->passenger_email ?? ($booking->user->email ?? null);
+                if ($recipientEmail) {
+                    Mail::to($recipientEmail)->send(new BookingSuccessMail($booking));
+                }
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Đặt vé thành công.',

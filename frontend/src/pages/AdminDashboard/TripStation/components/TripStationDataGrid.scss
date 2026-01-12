@@ -1,56 +1,184 @@
 .trip-station-datagrid {
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    &__loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 300px;
+        background: white;
+        border-radius: 16px;
+    }
 
     &__container {
-        border-radius: 12px;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
+        border: 1px solid #e2e8f0;
         overflow: hidden;
     }
 
     &__header-cell {
-        font-weight: 700;
-        color: #0c1d4a;
-        background: #f8f9fa;
-        user-select: none;
+        background: linear-gradient(
+            180deg,
+            #f8fafc 0%,
+            #f1f5f9 100%
+        ) !important;
+        font-weight: 600 !important;
+        color: #475569 !important;
+        font-size: 0.8rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0 !important;
+        padding: 16px !important;
 
         &:hover {
-            background: #e9ecef;
+            background: #f1f5f9 !important;
         }
     }
 
     &__row {
-        transition: background-color 0.2s ease;
+        transition: all 0.2s ease;
 
         &:hover {
-            background-color: rgba(0, 0, 0, 0.04) !important;
+            background: linear-gradient(
+                90deg,
+                #f8fafc 0%,
+                #eff6ff 100%
+            ) !important;
+        }
+
+        .MuiTableCell-root {
+            padding: 14px 16px !important;
+            border-bottom: 1px solid #f1f5f9;
+        }
+    }
+
+    &__id {
+        font-weight: 600;
+        color: #94a3b8;
+        font-size: 0.85rem;
+    }
+
+    &__route-chip {
+        background: linear-gradient(
+            135deg,
+            #e0e7ff 0%,
+            #c7d2fe 100%
+        ) !important;
+        color: #4338ca !important;
+        font-weight: 600 !important;
+        font-size: 0.75rem !important;
+        border: 1px solid #a5b4fc !important;
+    }
+
+    &__path {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    &__location {
+        font-weight: 500;
+        font-size: 0.9rem;
+        padding: 4px 10px;
+        border-radius: 8px;
+
+        &--from {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        &--to {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #d97706;
+            border: 1px solid #fcd34d;
+        }
+    }
+
+    &__path-arrow {
+        color: #94a3b8;
+        font-size: 24px !important;
+    }
+
+    &__price {
+        display: inline-block;
+        padding: 6px 12px;
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        color: #059669;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: 1px solid #a7f3d0;
+    }
+
+    &__duration {
+        display: inline-block;
+        padding: 6px 12px;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        color: #d97706;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: 1px solid #fcd34d;
+    }
+
+    &__actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    &__edit-btn {
+        background: #eff6ff !important;
+        color: #3b82f6 !important;
+        transition: all 0.2s ease !important;
+
+        &:hover {
+            background: #dbeafe !important;
+            transform: scale(1.1);
+        }
+    }
+
+    &__delete-btn {
+        background: #fef2f2 !important;
+        color: #ef4444 !important;
+        transition: all 0.2s ease !important;
+
+        &:hover {
+            background: #fee2e2 !important;
+            transform: scale(1.1);
         }
     }
 
     &__empty {
-        padding: 48px !important;
-        color: #6c757d;
-        font-size: 0.95rem;
+        padding: 60px 20px !important;
     }
 
-    &__route {
-        font-weight: 500;
-        color: #0c1d4a;
+    &__empty-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        color: #94a3b8;
     }
 
-    &__location {
-        color: #495057;
+    &__empty-icon {
+        font-size: 56px !important;
+        color: #cbd5e1;
     }
 
-    &__price {
-        font-weight: 600;
-        color: #ed1925;
-    }
+    &__pagination {
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
 
-    &__duration {
-        color: #495057;
-        font-weight: 500;
+        .MuiTablePagination-selectLabel,
+        .MuiTablePagination-displayedRows {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .MuiTablePagination-select {
+            color: #334155;
+            font-weight: 500;
+        }
     }
 }
-

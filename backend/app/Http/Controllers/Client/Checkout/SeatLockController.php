@@ -36,8 +36,13 @@ class SeatLockController extends Controller
             'trips.*.seat_ids.*' => ['required', 'integer', 'min:1'],
 
             'trips.*.leg' => ['nullable', 'string', Rule::in(['OUT', 'RETURN'])],
+            
+            // Nếu true hoặc không gửi, sẽ xóa draft cũ và tạo mới
+            // Nếu false, sẽ giữ lại draft cũ (dùng để thêm ghế vào draft hiện có)
+            'force_new' => ['nullable', 'boolean'],
         ]);
 
+        $forceNew = $data['force_new'] ?? true; // Mặc định là true để đảm bảo backward compatibility
         $ttl = (int) (SeatLockService::DEFAULT_TTL);
         $userId = Auth::id();
         $oldToken = $request->header('X-Session-Token');
@@ -68,7 +73,8 @@ class SeatLockController extends Controller
             from_location_id: $data['from_location_id'],
             to_location_id: $data['to_location_id'],
             from_location: $data['from_location'],
-            to_location: $data['to_location']
+            to_location: $data['to_location'],
+            forceNew: $forceNew
         );
 
         return response()->json([

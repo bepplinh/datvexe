@@ -42,8 +42,6 @@ const ClientChatWidget = () => {
         setLoading(true);
         try {
             const list = await conversationService.getConversations();
-            // Debug: log danh sách hội thoại khách (dựa trên token hiện tại)
-            console.log("ClientChatWidget getConversations response:", list);
             const items = Array.isArray(list)
                 ? list
                 : Array.isArray(list?.data)

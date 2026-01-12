@@ -17,11 +17,6 @@ const BookingInfoModal = ({ seat, onClose, onBookingUpdated, trip }) => {
     const [isRefundFullBookingModalOpen, setIsRefundFullBookingModalOpen] = useState(false);
     const [refundPolicy, setRefundPolicy] = useState(null);
 
-    useEffect(() => {
-        if (seat) {
-            console.log(seat);
-        }
-    }, [seat]);
 
     useEffect(() => {
         // Load refund policy để check có pending refund không

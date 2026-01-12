@@ -62,8 +62,6 @@ const SupportChat = () => {
         setListLoading(true);
         try {
             const data = await conversationService.getConversations();
-            // Debug: xem raw data trả về từ API
-            console.log("SupportChat getConversations response:", data);
             // Chuẩn hoá dữ liệu: API đôi khi trả mảng trực tiếp, đôi khi trong data/data.data
             const items = Array.isArray(data)
                 ? data

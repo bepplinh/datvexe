@@ -18,7 +18,7 @@ export const createEchoInstance = () => {
         enabledTransports: ["ws", "wss"],
         authorizer: (channel) => ({
             authorize: (socketId, callback) => {
-                const token = Cookies.get("access_token");
+            const token = Cookies.get("access_token");
 
                 if (!token) {
                     console.error("Echo Auth: Token not found for channel", channel.name);

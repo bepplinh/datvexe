@@ -22,7 +22,8 @@ class DraftCheckoutService
         int $fromLocationId,
         int $toLocationId,
         string $fromLocation,
-        string $toLocation
+        string $toLocation,
+        bool $forceNew = true
     ): array {
         if (empty($seatsByTrip)) {
             throw ValidationException::withMessages(['trips' => ['Không có ghế hợp lệ.']]);
@@ -32,10 +33,18 @@ class DraftCheckoutService
         $snapshotsByTrip = [];
         foreach ($tripInfo as $tripId => $info) {
             $seats = $info['seats']->only($seatsByTrip[$tripId])->values();
-            $snapshotsByTrip[$tripId] = $this->computeSeatSnapshots((int)$tripId, $seats);
+            // Xác định location IDs đúng cho chiều đi/về
+            $legCode = $legsByTrip[$tripId] ?? 'OUT';
+            if ($legCode === 'RETURN') {
+                // Chiều về: đảo ngược điểm đi/đến
+                $snapshotsByTrip[$tripId] = $this->computeSeatSnapshots((int)$tripId, $seats, $toLocationId, $fromLocationId);
+            } else {
+                // Chiều đi: giữ nguyên
+                $snapshotsByTrip[$tripId] = $this->computeSeatSnapshots((int)$tripId, $seats, $fromLocationId, $toLocationId);
+            }
         }
 
-        $result = DB::transaction(function () use ($seatsByTrip, $legsByTrip, $snapshotsByTrip, $token, $userId, $ttlSeconds, $fromLocationId, $toLocationId, $fromLocation, $toLocation) {
+        $result = DB::transaction(function () use ($seatsByTrip, $legsByTrip, $snapshotsByTrip, $token, $userId, $ttlSeconds, $fromLocationId, $toLocationId, $fromLocation, $toLocation, $forceNew) {
             $ttlSeconds = max(1, (int) $ttlSeconds);
             $now = now();
             $expiresAt = $now->copy()->addSeconds($ttlSeconds);
@@ -57,62 +66,70 @@ class DraftCheckoutService
                     'expires_at' => $expiresAt,
                 ]);
             } else {
-                $draft->update([
-                    'expires_at' => $expiresAt,
-                ]);
+                // forceNew = true: Xóa TẤT CẢ legs và items cũ, tạo draft mới hoàn toàn
+                // forceNew = false: Giữ nguyên draft cũ (user chọn tiếp tục)
+                if ($forceNew) {
+                    DraftCheckoutItem::where('draft_checkout_id', $draft->id)->delete();
+                    DraftCheckoutLeg::where('draft_checkout_id', $draft->id)->delete();
+                    
+                    $draft->update([
+                        'expires_at' => $expiresAt,
+                        'coupon_code' => null,
+                        'coupon_id' => null,
+                        'discount_amount' => 0,
+                    ]);
+                } else {
+                    // Chỉ extend thời hạn, giữ nguyên items cũ
+                    $draft->update([
+                        'expires_at' => $expiresAt,
+                    ]);
+                }
             }
 
             $legMap = [];
-            $existingLegs = DraftCheckoutLeg::query()
-                ->where('draft_checkout_id', $draft->id)
-                ->whereIn('trip_id', array_keys($seatsByTrip))
-                ->get()
-                ->keyBy('trip_id');
-
             $newLegRows = [];
             $now = now();
             foreach ($seatsByTrip as $tripId => $_) {
-                if (isset($existingLegs[$tripId])) {
-                    $legMap[$tripId] = $existingLegs[$tripId];
-                } else {
-                    $legCode = $legsByTrip[$tripId] ?? null;
+                $legCode = $legsByTrip[$tripId] ?? null;
 
-                    if ($legCode === 'RETURN') {
-                        [$fromLocationId, $toLocationId] = [$toLocationId, $fromLocationId];
-                        [$fromLocation, $toLocation] = [$toLocation, $fromLocation];
-                    }
+                // Xác định location IDs đúng cho chiều đi/về
+                $legFromLocationId = $fromLocationId;
+                $legToLocationId = $toLocationId;
+                $legFromLocation = $fromLocation;
+                $legToLocation = $toLocation;
 
-                    $newLegRows[] = [
-                        'draft_checkout_id' => $draft->id,
-                        'trip_id'           => $tripId,
-                        'leg'               => $legCode,
-                        'pickup_location_id' => $fromLocationId,
-                        'dropoff_location_id' => $toLocationId,
-                        'pickup_snapshot' => $fromLocation,
-                        'dropoff_snapshot' => $toLocation,
-                        'total_price'       => 0,
-                        'created_at'        => $now,
-                        'updated_at'        => $now,
-                    ];
+                if ($legCode === 'RETURN') {
+                    $legFromLocationId = $toLocationId;
+                    $legToLocationId = $fromLocationId;
+                    $legFromLocation = $toLocation;
+                    $legToLocation = $fromLocation;
                 }
+
+                $newLegRows[] = [
+                    'draft_checkout_id' => $draft->id,
+                    'trip_id'           => $tripId,
+                    'leg'               => $legCode,
+                    'pickup_location_id' => $legFromLocationId,
+                    'dropoff_location_id' => $legToLocationId,
+                    'pickup_snapshot' => $legFromLocation,
+                    'dropoff_snapshot' => $legToLocation,
+                    'total_price'       => 0,
+                    'created_at'        => $now,
+                    'updated_at'        => $now,
+                ];
             }
+            
             if (!empty($newLegRows)) {
                 DraftCheckoutLeg::insert($newLegRows);
-                $inserted = DraftCheckoutLeg::query()
-                    ->where('draft_checkout_id', $draft->id)
-                    ->whereIn('trip_id', array_keys($seatsByTrip))
-                    ->get()
-                    ->keyBy('trip_id');
-                foreach ($inserted as $tripId => $leg) {
-                    $legMap[$tripId] = $leg;
-                }
             }
-
-            $legIds = array_map(fn($l) => $l->id, $legMap);
-            if (!empty($legIds)) {
-                DraftCheckoutItem::query()
-                    ->whereIn('draft_checkout_leg_id', $legIds)
-                    ->delete();
+            
+            // Lấy tất cả leg vừa tạo
+            $allLegs = DraftCheckoutLeg::query()
+                ->where('draft_checkout_id', $draft->id)
+                ->get()
+                ->keyBy('trip_id');
+            foreach ($allLegs as $tripId => $leg) {
+                $legMap[$tripId] = $leg;
             }
 
             $itemRows = [];
@@ -141,6 +158,7 @@ class DraftCheckoutService
                 DraftCheckoutItem::insert($itemRows);
             }
 
+            $legIds = array_map(fn($l) => $l->id, $legMap);
             $legTotals = DraftCheckoutItem::query()
                 ->selectRaw('draft_checkout_leg_id, SUM(price) as sum_price')
                 ->whereIn('draft_checkout_leg_id', $legIds)
@@ -251,12 +269,15 @@ class DraftCheckoutService
         return $result;
     }
 
-    protected function computeSeatSnapshots(int $tripId, Collection $seats)
+    protected function computeSeatSnapshots(int $tripId, Collection $seats, int $fromLocationId, int $toLocationId)
     {
+        // Lấy giá chính xác từ trip_stations dựa trên điểm đi và điểm đến
         $unitPrice = (int) DB::table('trips')
             ->join('routes', 'trips.route_id', '=', 'routes.id')
             ->join('trip_stations', 'routes.id', '=', 'trip_stations.route_id')
             ->where('trips.id', $tripId)
+            ->where('trip_stations.from_location_id', $fromLocationId)
+            ->where('trip_stations.to_location_id', $toLocationId)
             ->value('trip_stations.price');
 
         $out = [];

@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Client\Payment;
 
 use Throwable;
 use App\Events\SeatBooked;
+use App\Mail\BookingSuccessMail;
 use Illuminate\Http\Request;
 use App\Models\DraftCheckout;
 use App\Services\SeatFlowService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Controller;
 use App\Services\Checkout\PayOSService;
 use App\Services\Checkout\BookingService;
@@ -262,14 +264,12 @@ class PayOSWebhookController extends Controller
                 // Dispatch sau khi commit (không return trong callback này)
                 DB::afterCommit(function () use ($seatsByTrip, $draft, $booking, $bookedBlocks) {
                     try {
-                        foreach ($seatsByTrip as $tripId => $seatIds) {
-                            $this->seats->releaseLocksAfterBooked(
-                                tripId: $tripId,
-                                seatIds: $seatIds,
-                                token: $draft->session_token,
-                                bookingId: $booking->id
-                            );
-                        }
+                        // Release locks for all trips at once
+                        $tripIds = array_keys($seatsByTrip);
+                        $this->seats->releaseLocksAfterBooked(
+                            tripIds: $tripIds,
+                            token: $draft->session_token
+                        );
 
                         event(new SeatBooked(
                             sessionToken: $draft->session_token,

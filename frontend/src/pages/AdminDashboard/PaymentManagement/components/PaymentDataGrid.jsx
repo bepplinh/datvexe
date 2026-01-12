@@ -192,7 +192,6 @@ const PaymentDataGrid = ({ payments, onView, loading }) => {
         ...payment,
     }));
 
-    console.log(rows);
 
     return (
         <div className="payment-datagrid-wrapper">

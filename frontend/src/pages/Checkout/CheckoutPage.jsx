@@ -122,16 +122,9 @@ function CheckoutPage() {
                             (trip.seats || []).reduce((seatSum, seat) => seatSum + (seat.price || 0), 0));
                     }, 0);
 
-                console.log("🔍 Validating coupon with orderAmount:", {
-                    code,
-                    orderAmount,
-                    draftDataTotalPrice: draftData?.total_price,
-                    draftDataTrips: draftData?.trips,
-                });
 
                 const validateRes = await validateCoupon(code, orderAmount);
 
-                console.log("📦 Full API Response:", validateRes);
 
                 // Response structure: { success: true, data: { valid: true, coupon: {...}, discount_amount: 12345 }, message: "..." }
                 // validateRes là res.data từ axios, nên structure là: { success, data: {...}, message }
@@ -164,14 +157,6 @@ function CheckoutPage() {
                         resolvedCoupon?.discount_amount ??    // Fallback từ coupon object
                         0;
 
-                    console.log("✅ Coupon validated successfully:", {
-                        fullResponse: validateRes,
-                        data: validateRes?.data,
-                        discount_amount_from_data: validateRes?.data?.discount_amount,
-                        discount_amount_final: discountAmount,
-                        coupon: resolvedCoupon,
-                        orderAmount: orderAmount,
-                    });
 
                     setCouponMessage("Áp dụng mã giảm giá thành công.");
                     setCouponId(resolvedCoupon.id);

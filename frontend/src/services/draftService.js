@@ -13,10 +13,7 @@ export const getDraftById = async (draftId) => {
         // ✅ Debug error
         console.error("❌ Error GET Draft:", error.response);
         if (error.response) {
-            const {
-                status,
-                data
-            } = error.response;
+            const { status, data } = error.response;
 
             // Xử lý các trường hợp lỗi cụ thể
             let errorMessage =
@@ -69,13 +66,11 @@ export const updateDraftPayment = async (draftId, payload) => {
         };
     } catch (error) {
         if (error.response) {
-            const {
-                status,
-                data
-            } = error.response;
+            const { status, data } = error.response;
             return {
                 success: false,
-                message: (data && data.message) ||
+                message:
+                    (data && data.message) ||
                     "Không thể cập nhật thông tin thanh toán.",
                 status,
             };
@@ -109,13 +104,11 @@ export const unlockSeats = async () => {
         };
     } catch (error) {
         if (error.response) {
-            const {
-                status,
-                data
-            } = error.response;
+            const { status, data } = error.response;
             return {
                 success: false,
-                message: (data && data.message) ||
+                message:
+                    (data && data.message) ||
                     "Không thể giải phóng ghế. Vui lòng thử lại.",
                 status,
             };
@@ -123,6 +116,33 @@ export const unlockSeats = async () => {
         return {
             success: false,
             message: "Không thể kết nối tới máy chủ",
+        };
+    }
+};
+
+export const checkPendingDraft = async () => {
+    try {
+        const sessionToken = Cookies.get("x_session_token");
+        if (!sessionToken) {
+            return { success: true, pendingDraft: null };
+        }
+
+        const res = await axiosClient.get("/checkout/pending-draft", {
+            headers: {
+                "X-Session-Token": sessionToken,
+            },
+        });
+
+        return {
+            success: true,
+            pendingDraft: res.data.pending_draft || null,
+        };
+    } catch (error) {
+        console.error("Check pending draft error:", error);
+        return {
+            success: false,
+            pendingDraft: null,
+            message: "Không thể kiểm tra đơn đặt vé đang chờ.",
         };
     }
 };

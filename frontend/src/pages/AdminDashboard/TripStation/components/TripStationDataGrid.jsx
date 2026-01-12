@@ -12,11 +12,14 @@ import {
     Box,
     Paper,
     CircularProgress,
+    Chip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
+import RouteIcon from "@mui/icons-material/Route";
 import "./TripStationDataGrid.scss";
 
 const TripStationDataGrid = ({
@@ -72,14 +75,7 @@ const TripStationDataGrid = ({
 
     if (loading && tripStations.length === 0) {
         return (
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: 400,
-                }}
-            >
+            <Box className="trip-station-datagrid__loading">
                 <CircularProgress />
             </Box>
         );
@@ -101,21 +97,11 @@ const TripStationDataGrid = ({
                                     <SortIcon field="id" />
                                 </Box>
                             </TableCell>
-                            <TableCell
-                                className="trip-station-datagrid__header-cell"
-                                onClick={() => handleSort("route_id")}
-                                style={{ cursor: "pointer" }}
-                            >
-                                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                    Tuyến đường
-                                    <SortIcon field="route_id" />
-                                </Box>
+                            <TableCell className="trip-station-datagrid__header-cell">
+                                Tuyến đường
                             </TableCell>
                             <TableCell className="trip-station-datagrid__header-cell">
-                                Điểm đón
-                            </TableCell>
-                            <TableCell className="trip-station-datagrid__header-cell">
-                                Điểm trả
+                                Chặng
                             </TableCell>
                             <TableCell
                                 className="trip-station-datagrid__header-cell"
@@ -146,11 +132,14 @@ const TripStationDataGrid = ({
                         {tripStations.length === 0 ? (
                             <TableRow>
                                 <TableCell
-                                    colSpan={7}
+                                    colSpan={6}
                                     align="center"
                                     className="trip-station-datagrid__empty"
                                 >
-                                    {loading ? "Đang tải..." : "Không có dữ liệu"}
+                                    <div className="trip-station-datagrid__empty-content">
+                                        <RouteIcon className="trip-station-datagrid__empty-icon" />
+                                        <span>{loading ? "Đang tải..." : "Không có dữ liệu"}</span>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -160,45 +149,46 @@ const TripStationDataGrid = ({
                                     className="trip-station-datagrid__row"
                                     hover
                                 >
-                                    <TableCell>{station.id}</TableCell>
                                     <TableCell>
-                                        <div className="trip-station-datagrid__route">
-                                            {getRouteName(station.route_id)}
+                                        <span className="trip-station-datagrid__id">
+                                            #{station.id}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Chip
+                                            label={getRouteName(station.route_id)}
+                                            size="small"
+                                            className="trip-station-datagrid__route-chip"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="trip-station-datagrid__path">
+                                            <span className="trip-station-datagrid__location trip-station-datagrid__location--from">
+                                                {getLocationName(station.from_location_id)}
+                                            </span>
+                                            <ArrowRightAltIcon className="trip-station-datagrid__path-arrow" />
+                                            <span className="trip-station-datagrid__location trip-station-datagrid__location--to">
+                                                {getLocationName(station.to_location_id)}
+                                            </span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="trip-station-datagrid__location">
-                                            {getLocationName(station.from_location_id)}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="trip-station-datagrid__location">
-                                            {getLocationName(station.to_location_id)}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="trip-station-datagrid__price">
+                                        <span className="trip-station-datagrid__price">
                                             {formatPrice(station.price)}
-                                        </div>
+                                        </span>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="trip-station-datagrid__duration">
+                                        <span className="trip-station-datagrid__duration">
                                             {formatDuration(station.duration_minutes)}
-                                        </div>
+                                        </span>
                                     </TableCell>
                                     <TableCell>
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                gap: 1,
-                                                alignItems: "center",
-                                            }}
-                                        >
+                                        <Box className="trip-station-datagrid__actions">
                                             <Tooltip title="Chỉnh sửa">
                                                 <IconButton
                                                     size="small"
-                                                    color="primary"
                                                     onClick={() => onEdit?.(station)}
+                                                    className="trip-station-datagrid__edit-btn"
                                                 >
                                                     <EditIcon fontSize="small" />
                                                 </IconButton>
@@ -206,8 +196,8 @@ const TripStationDataGrid = ({
                                             <Tooltip title="Xóa">
                                                 <IconButton
                                                     size="small"
-                                                    color="error"
                                                     onClick={() => onDelete?.(station)}
+                                                    className="trip-station-datagrid__delete-btn"
                                                 >
                                                     <DeleteIcon fontSize="small" />
                                                 </IconButton>
@@ -236,6 +226,7 @@ const TripStationDataGrid = ({
                     labelDisplayedRows={({ from, to, count }) =>
                         `${from}-${to} của ${count !== -1 ? count : `nhiều hơn ${to}`}`
                     }
+                    className="trip-station-datagrid__pagination"
                 />
             )}
         </div>
@@ -243,4 +234,3 @@ const TripStationDataGrid = ({
 };
 
 export default TripStationDataGrid;
-

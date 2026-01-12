@@ -46,6 +46,7 @@ use App\Http\Controllers\TripGenerateFromTemplateController;
 use App\Http\Controllers\Client\Payment\PayOSWebhookController;
 use App\Http\Controllers\Client\Payment\PayOSRedirectController;
 use App\Http\Controllers\Client\Checkout\DraftCheckoutController;
+use App\Http\Controllers\Client\Checkout\CheckPendingDraftController;
 
 
 Route::post('/login',    [AuthController::class, 'login']);
@@ -84,6 +85,9 @@ Route::middleware(['auth:api', 'x-session-token'])->group(function () {
     // Rate limit cho draft access để chống brute force
     Route::get('checkout/drafts/{draftId}', [DraftCheckoutController::class, 'show'])
         ->middleware('throttle:30,1'); // 30 requests per minute
+
+    // Check for pending draft before locking new seats
+    Route::get('checkout/pending-draft', [CheckPendingDraftController::class, 'check']);
 
     Route::put('drafts/{draftId}/payment', [CheckoutController::class, 'updateDraftPayment']);
     Route::post('checkout/lock-seats', [SeatLockController::class, 'lock']);

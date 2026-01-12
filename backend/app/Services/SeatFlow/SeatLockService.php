@@ -24,7 +24,8 @@ class SeatLockService
         int $from_location_id,
         int $to_location_id,
         string $from_location,
-        string $to_location
+        string $to_location,
+        bool $forceNew = true
     ): array {
         [$seatsByTrip, $legsByTrip] = $this->normalizeTripsWithLeg($trips);
 
@@ -50,7 +51,8 @@ class SeatLockService
             fromLocationId: $from_location_id,
             toLocationId: $to_location_id,
             fromLocation: $from_location,
-            toLocation: $to_location
+            toLocation: $to_location,
+            forceNew: $forceNew
         );
 
         $ttlLeft = $this->ttlLeftForSeats($seatsByTrip);

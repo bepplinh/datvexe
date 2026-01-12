@@ -152,14 +152,6 @@ const Login = () => {
             // Get current origin for redirect URI
             const currentOrigin = window.location.origin;
 
-            // Log debug information
-            console.log("🔍 Debug Google OAuth:");
-            console.log("  - Current origin:", currentOrigin);
-            console.log("  - Full URL:", window.location.href);
-            console.log("  - Google Client ID:", googleClientId?.substring(0, 20) + "...");
-            console.log("  - Redirect URI sẽ sử dụng:", currentOrigin);
-            console.log("  - ⚠️  Đảm bảo redirect URI sau đã được thêm vào Google Cloud Console:");
-            console.log("     " + currentOrigin);
 
             // Use Google OAuth 2.0 to get access token
             // Note: Cần chỉ định redirect_uri rõ ràng để tránh lỗi redirect_uri_mismatch

@@ -6,6 +6,8 @@ import Cookies from "js-cookie";
 import { useBooking } from "../../../contexts/BookingProvider";
 import { useSearchTrip } from "../../../contexts/SearchTripProvider";
 import axiosClient from "../../../apis/axiosClient";
+import PendingDraftDialog from "../../../components/PendingDraftDialog/PendingDraftDialog";
+import { checkPendingDraft } from "../../../services/draftService";
 import "./TripSelectedTickets.scss";
 
 const LEG_LABEL = {
@@ -95,6 +97,8 @@ export default function TripSelectedTickets() {
     const { results } = useSearchTrip();
     const navigate = useNavigate();
     const [isProcessing, setIsProcessing] = useState(false);
+    const [pendingDraft, setPendingDraft] = useState(null);
+    const [showPendingDialog, setShowPendingDialog] = useState(false);
 
     const hasRoundTrip =
         Array.isArray(results?.outbound) &&
@@ -136,9 +140,8 @@ export default function TripSelectedTickets() {
         return null;
     }
 
-    const handleCheckout = async () => {
-        if (!canCheckout || isProcessing) return;
-        // Gom payload gồm cả hai chiều để gửi 1 lần lên API lock seats
+    // Hàm lock ghế thực sự
+    const lockSeats = async (forceNew = true) => {
         const tripsPayload = [outboundSelection, returnSelection].map(
             (selection) => ({
                 trip_id: selection.trip.trip_id,
@@ -156,9 +159,9 @@ export default function TripSelectedTickets() {
             from_location: referenceSelection.trip.from_location,
             to_location: referenceSelection.trip.to_location,
             trips: tripsPayload,
+            force_new: forceNew,
         };
 
-        setIsProcessing(true);
         try {
             const { data } = await axiosClient.post(
                 "/checkout/lock-seats",
@@ -166,7 +169,6 @@ export default function TripSelectedTickets() {
             );
 
             if (data.success) {
-                // ✅ Lưu session_token vào cookie (hỗ trợ cả snake_case và camelCase)
                 const sessionToken = data.session_token || data.sessionToken;
                 if (sessionToken) {
                     Cookies.set("x_session_token", sessionToken, {
@@ -174,7 +176,6 @@ export default function TripSelectedTickets() {
                         expires: 30,
                     });
                 }
-                // Lock thành công -> xoá ghế tạm và chuyển sang checkout
                 toast.success("Đã giữ chỗ thành công!");
                 clearPendingSelections();
                 navigate(`/checkout?draft_id=${data.draft_id}`);
@@ -194,47 +195,92 @@ export default function TripSelectedTickets() {
         }
     };
 
+    const handleCheckout = async () => {
+        if (!canCheckout || isProcessing) return;
+
+        setIsProcessing(true);
+
+        // Kiểm tra xem có pending draft không
+        const { pendingDraft: existingDraft } = await checkPendingDraft();
+
+        if (existingDraft) {
+            // Có draft đang chờ -> hiển thị dialog hỏi user
+            setPendingDraft(existingDraft);
+            setShowPendingDialog(true);
+            setIsProcessing(false);
+            return;
+        }
+
+        // Không có draft cũ -> lock ghế mới
+        await lockSeats(true);
+    };
+
+    // Xử lý khi user chọn tiếp tục draft cũ
+    const handleContinueDraft = () => {
+        setShowPendingDialog(false);
+        navigate(`/checkout?draft_id=${pendingDraft.id}`);
+    };
+
+    // Xử lý khi user chọn đặt vé mới
+    const handleNewBooking = async () => {
+        setShowPendingDialog(false);
+        setIsProcessing(true);
+        await lockSeats(true);
+    };
+
     return (
-        <div className="trip-selected-tickets">
-            <div className="trip-selected-tickets__header">
-                <div>
-                    <p className="trip-selected-tickets__title">Vé của bạn</p>
-                    <p className="trip-selected-tickets__subtitle">
-                        {canCheckout ? "(Khứ hồi)" : "(Đang chờ đủ 2 chiều)"}
-                    </p>
+        <>
+            <div className="trip-selected-tickets">
+                <div className="trip-selected-tickets__header">
+                    <div>
+                        <p className="trip-selected-tickets__title">Vé của bạn</p>
+                        <p className="trip-selected-tickets__subtitle">
+                            {canCheckout ? "(Khứ hồi)" : "(Đang chờ đủ 2 chiều)"}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="trip-selected-tickets__legs">
+                    <TicketLeg legKey="OUT" selection={outboundSelection} />
+                    <TicketLeg legKey="RETURN" selection={returnSelection} />
+                </div>
+
+                <div className="trip-selected-tickets__summary">
+                    <div className="trip-selected-tickets__row">
+                        <span>Giá vé chiều đi</span>
+                        <span>{formatCurrency(outboundTotal)}</span>
+                    </div>
+                    <div className="trip-selected-tickets__row">
+                        <span>Giá vé chiều về</span>
+                        <span>{formatCurrency(returnTotal)}</span>
+                    </div>
+                    <div className="trip-selected-tickets__row trip-selected-tickets__row--strong">
+                        <span>Tổng tiền</span>
+                        <span>{formatCurrency(grandTotal)}</span>
+                    </div>
+                </div>
+
+                <div className="trip-selected-tickets__actions">
+                    <button
+                        type="button"
+                        className="trip-selected-tickets__button"
+                        onClick={handleCheckout}
+                        disabled={!canCheckout || isProcessing}
+                    >
+                        {isProcessing ? "Đang xử lý..." : "Tiếp tục thanh toán →"}
+                    </button>
                 </div>
             </div>
 
-            <div className="trip-selected-tickets__legs">
-                <TicketLeg legKey="OUT" selection={outboundSelection} />
-                <TicketLeg legKey="RETURN" selection={returnSelection} />
-            </div>
-
-            <div className="trip-selected-tickets__summary">
-                <div className="trip-selected-tickets__row">
-                    <span>Giá vé chiều đi</span>
-                    <span>{formatCurrency(outboundTotal)}</span>
-                </div>
-                <div className="trip-selected-tickets__row">
-                    <span>Giá vé chiều về</span>
-                    <span>{formatCurrency(returnTotal)}</span>
-                </div>
-                <div className="trip-selected-tickets__row trip-selected-tickets__row--strong">
-                    <span>Tổng tiền</span>
-                    <span>{formatCurrency(grandTotal)}</span>
-                </div>
-            </div>
-
-            <div className="trip-selected-tickets__actions">
-                <button
-                    type="button"
-                    className="trip-selected-tickets__button"
-                    onClick={handleCheckout}
-                    disabled={!canCheckout || isProcessing}
-                >
-                    {isProcessing ? "Đang xử lý..." : "Tiếp tục thanh toán →"}
-                </button>
-            </div>
-        </div>
+            {showPendingDialog && (
+                <PendingDraftDialog
+                    pendingDraft={pendingDraft}
+                    onContinue={handleContinueDraft}
+                    onNewBooking={handleNewBooking}
+                    isLoading={isProcessing}
+                />
+            )}
+        </>
     );
 }
+

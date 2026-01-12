@@ -5,7 +5,6 @@ import "./BookingLookupModal.scss";
 
 const BookingLookupModal = ({ isOpen, booking, onClose, onSelectLeg }) => {
     if (!isOpen || !booking) return null;
-    console.log(booking);
     const legs = booking.legs || [];
 
     const getLegLabel = (legType) => {

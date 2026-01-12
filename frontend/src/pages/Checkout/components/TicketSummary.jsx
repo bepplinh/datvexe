@@ -38,16 +38,6 @@ function TicketSummary({ ticket, isLoading, isCouponValid = false, couponDiscoun
         ? Math.max(0, subtotal - discount)  // Tính lại khi có coupon
         : (ticket?.pricing?.total ?? Math.max(0, subtotal - discount));  // Dùng giá trị từ backend hoặc tính lại
 
-    // Debug: Log để kiểm tra tính toán
-    console.log("🎫 TicketSummary pricing calculation:", {
-        subtotal,
-        discount,
-        isCouponValid,
-        couponDiscount,
-        ticketPricingTotal: ticket?.pricing?.total,
-        calculatedTotal: Math.max(0, subtotal - discount),
-        finalTotal: pricingTotal,
-    });
 
     return (
         <div className="summary__card">

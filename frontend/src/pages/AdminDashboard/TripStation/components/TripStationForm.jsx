@@ -11,8 +11,18 @@ import {
     Select,
     MenuItem,
     CircularProgress,
+    InputAdornment,
+    Box,
 } from "@mui/material";
 import { X } from "lucide-react";
+import RouteIcon from "@mui/icons-material/Route";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import FlagIcon from "@mui/icons-material/Flag";
+import PaidIcon from "@mui/icons-material/Paid";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import EditIcon from "@mui/icons-material/Edit";
 import { getErrorMessage } from "../../../../utils/error";
 import "./TripStationForm.scss";
 
@@ -116,7 +126,7 @@ const TripStationForm = ({
                 setErrors(error.response.data.errors);
             } else {
                 setErrors({
-                    submit: errorMessage || "Có lỗi xảy ra khi lưu trạm tuyến",
+                    submit: errorMessage || "Có lỗi xảy ra khi lưu chặng",
                 });
             }
         } finally {
@@ -132,8 +142,13 @@ const TripStationForm = ({
     };
 
     const availableToLocations = locations.filter(
-        (loc) => loc.id !== formData.from_location_id
+        (loc) => loc.id !== parseInt(formData.from_location_id)
     );
+
+    const getLocationName = (id) => {
+        const loc = locations.find((l) => l.id === parseInt(id));
+        return loc?.name || "";
+    };
 
     return (
         <Dialog
@@ -142,10 +157,29 @@ const TripStationForm = ({
             fullWidth
             maxWidth="sm"
             className="trip-station-form-dialog"
-            transitionDuration={{ enter: 0, exit: 0 }}
+            PaperProps={{
+                className: "trip-station-form-dialog__paper"
+            }}
         >
-            <DialogTitle className="trip-station-form__title">
-                {mode === "create" ? "Thêm trạm tuyến mới" : "Chỉnh sửa trạm tuyến"}
+            {/* Header */}
+            <DialogTitle className="trip-station-form__header">
+                <div className="trip-station-form__header-icon">
+                    {mode === "create" ? (
+                        <AddCircleOutlineIcon />
+                    ) : (
+                        <EditIcon />
+                    )}
+                </div>
+                <div className="trip-station-form__header-text">
+                    <h2 className="trip-station-form__title">
+                        {mode === "create" ? "Thêm chặng mới" : "Chỉnh sửa chặng"}
+                    </h2>
+                    <p className="trip-station-form__subtitle">
+                        {mode === "create"
+                            ? "Nhập thông tin chặng mới cho tuyến đường"
+                            : "Cập nhật thông tin chặng"}
+                    </p>
+                </div>
                 <button
                     className="trip-station-form__close-btn"
                     onClick={handleClose}
@@ -156,21 +190,28 @@ const TripStationForm = ({
             </DialogTitle>
 
             <DialogContent className="trip-station-form__content">
-                <div className="trip-station-form__fields">
+                {/* Route Section */}
+                <div className="trip-station-form__section">
+                    <div className="trip-station-form__section-header">
+                        <RouteIcon className="trip-station-form__section-icon trip-station-form__section-icon--blue" />
+                        <span>Tuyến đường</span>
+                    </div>
                     <FormControl
                         fullWidth
                         className="trip-station-form__field"
                         error={!!errors.route_id}
                     >
-                        <InputLabel id="route-label">Tuyến đường *</InputLabel>
+                        <InputLabel id="route-label">Chọn tuyến đường *</InputLabel>
                         <Select
                             labelId="route-label"
                             value={formData.route_id || ""}
-                            label="Tuyến đường *"
+                            label="Chọn tuyến đường *"
                             onChange={(e) => handleChange("route_id", e.target.value)}
                             disabled={loading}
                         >
-                            <MenuItem value="">Chọn tuyến đường</MenuItem>
+                            <MenuItem value="">
+                                <em>Chọn tuyến đường</em>
+                            </MenuItem>
                             {routes.map((route) => (
                                 <MenuItem key={route.id} value={route.id}>
                                     {route.name || `Tuyến #${route.id}`}
@@ -183,99 +224,164 @@ const TripStationForm = ({
                             </span>
                         )}
                     </FormControl>
+                </div>
 
-                    <FormControl
-                        fullWidth
-                        className="trip-station-form__field"
-                        error={!!errors.from_location_id}
-                    >
-                        <InputLabel id="from-location-label">Điểm đón *</InputLabel>
-                        <Select
-                            labelId="from-location-label"
-                            value={formData.from_location_id || ""}
-                            label="Điểm đón *"
-                            onChange={(e) =>
-                                handleChange("from_location_id", e.target.value)
-                            }
-                            disabled={loading}
+                {/* Path Section */}
+                <div className="trip-station-form__section">
+                    <div className="trip-station-form__section-header">
+                        <LocationOnIcon className="trip-station-form__section-icon trip-station-form__section-icon--green" />
+                        <span>Chặng</span>
+                    </div>
+
+                    <div className="trip-station-form__path-group">
+                        <FormControl
+                            fullWidth
+                            className="trip-station-form__field"
+                            error={!!errors.from_location_id}
                         >
-                            <MenuItem value="">Chọn điểm đón</MenuItem>
-                            {locations.map((location) => (
-                                <MenuItem key={location.id} value={location.id}>
-                                    {location.name}
+                            <InputLabel id="from-location-label">Điểm đón *</InputLabel>
+                            <Select
+                                labelId="from-location-label"
+                                value={formData.from_location_id || ""}
+                                label="Điểm đón *"
+                                onChange={(e) => handleChange("from_location_id", e.target.value)}
+                                disabled={loading}
+                                startAdornment={
+                                    <InputAdornment position="start">
+                                        <LocationOnIcon className="trip-station-form__input-icon trip-station-form__input-icon--from" />
+                                    </InputAdornment>
+                                }
+                            >
+                                <MenuItem value="">
+                                    <em>Chọn điểm đón</em>
                                 </MenuItem>
-                            ))}
-                        </Select>
-                        {errors.from_location_id && (
-                            <span className="trip-station-form__error">
-                                {errors.from_location_id}
-                            </span>
-                        )}
-                    </FormControl>
+                                {locations.map((location) => (
+                                    <MenuItem key={location.id} value={location.id}>
+                                        {location.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                            {errors.from_location_id && (
+                                <span className="trip-station-form__error">
+                                    {errors.from_location_id}
+                                </span>
+                            )}
+                        </FormControl>
 
-                    <FormControl
-                        fullWidth
-                        className="trip-station-form__field"
-                        error={!!errors.to_location_id}
-                    >
-                        <InputLabel id="to-location-label">Điểm trả *</InputLabel>
-                        <Select
-                            labelId="to-location-label"
-                            value={formData.to_location_id || ""}
-                            label="Điểm trả *"
-                            onChange={(e) =>
-                                handleChange("to_location_id", e.target.value)
-                            }
-                            disabled={loading}
+                        <div className="trip-station-form__path-arrow">
+                            <ArrowRightAltIcon />
+                        </div>
+
+                        <FormControl
+                            fullWidth
+                            className="trip-station-form__field"
+                            error={!!errors.to_location_id}
                         >
-                            <MenuItem value="">Chọn điểm trả</MenuItem>
-                            {availableToLocations.map((location) => (
-                                <MenuItem key={location.id} value={location.id}>
-                                    {location.name}
+                            <InputLabel id="to-location-label">Điểm trả *</InputLabel>
+                            <Select
+                                labelId="to-location-label"
+                                value={formData.to_location_id || ""}
+                                label="Điểm trả *"
+                                onChange={(e) => handleChange("to_location_id", e.target.value)}
+                                disabled={loading}
+                                startAdornment={
+                                    <InputAdornment position="start">
+                                        <FlagIcon className="trip-station-form__input-icon trip-station-form__input-icon--to" />
+                                    </InputAdornment>
+                                }
+                            >
+                                <MenuItem value="">
+                                    <em>Chọn điểm trả</em>
                                 </MenuItem>
-                            ))}
-                        </Select>
-                        {errors.to_location_id && (
-                            <span className="trip-station-form__error">
-                                {errors.to_location_id}
+                                {availableToLocations.map((location) => (
+                                    <MenuItem key={location.id} value={location.id}>
+                                        {location.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                            {errors.to_location_id && (
+                                <span className="trip-station-form__error">
+                                    {errors.to_location_id}
+                                </span>
+                            )}
+                        </FormControl>
+                    </div>
+
+                    {/* Path Preview */}
+                    {formData.from_location_id && formData.to_location_id && (
+                        <div className="trip-station-form__path-preview">
+                            <span className="trip-station-form__path-preview-from">
+                                {getLocationName(formData.from_location_id)}
                             </span>
-                        )}
-                    </FormControl>
-
-                    <TextField
-                        fullWidth
-                        className="trip-station-form__field"
-                        label="Giá vé (đồng) *"
-                        type="number"
-                        value={formData.price}
-                        onChange={(e) => handleChange("price", e.target.value)}
-                        error={!!errors.price}
-                        helperText={errors.price}
-                        disabled={loading}
-                        inputProps={{ min: 0, step: 1000 }}
-                    />
-
-                    <TextField
-                        fullWidth
-                        className="trip-station-form__field"
-                        label="Thời gian di chuyển (phút) *"
-                        type="number"
-                        value={formData.duration_minutes}
-                        onChange={(e) =>
-                            handleChange("duration_minutes", e.target.value)
-                        }
-                        error={!!errors.duration_minutes}
-                        helperText={errors.duration_minutes}
-                        disabled={loading}
-                        inputProps={{ min: 1 }}
-                    />
-
-                    {errors.submit && (
-                        <div className="trip-station-form__submit-error">
-                            {errors.submit}
+                            <ArrowRightAltIcon className="trip-station-form__path-preview-arrow" />
+                            <span className="trip-station-form__path-preview-to">
+                                {getLocationName(formData.to_location_id)}
+                            </span>
                         </div>
                     )}
                 </div>
+
+                {/* Pricing Section */}
+                <div className="trip-station-form__section">
+                    <div className="trip-station-form__section-header">
+                        <PaidIcon className="trip-station-form__section-icon trip-station-form__section-icon--orange" />
+                        <span>Giá vé & Thời gian</span>
+                    </div>
+
+                    <div className="trip-station-form__pricing-group">
+                        <TextField
+                            fullWidth
+                            className="trip-station-form__field"
+                            label="Giá vé *"
+                            type="number"
+                            value={formData.price}
+                            onChange={(e) => handleChange("price", e.target.value)}
+                            error={!!errors.price}
+                            helperText={errors.price}
+                            disabled={loading}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <PaidIcon className="trip-station-form__input-icon trip-station-form__input-icon--price" />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: (
+                                    <InputAdornment position="end">đ</InputAdornment>
+                                ),
+                            }}
+                            inputProps={{ min: 0, step: 1000 }}
+                        />
+
+                        <TextField
+                            fullWidth
+                            className="trip-station-form__field"
+                            label="Thời gian *"
+                            type="number"
+                            value={formData.duration_minutes}
+                            onChange={(e) => handleChange("duration_minutes", e.target.value)}
+                            error={!!errors.duration_minutes}
+                            helperText={errors.duration_minutes}
+                            disabled={loading}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <AccessTimeIcon className="trip-station-form__input-icon trip-station-form__input-icon--time" />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: (
+                                    <InputAdornment position="end">phút</InputAdornment>
+                                ),
+                            }}
+                            inputProps={{ min: 1 }}
+                        />
+                    </div>
+                </div>
+
+                {errors.submit && (
+                    <div className="trip-station-form__submit-error">
+                        {errors.submit}
+                    </div>
+                )}
             </DialogContent>
 
             <DialogActions className="trip-station-form__actions">
@@ -298,9 +404,15 @@ const TripStationForm = ({
                             Đang lưu...
                         </>
                     ) : mode === "create" ? (
-                        "Thêm"
+                        <>
+                            <AddCircleOutlineIcon sx={{ mr: 1, fontSize: 18 }} />
+                            Thêm chặng
+                        </>
                     ) : (
-                        "Cập nhật"
+                        <>
+                            <EditIcon sx={{ mr: 1, fontSize: 18 }} />
+                            Cập nhật
+                        </>
                     )}
                 </Button>
             </DialogActions>
@@ -309,4 +421,3 @@ const TripStationForm = ({
 };
 
 export default TripStationForm;
-
