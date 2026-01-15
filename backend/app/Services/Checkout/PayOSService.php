@@ -56,6 +56,17 @@ class PayOSService
                 'price'    => (int) ($item->price ?? 0),
             ];
         }
+
+        // 2) Thêm item giảm giá nếu có discount
+        $discountAmount = (int) ($draft->discount_amount ?? 0);
+        if ($discountAmount > 0) {
+            $items[] = [
+                'name'     => 'Giảm giá',
+                'quantity' => 1,
+                'price'    => -$discountAmount,
+            ];
+        }
+
         $sum = array_sum(array_map(fn($i) => (int)$i['price'] * (int)$i['quantity'], $items));
         if ($sum !== $amount) {
             throw new \RuntimeException("Amount mismatch: items=$sum != amount=$amount");

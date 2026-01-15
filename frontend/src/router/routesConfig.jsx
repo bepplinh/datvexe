@@ -30,6 +30,7 @@ const BookingSeatManagement = lazy(() => import("../pages/AdminDashboard/Booking
 const TripPerformance = lazy(() => import("../pages/AdminDashboard/TripPerformance/TripPerformance"));
 const RevenueDashboard = lazy(() => import("../pages/AdminDashboard/RevenueDashboard/RevenueDashboard"));
 const RevenueAnalysis = lazy(() => import("../pages/AdminDashboard/RevenueAnalysis/RevenueAnalysis"));
+const ScheduleTemplate = lazy(() => import("../pages/AdminDashboard/ScheduleTemplate/ScheduleTemplate"));
 const Test = lazy(() => import("../pages/test"));
 
 export const CLIENT_ROUTES = [
@@ -70,6 +71,7 @@ export const ADMIN_ROUTES = [
     { path: "/admin/ratings", element: <RatingManagement /> },
     { path: "/admin/payments", element: <PaymentManagement /> },
     { path: "/admin/booking-seat", element: <BookingSeatManagement /> },
+    { path: "/admin/schedule-templates", element: <ScheduleTemplate /> },
 
     { path: "/admin/trip-performance", element: <TripPerformance /> },
     { path: "/admin/revenue", element: <RevenueDashboard /> },

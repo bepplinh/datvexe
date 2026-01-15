@@ -74,7 +74,7 @@ class Coupon extends Model
 
         if ($this->discount_type === 'percentage') {
             $discount = ($this->discount_value / 100) * $orderAmount;
-        } elseif ($this->discount_type === 'fixed') {
+        } elseif ($this->discount_type === 'fixed_amount') {
             $discount = $this->discount_value;
         }
 

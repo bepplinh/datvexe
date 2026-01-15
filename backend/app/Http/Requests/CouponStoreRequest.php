@@ -25,7 +25,7 @@ class CouponStoreRequest extends FormRequest
             'code' => 'required|string|max:50|unique:coupons,code',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'discount_type' => 'required|in:fixed,percentage',
+            'discount_type' => 'required|in:fixed_amount,percentage',
             'discount_value' => [
                 'required',
                 'numeric',
@@ -64,7 +64,7 @@ class CouponStoreRequest extends FormRequest
             'name.required' => 'Tên mã giảm giá là bắt buộc.',
             'name.max' => 'Tên mã giảm giá không được vượt quá 255 ký tự.',
             'discount_type.required' => 'Loại giảm giá là bắt buộc.',
-            'discount_type.in' => 'Loại giảm giá phải là fixed hoặc percentage.',
+            'discount_type.in' => 'Loại giảm giá phải là fixed_amount hoặc percentage.',
             'discount_value.required' => 'Giá trị giảm giá là bắt buộc.',
             'discount_value.numeric' => 'Giá trị giảm giá phải là số.',
             'discount_value.min' => 'Giá trị giảm giá phải lớn hơn hoặc bằng 0.',

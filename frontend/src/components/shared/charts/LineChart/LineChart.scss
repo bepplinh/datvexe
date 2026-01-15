@@ -1,8 +1,5 @@
 .line-chart {
-    padding: 20px;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    width: 100%;
 
     &__title {
         font-size: 16px;
@@ -11,38 +8,113 @@
         margin: 0 0 20px 0;
     }
 
+    &--animated {
+        .recharts-area-area,
+        .recharts-line-curve {
+            animation: lineChartFadeIn 0.8s ease-out;
+        }
+    }
+
+    // Tooltip Styles
     &__tooltip {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 12px;
+        padding: 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1),
+            0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+        overflow: hidden;
+        min-width: 160px;
+    }
+
+    &__tooltip-header {
+        padding: 10px 14px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-bottom: 1px solid #e2e8f0;
     }
 
     &__tooltip-label {
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
-        color: #1e293b;
-        margin: 0 0 8px 0;
-        padding-bottom: 8px;
-        border-bottom: 1px solid #e2e8f0;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    &__tooltip-content {
+        padding: 10px 14px;
     }
 
     &__tooltip-item {
         display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        font-size: 13px;
-        margin: 4px 0;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 0;
+
+        &:not(:last-child) {
+            border-bottom: 1px dashed #f1f5f9;
+            padding-bottom: 8px;
+            margin-bottom: 4px;
+        }
+    }
+
+    &__tooltip-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
     }
 
     &__tooltip-name {
+        font-size: 13px;
         color: #64748b;
+        flex: 1;
     }
 
     &__tooltip-value {
-        font-weight: 600;
+        font-size: 14px;
+        font-weight: 700;
         color: #1e293b;
+    }
+
+    // Chart enhancements
+    .recharts-cartesian-grid-horizontal line {
+        stroke: #f1f5f9;
+    }
+
+    .recharts-legend-item {
+        margin-right: 20px !important;
+    }
+
+    .recharts-legend-item-text {
+        color: #475569 !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+    }
+
+    .recharts-active-dot {
+        filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.4));
+    }
+
+    .recharts-reference-line-label {
+        font-weight: 500;
     }
 }
 
+@keyframes lineChartFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// Smooth hover transition for data points
+.recharts-dot {
+    transition: all 0.2s ease;
+}

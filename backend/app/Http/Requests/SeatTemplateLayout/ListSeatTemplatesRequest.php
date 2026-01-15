@@ -17,9 +17,10 @@ class ListSeatTemplatesRequest extends FormRequest
         return [
             'q'          => ['sometimes','string','max:100'],          // tìm theo code/name
             'per_page'   => ['sometimes','integer','between:1,100'],
+            'page'       => ['sometimes','integer','min:1'],
             'sort'       => ['sometimes', Rule::in(['code','name','total_seats','decks','created_at'])],
             'direction'  => ['sometimes', Rule::in(['asc','desc'])],
-            'with_layout'=> ['sometimes','boolean'],                   // đính kèm preview layout
+            'with_layout'=> ['sometimes', Rule::in([true, false, 'true', 'false', '1', '0', 1, 0])],
         ];
     }
 }

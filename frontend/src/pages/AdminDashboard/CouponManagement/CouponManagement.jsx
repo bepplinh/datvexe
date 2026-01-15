@@ -244,7 +244,7 @@ const CouponManagement = () => {
         { key: "active", label: "Đang hoạt động", status: "active" },
         { key: "inactive", label: "Tạm ngưng", status: "inactive" },
         { key: "expired", label: "Hết hạn", status: "expired" },
-        { key: "fixed", label: "Giảm cố định", discount_type: "fixed" },
+        { key: "fixed_amount", label: "Giảm cố định", discount_type: "fixed_amount" },
         { key: "percentage", label: "Giảm %", discount_type: "percentage" },
     ];
 
@@ -446,7 +446,7 @@ const CouponManagement = () => {
                                     }
                                 >
                                     <option value="">Tất cả</option>
-                                    <option value="fixed">Giảm cố định</option>
+                                    <option value="fixed_amount">Giảm cố định</option>
                                     <option value="percentage">Giảm phần trăm</option>
                                 </select>
                             </div>

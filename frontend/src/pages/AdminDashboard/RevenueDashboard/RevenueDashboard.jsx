@@ -193,19 +193,19 @@ function RevenueDashboard() {
 
             {/* Charts Grid */}
             <div className="revenue-dashboard__charts">
-                <ChartCard title="Xu hướng Doanh thu">
+                <ChartCard title="Xu hướng Doanh thu" icon="trend" subtitle="Biểu đồ doanh thu theo thời gian">
                     <RevenueTrendChart data={trendData} />
                 </ChartCard>
 
-                <ChartCard title="Số lượng Vé bán">
+                <ChartCard title="Số lượng Vé bán" icon="activity" subtitle="Biểu đồ số vé đã bán">
                     <RevenueBookingChart data={trendData} />
                 </ChartCard>
 
-                <ChartCard title="Top Tuyến đường">
+                <ChartCard title="Top Tuyến đường" icon="bar" subtitle="Doanh thu theo từng tuyến">
                     <TopRoutesBarChart data={topRoutes} />
                 </ChartCard>
 
-                <ChartCard title="Phân bổ Doanh thu theo Tuyến đường">
+                <ChartCard title="Phân bổ Doanh thu" icon="pie" subtitle="Tỷ lệ doanh thu theo tuyến">
                     <TopRoutesPieChart data={topRoutes} />
                 </ChartCard>
             </div>

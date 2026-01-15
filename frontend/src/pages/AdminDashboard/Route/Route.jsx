@@ -351,11 +351,10 @@ const AdminRoutePage = () => {
                                 <button
                                     key={filter.key}
                                     type="button"
-                                    className={`route-management__chip ${
-                                        activeQuickFilter === filter.key
-                                            ? "route-management__chip--active"
-                                            : ""
-                                    }`}
+                                    className={`route-management__chip ${activeQuickFilter === filter.key
+                                        ? "route-management__chip--active"
+                                        : ""
+                                        }`}
                                     onClick={() => handleQuickFilter(filter)}
                                 >
                                     {filter.label}
@@ -412,61 +411,7 @@ const AdminRoutePage = () => {
                         />
                     )}
 
-                    {selectedRoute && (
-                        <div className="route-management__detail-panel">
-                            <div className="route-management__detail-panel-header">
-                                <h3 className="route-management__detail-panel-title">
-                                    Thông tin tuyến
-                                </h3>
-                                <button
-                                    className="route-management__detail-close"
-                                    onClick={() => setSelectedRoute(null)}
-                                >
-                                    <XCircle size={18} />
-                                </button>
-                            </div>
-                            <div className="route-management__detail-panel-grid">
-                                <div className="route-management__detail-panel-item">
-                                    <span>Tên tuyến</span>
-                                    <strong>
-                                        {selectedRoute.name ||
-                                            `${getRouteCityName(
-                                                selectedRoute,
-                                                "from"
-                                            )} → ${getRouteCityName(
-                                                selectedRoute,
-                                                "to"
-                                            )}`}
-                                    </strong>
-                                </div>
-                                <div className="route-management__detail-panel-item">
-                                    <span>Điểm xuất phát</span>
-                                    <strong>
-                                        {getRouteCityName(
-                                            selectedRoute,
-                                            "from"
-                                        )}
-                                    </strong>
-                                </div>
-                                <div className="route-management__detail-panel-item">
-                                    <span>Điểm đến</span>
-                                    <strong>
-                                        {getRouteCityName(selectedRoute, "to")}
-                                    </strong>
-                                </div>
-                                <div className="route-management__detail-panel-item">
-                                    <span>Ngày tạo</span>
-                                    <strong>
-                                        {selectedRoute.created_at
-                                            ? new Date(
-                                                  selectedRoute.created_at
-                                              ).toLocaleString("vi-VN")
-                                            : "N/A"}
-                                    </strong>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+
                 </div>
 
                 <RouteForm

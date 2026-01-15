@@ -162,7 +162,7 @@ class CouponService
             'code' => 'required|string|max:50',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'discount_type' => 'required|in:fixed,percentage',
+            'discount_type' => 'required|in:fixed_amount,percentage',
             'discount_value' => 'required|numeric|min:0',
             'minimum_order_amount' => 'nullable|numeric|min:0',
             'max_usage' => 'nullable|integer|min:1',

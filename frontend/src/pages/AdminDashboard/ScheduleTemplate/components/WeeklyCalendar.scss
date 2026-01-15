@@ -1,0 +1,276 @@
+.weekly-calendar {
+    width: 100%;
+    overflow-x: auto;
+
+    // Header
+    &__header {
+        display: grid;
+        grid-template-columns: 80px repeat(7, 1fr);
+        gap: 1px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px 16px 0 0;
+        overflow: hidden;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    &__time-header {
+        padding: 1rem;
+        background: rgba(139, 92, 246, 0.1);
+        color: #8b5cf6;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__day-header {
+        padding: 1rem 0.5rem;
+        background: rgba(255, 255, 255, 0.03);
+        text-align: center;
+        border-left: 1px solid rgba(255, 255, 255, 0.05);
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+    }
+
+    &__day-label {
+        display: block;
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+    }
+
+    &__day-count {
+        display: block;
+        color: #64748b;
+        font-size: 0.75rem;
+    }
+
+    // Grid
+    &__grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    &__row {
+        display: grid;
+        grid-template-columns: 80px repeat(7, 1fr);
+        gap: 1px;
+        min-height: 70px;
+
+        &:hover {
+            .weekly-calendar__time-cell {
+                background: rgba(139, 92, 246, 0.15);
+            }
+        }
+    }
+
+    &__time-cell {
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.02);
+        color: #64748b;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        transition: background 0.2s ease;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    &__cell {
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.01);
+        border-left: 1px solid rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        min-height: 60px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: rgba(139, 92, 246, 0.05);
+
+            .weekly-calendar__empty-cell {
+                opacity: 1;
+            }
+        }
+
+        // Drag over state
+        &--drag-over {
+            background: rgba(16, 185, 129, 0.15) !important;
+            border: 2px dashed #10b981;
+            border-radius: 8px;
+        }
+    }
+
+    &__slots {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    &__empty-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        min-height: 40px;
+        border: 2px dashed rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: rgba(255, 255, 255, 0.3);
+        opacity: 0;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+    }
+
+    // Footer
+    &__footer {
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        justify-content: center;
+    }
+
+    &__add-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(
+            135deg,
+            rgba(139, 92, 246, 0.2) 0%,
+            rgba(99, 102, 241, 0.2) 100%
+        );
+        border: 1px dashed rgba(139, 92, 246, 0.5);
+        border-radius: 10px;
+        color: #a78bfa;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: linear-gradient(
+                135deg,
+                rgba(139, 92, 246, 0.3) 0%,
+                rgba(99, 102, 241, 0.3) 100%
+            );
+            border-style: solid;
+            transform: translateY(-2px);
+        }
+    }
+}
+
+// Responsive
+@media (max-width: 1024px) {
+    .weekly-calendar {
+        &__header,
+        &__row {
+            grid-template-columns: 60px repeat(7, minmax(100px, 1fr));
+        }
+
+        &__day-label {
+            font-size: 0.85rem;
+        }
+
+        &__time-cell {
+            font-size: 0.75rem;
+            padding: 0.5rem;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .weekly-calendar {
+        &__header,
+        &__row {
+            grid-template-columns: 50px repeat(7, minmax(80px, 1fr));
+        }
+
+        &__day-header {
+            padding: 0.75rem 0.25rem;
+        }
+
+        &__day-label {
+            font-size: 0.75rem;
+        }
+
+        &__day-count {
+            display: none;
+        }
+    }
+}
+
+// Draggable Card Styles
+.draggable-card {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+
+    &:hover {
+        .draggable-card__handle {
+            opacity: 1;
+        }
+    }
+
+    &--dragging {
+        opacity: 0.4;
+    }
+
+    &__handle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #64748b;
+        cursor: grab;
+        opacity: 0;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+
+        &:hover {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+        }
+
+        &:active {
+            cursor: grabbing;
+        }
+    }
+
+    &__content {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+// Drag Overlay - the card that follows the cursor
+.drag-overlay {
+    transform: rotate(3deg);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    opacity: 0.95;
+    pointer-events: none;
+
+    .time-slot-card {
+        transform: scale(1.02);
+    }
+}

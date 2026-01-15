@@ -74,11 +74,11 @@ class DraftCheckoutController extends Controller
             ], 403);
         }
 
-        // Kiểm tra trạng thái draft
-        if (in_array($draft->status, ['expired', 'cancelled', 'paid'])) {
+        // Kiểm tra trạng thái draft - từ chối expired/cancelled, nhưng cho phép xem paid để hiển thị confirmation
+        if (in_array($draft->status, ['expired', 'cancelled'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Đơn đặt vé này đã hết hiệu lực hoặc đã được xử lý.',
+                'message' => 'Đơn đặt vé này đã hết hiệu lực hoặc đã bị huỷ.',
             ], 422);
         }
 

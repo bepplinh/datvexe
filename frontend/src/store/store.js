@@ -7,6 +7,7 @@ import busReducer from "./slices/busSlice";
 import tripReducer from "./slices/tripSlice";
 import dashboardReducer from "./slices/dashboardSlice";
 import financialReportReducer from "./slices/financialReportSlice";
+import scheduleTemplateReducer from "./slices/scheduleTemplateSlice";
 
 export const store = configureStore({
     reducer: {
@@ -18,5 +19,6 @@ export const store = configureStore({
         trip: tripReducer,
         dashboard: dashboardReducer,
         financialReport: financialReportReducer,
+        scheduleTemplate: scheduleTemplateReducer,
     },
 });

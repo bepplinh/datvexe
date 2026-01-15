@@ -1,11 +1,19 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { DataGrid } from "@mui/x-data-grid";
 import { IconButton, Box, Tooltip, Chip } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { LayoutGrid } from "lucide-react";
 import "./BusDataGrid.scss";
 
 const BusDataGrid = ({ buses, onEdit, onDelete }) => {
+    const navigate = useNavigate();
+
+    const handleOpenSeatLayout = (bus) => {
+        navigate(`/admin/seat-layout?busId=${bus.id}`);
+    };
+
     const columns = [
         {
             field: "id",
@@ -48,7 +56,7 @@ const BusDataGrid = ({ buses, onEdit, onDelete }) => {
         {
             field: "actions",
             headerName: "Thao tác",
-            width: 150,
+            width: 180,
             sortable: false,
             filterable: false,
             renderCell: (params) => {
@@ -57,13 +65,25 @@ const BusDataGrid = ({ buses, onEdit, onDelete }) => {
                     <Box
                         sx={{
                             display: "flex",
-                            gap: 1,
+                            gap: 0.5,
                             alignItems: "center",
                             justifyContent: "center",
                             height: "100%",
                             width: "100%",
                         }}
                     >
+                        <Tooltip title="Sơ đồ ghế">
+                            <IconButton
+                                size="small"
+                                color="secondary"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenSeatLayout(bus);
+                                }}
+                            >
+                                <LayoutGrid size={18} />
+                            </IconButton>
+                        </Tooltip>
                         <Tooltip title="Chỉnh sửa">
                             <IconButton
                                 size="small"

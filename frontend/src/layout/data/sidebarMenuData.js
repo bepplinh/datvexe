@@ -20,10 +20,10 @@ import {
     Activity,
     TrendingUp,
     LineChart,
+    CalendarClock,
 } from "lucide-react";
 
 export const SIDEBAR_MENU = [
-
     {
         id: "users",
         label: "Quản lý người dùng",
@@ -59,6 +59,12 @@ export const SIDEBAR_MENU = [
         label: "Quản lý chuyến xe",
         icon: Bus,
         path: "/admin/trips",
+    },
+    {
+        id: "schedule-templates",
+        label: "Lịch trình mẫu",
+        icon: CalendarClock,
+        path: "/admin/schedule-templates",
     },
     {
         id: "locations",

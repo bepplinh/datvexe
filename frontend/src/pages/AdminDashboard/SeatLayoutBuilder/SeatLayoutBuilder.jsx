@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { DndContext } from "@dnd-kit/core";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
@@ -85,6 +86,9 @@ function SeatNode({ seat, isActive, onSelect }) {
 }
 
 export default function SeatLayoutBuilder() {
+    const [searchParams] = useSearchParams();
+    const urlBusId = searchParams.get("busId");
+
     const [buses, setBuses] = useState([]);
     const [selectedBusId, setSelectedBusId] = useState("");
     const [layout, setLayout] = useState(applyLayoutDefaults());
@@ -104,7 +108,10 @@ export default function SeatLayoutBuilder() {
                 });
                 const list = data?.data?.data ?? [];
                 setBuses(list);
-                if (list.length && !selectedBusId) {
+                // If busId from URL, select it; otherwise select first bus
+                if (urlBusId && list.some((b) => String(b.id) === String(urlBusId))) {
+                    setSelectedBusId(urlBusId);
+                } else if (list.length && !selectedBusId) {
                     setSelectedBusId(list[0].id);
                 }
             } catch (e) {
@@ -113,7 +120,8 @@ export default function SeatLayoutBuilder() {
             }
         }
         loadBuses();
-    }, [selectedBusId]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [urlBusId]);
 
     useEffect(() => {
         if (!selectedBusId) return;

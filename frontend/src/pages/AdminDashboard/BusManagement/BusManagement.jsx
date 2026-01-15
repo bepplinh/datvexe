@@ -31,7 +31,7 @@ const BusManagement = () => {
     );
 
     const [activeTab, setActiveTab] = useState("buses"); // "buses" or "busTypes"
-    
+
     // Bus states
     const [filteredBuses, setFilteredBuses] = useState([]);
     const [busSearchQuery, setBusSearchQuery] = useState("");
@@ -61,8 +61,18 @@ const BusManagement = () => {
     useEffect(() => {
         dispatch(fetchBuses({ per_page: 100, page: 1 }));
         dispatch(fetchBusTypes());
-        // TODO: Load seat layout templates
-        setSeatLayoutTemplates([]);
+        // Load seat layout templates
+        async function loadTemplates() {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/seat-layout-templates`);
+                const data = await response.json();
+                setSeatLayoutTemplates(data?.data || []);
+            } catch (error) {
+                console.error("Error loading seat layout templates:", error);
+                setSeatLayoutTemplates([]);
+            }
+        }
+        loadTemplates();
     }, [dispatch]);
 
     // Lọc và sắp xếp buses
@@ -239,18 +249,16 @@ const BusManagement = () => {
                 {/* Tabs */}
                 <div className="bus-management__tabs">
                     <button
-                        className={`bus-management__tab ${
-                            activeTab === "buses" ? "bus-management__tab--active" : ""
-                        }`}
+                        className={`bus-management__tab ${activeTab === "buses" ? "bus-management__tab--active" : ""
+                            }`}
                         onClick={() => setActiveTab("buses")}
                     >
                         <Bus size={20} />
                         <span>Quản lý xe ({buses.length})</span>
                     </button>
                     <button
-                        className={`bus-management__tab ${
-                            activeTab === "busTypes" ? "bus-management__tab--active" : ""
-                        }`}
+                        className={`bus-management__tab ${activeTab === "busTypes" ? "bus-management__tab--active" : ""
+                            }`}
                         onClick={() => setActiveTab("busTypes")}
                     >
                         <Car size={20} />

@@ -92,6 +92,17 @@ const User = () => {
         applyFilters();
     }, [users, filters, searchQuery, sortOption]);
 
+    // Đồng bộ selectedUser với dữ liệu mới sau khi fetch lại danh sách users
+    useEffect(() => {
+        if (selectedUser) {
+            const updatedUser = users.find((u) => u.id === selectedUser.id);
+            if (updatedUser) {
+                // Cập nhật selectedUser với dữ liệu mới từ danh sách
+                setSelectedUser(updatedUser);
+            }
+        }
+    }, [users]);
+
     const stats = useMemo(() => {
         const total = users.length;
         const active = users.filter(
@@ -345,11 +356,10 @@ const User = () => {
                                 <button
                                     key={filter.key}
                                     type="button"
-                                    className={`user-management__chip ${
-                                        activeQuickFilter === filter.key
+                                    className={`user-management__chip ${activeQuickFilter === filter.key
                                             ? "user-management__chip--active"
                                             : ""
-                                    }`}
+                                        }`}
                                     onClick={() => handleQuickFilter(filter)}
                                 >
                                     {filter.label}

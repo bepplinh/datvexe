@@ -1,8 +1,5 @@
 .pie-chart {
-    padding: 20px;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    width: 100%;
 
     &__title {
         font-size: 16px;
@@ -11,25 +8,199 @@
         margin: 0 0 20px 0;
     }
 
+    &--animated {
+        .recharts-pie-sector {
+            animation: pieChartFadeIn 0.6s ease-out;
+        }
+    }
+
+    &__container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    &__chart-wrapper {
+        flex: 1;
+        min-height: 250px;
+    }
+
+    // Tooltip Styles
     &__tooltip {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 12px;
+        padding: 0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12),
+            0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+        overflow: hidden;
+        min-width: 180px;
+    }
+
+    &__tooltip-header {
+        padding: 10px 14px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-bottom: 1px solid #e2e8f0;
+        border-left: 4px solid #3b82f6;
     }
 
     &__tooltip-name {
         font-size: 13px;
         font-weight: 600;
         color: #1e293b;
-        margin: 0 0 4px 0;
+    }
+
+    &__tooltip-content {
+        padding: 12px 14px;
+    }
+
+    &__tooltip-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+
+        &:not(:last-child) {
+            border-bottom: 1px dashed #f1f5f9;
+            padding-bottom: 8px;
+            margin-bottom: 4px;
+        }
+    }
+
+    &__tooltip-label {
+        font-size: 12px;
+        color: #64748b;
     }
 
     &__tooltip-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    &__tooltip-percent {
+        font-size: 14px;
+        font-weight: 700;
+        color: #3b82f6;
+    }
+
+    // Custom Legend
+    &__legend {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 0 10px;
+    }
+
+    &__legend-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: #f8fafc;
+        transition: all 0.2s ease;
+        cursor: pointer;
+
+        &:hover,
+        &--active {
+            background: #f1f5f9;
+            transform: translateX(4px);
+        }
+    }
+
+    &__legend-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 140px;
+    }
+
+    &__legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    &__legend-name {
         font-size: 13px;
-        color: #64748b;
-        margin: 0;
+        color: #475569;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 120px;
+    }
+
+    &__legend-bar-wrapper {
+        flex: 1;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
+        min-width: 60px;
+    }
+
+    &__legend-bar {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.5s ease;
+    }
+
+    &__legend-percent {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1e293b;
+        min-width: 45px;
+        text-align: right;
+    }
+
+    // Center label styling
+    &__center-title {
+        font-size: 13px;
+        fill: #64748b;
+        font-weight: 500;
+    }
+
+    &__center-value {
+        font-size: 20px;
+        fill: #1e293b;
+        font-weight: 700;
+    }
+
+    // Pie sector hover effects
+    .recharts-pie-sector {
+        transition: all 0.3s ease;
+        cursor: pointer;
     }
 }
 
+@keyframes pieChartFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+// Responsive adjustments
+@media (min-width: 768px) {
+    .pie-chart__container {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .pie-chart__chart-wrapper {
+        flex: 0 0 50%;
+    }
+
+    .pie-chart__legend {
+        flex: 1;
+        max-width: 300px;
+    }
+}

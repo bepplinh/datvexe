@@ -40,6 +40,7 @@ class UpdateUserRequest extends FormRequest
             ],
             'phone' => 'nullable|string|max:20',
             'birthday' => 'nullable|date',
+            'gender' => ['nullable', Rule::in(['male', 'female', 'other'])],
             'role' => ['nullable', Rule::in(['customer', 'staff', 'admin'])],
             'password' => 'nullable|string|min:6|confirmed',
         ];

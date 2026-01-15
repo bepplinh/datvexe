@@ -38,7 +38,7 @@ class CouponController extends Controller
                 'sort' => 'nullable|string|in:id,code,name,discount_type,discount_value,created_at,updated_at',
                 'order' => 'nullable|string|in:asc,desc',
                 'status' => 'nullable|string|in:active,inactive,all',
-                'discount_type' => 'nullable|string|in:fixed,percentage',
+                'discount_type' => 'nullable|string|in:fixed_amount,percentage',
             ]);
 
             $filters = [

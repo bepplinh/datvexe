@@ -4,7 +4,9 @@ import { formatCurrency } from "../utils/formatUtils";
 export default function RevenueTrendChart({ data }) {
     if (!data || data.length === 0) {
         return (
-            <div className="revenue-dashboard__empty">Không có dữ liệu</div>
+            <div className="revenue-dashboard__empty">
+                Không có dữ liệu trong khoảng thời gian này
+            </div>
         );
     }
 
@@ -12,18 +14,21 @@ export default function RevenueTrendChart({ data }) {
         <LineChart
             data={data}
             xKey="label"
-            dataKey="revenue"
             lines={[
                 {
                     key: "revenue",
                     name: "Doanh thu",
                     stroke: "#3b82f6",
-                    strokeWidth: 2,
+                    strokeWidth: 2.5,
                 },
             ]}
             height={350}
             formatValue={formatCurrency}
+            showArea={true}
+            showAverage={true}
+            animated={true}
+            colorScheme="blue"
+            showLegend={false}
         />
     );
 }
-

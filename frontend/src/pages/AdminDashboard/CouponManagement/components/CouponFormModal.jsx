@@ -6,7 +6,7 @@ const CouponFormModal = ({ open, onClose, coupon, onSubmit, loading }) => {
     const [formData, setFormData] = useState({
         code: "",
         description: "",
-        discount_type: "fixed",
+        discount_type: "fixed_amount",
         discount_value: "",
         max_discount_amount: "",
         min_order_value: "",
@@ -22,7 +22,7 @@ const CouponFormModal = ({ open, onClose, coupon, onSubmit, loading }) => {
     useEffect(() => {
         if (coupon) {
             // Handle both field name formats (from API response)
-            const discountType = coupon.discount_type === "fixed_amount" ? "fixed" : (coupon.discount_type || "fixed");
+            const discountType = coupon.discount_type || "fixed_amount";
             const minOrderValue = coupon.min_order_value || coupon.minimum_order_amount || "";
             const usageLimit = coupon.usage_limit_global || coupon.max_usage || "";
             const startDate = coupon.start_date || coupon.valid_from || "";
@@ -49,7 +49,7 @@ const CouponFormModal = ({ open, onClose, coupon, onSubmit, loading }) => {
             setFormData({
                 code: "",
                 description: "",
-                discount_type: "fixed",
+                discount_type: "fixed_amount",
                 discount_value: "",
                 max_discount_amount: "",
                 min_order_value: "",
@@ -201,7 +201,7 @@ const CouponFormModal = ({ open, onClose, coupon, onSubmit, loading }) => {
                                     handleChange("discount_type", e.target.value)
                                 }
                             >
-                                <option value="fixed">Giảm cố định (VNĐ)</option>
+                                <option value="fixed_amount">Giảm cố định (VNĐ)</option>
                                 <option value="percentage">Giảm phần trăm (%)</option>
                             </select>
                         </div>

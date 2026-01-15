@@ -12,7 +12,10 @@ class SeatLayoutTemplateController extends Controller
 {
     public function __construct(private SeatLayoutTemplateRepositoryInterface $tplSeats) {}
 
-    public function index(ListSeatTemplatesRequest  $request)
+    /**
+     * List all seat layout templates with optional search and pagination
+     */
+    public function index(ListSeatTemplatesRequest $request)
     {
         $v = $request->validated();
         $q   = $v['q'] ?? null;

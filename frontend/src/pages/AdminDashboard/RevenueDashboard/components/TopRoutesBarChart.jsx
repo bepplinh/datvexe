@@ -4,7 +4,9 @@ import { formatCurrency } from "../utils/formatUtils";
 export default function TopRoutesBarChart({ data }) {
     if (!data || data.length === 0) {
         return (
-            <div className="revenue-dashboard__empty">Không có dữ liệu</div>
+            <div className="revenue-dashboard__empty">
+                Không có dữ liệu về tuyến đường
+            </div>
         );
     }
 
@@ -18,18 +20,19 @@ export default function TopRoutesBarChart({ data }) {
         <BarChart
             data={chartData}
             xKey="name"
-            dataKey="revenue"
             bars={[
                 {
                     key: "revenue",
                     name: "Doanh thu",
-                    fill: "#3b82f6",
                 },
             ]}
             height={350}
             formatValue={formatCurrency}
             layout="vertical"
+            showLabels={true}
+            showLegend={false}
+            animated={true}
+            colorful={true}
         />
     );
 }
-

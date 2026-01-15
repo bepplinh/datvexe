@@ -130,6 +130,8 @@ const UserFormDialog = ({ open, onClose, user, onSubmit, loading }) => {
     const handleSubmit = () => {
         if (!validate()) return;
 
+        const isEditMode = !!user;
+
         const submitData = {
             name: formData.name || null,
             username: formData.username || null,
@@ -146,12 +148,15 @@ const UserFormDialog = ({ open, onClose, user, onSubmit, loading }) => {
             submitData.password_confirmation = formData.password_confirmation;
         }
 
-        // Loại bỏ các field null/empty không cần thiết
-        Object.keys(submitData).forEach((key) => {
-            if (submitData[key] === null || submitData[key] === "") {
-                delete submitData[key];
-            }
-        });
+        // Chỉ loại bỏ các field null/empty khi TẠO MỚI
+        // Khi EDIT, giữ lại tất cả field để backend có thể cập nhật
+        if (!isEditMode) {
+            Object.keys(submitData).forEach((key) => {
+                if (submitData[key] === null || submitData[key] === "") {
+                    delete submitData[key];
+                }
+            });
+        }
 
         onSubmit(submitData);
     };
@@ -210,9 +215,8 @@ const UserFormDialog = ({ open, onClose, user, onSubmit, loading }) => {
                             onChange={handleChange("username")}
                             placeholder="Nhập tên đăng nhập"
                             disabled={loading || !!user}
-                            className={`user-form-input ${
-                                errors.username ? "user-form-input--error" : ""
-                            }`}
+                            className={`user-form-input ${errors.username ? "user-form-input--error" : ""
+                                }`}
                         />
                         {errors.username && (
                             <p className="user-form-error">{errors.username}</p>
@@ -235,9 +239,8 @@ const UserFormDialog = ({ open, onClose, user, onSubmit, loading }) => {
                             onChange={handleChange("name")}
                             placeholder="Nhập tên đầy đủ"
                             disabled={loading}
-                            className={`user-form-input ${
-                                errors.name ? "user-form-input--error" : ""
-                            }`}
+                            className={`user-form-input ${errors.name ? "user-form-input--error" : ""
+                                }`}
                         />
                         {errors.name && (
                             <p className="user-form-error">{errors.name}</p>
@@ -255,9 +258,8 @@ const UserFormDialog = ({ open, onClose, user, onSubmit, loading }) => {
                             onChange={handleChange("email")}
                             placeholder="example@email.com"
                             disabled={loading}
-                            className={`user-form-input ${
-                                errors.email ? "user-form-input--error" : ""
-                            }`}
+                            className={`user-form-input ${errors.email ? "user-form-input--error" : ""
+                                }`}
                         />
                         {errors.email && (
                             <p className="user-form-error">{errors.email}</p>
@@ -275,9 +277,8 @@ const UserFormDialog = ({ open, onClose, user, onSubmit, loading }) => {
                             onChange={handleChange("phone")}
                             placeholder="0123456789"
                             disabled={loading}
-                            className={`user-form-input ${
-                                errors.phone ? "user-form-input--error" : ""
-                            }`}
+                            className={`user-form-input ${errors.phone ? "user-form-input--error" : ""
+                                }`}
                         />
                         {errors.phone && (
                             <p className="user-form-error">{errors.phone}</p>
@@ -370,9 +371,8 @@ const UserFormDialog = ({ open, onClose, user, onSubmit, loading }) => {
                                     : "Nhập mật khẩu (tối thiểu 6 ký tự)"
                             }
                             disabled={loading}
-                            className={`user-form-input ${
-                                errors.password ? "user-form-input--error" : ""
-                            }`}
+                            className={`user-form-input ${errors.password ? "user-form-input--error" : ""
+                                }`}
                         />
                         {errors.password && (
                             <p className="user-form-error">{errors.password}</p>
@@ -395,11 +395,10 @@ const UserFormDialog = ({ open, onClose, user, onSubmit, loading }) => {
                                 onChange={handleChange("password_confirmation")}
                                 placeholder="Nhập lại mật khẩu"
                                 disabled={loading}
-                                className={`user-form-input ${
-                                    errors.password_confirmation
+                                className={`user-form-input ${errors.password_confirmation
                                         ? "user-form-input--error"
                                         : ""
-                                }`}
+                                    }`}
                             />
                             {errors.password_confirmation && (
                                 <p className="user-form-error">

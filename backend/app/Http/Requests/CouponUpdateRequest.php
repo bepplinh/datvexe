@@ -33,7 +33,7 @@ class CouponUpdateRequest extends FormRequest
             ],
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
-            'discount_type' => 'sometimes|in:fixed,percentage',
+            'discount_type' => 'sometimes|in:fixed_amount,percentage',
             'discount_value' => [
                 'sometimes',
                 'numeric',
@@ -69,7 +69,7 @@ class CouponUpdateRequest extends FormRequest
             'code.unique' => 'Mã giảm giá đã tồn tại.',
             'code.max' => 'Mã giảm giá không được vượt quá 50 ký tự.',
             'name.max' => 'Tên mã giảm giá không được vượt quá 255 ký tự.',
-            'discount_type.in' => 'Loại giảm giá phải là fixed hoặc percentage.',
+            'discount_type.in' => 'Loại giảm giá phải là fixed_amount hoặc percentage.',
             'discount_value.numeric' => 'Giá trị giảm giá phải là số.',
             'discount_value.min' => 'Giá trị giảm giá phải lớn hơn hoặc bằng 0.',
             'minimum_order_amount.numeric' => 'Số tiền đơn hàng tối thiểu phải là số.',
