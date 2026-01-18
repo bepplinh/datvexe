@@ -56,7 +56,8 @@ const PaymentDataGrid = ({ payments, onView, loading }) => {
         {
             field: "customer",
             headerName: "Khách hàng",
-            width: 200,
+            flex: 1,
+            minWidth: 150,
             renderCell: (params) => {
                 const booking = params.row.booking;
                 const customerName =
@@ -64,7 +65,7 @@ const PaymentDataGrid = ({ payments, onView, loading }) => {
                     booking?.user?.name ||
                     booking?.user?.username ||
                     "-";
-                return <span>{customerName}</span>;
+                return <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{customerName}</span>;
             },
         },
         {
@@ -94,15 +95,21 @@ const PaymentDataGrid = ({ payments, onView, loading }) => {
         {
             field: "transaction_id",
             headerName: "Mã giao dịch",
-            width: 240,
+            width: 160,
             renderCell: (params) => {
                 return (
                     <span
                         style={{
                             fontFamily: "monospace",
-                            fontSize: "0.875rem",
+                            fontSize: "0.8rem",
                             color: "#6c757d",
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            display: 'block',
+                            maxWidth: '100%',
                         }}
+                        title={params.row.provider_txn_id || "-"}
                     >
                         {params.row.provider_txn_id || "-"}
                     </span>
@@ -111,11 +118,11 @@ const PaymentDataGrid = ({ payments, onView, loading }) => {
         },
         {
             field: "payment_time",
-            headerName: "Thời gian thanh toán",
-            width: 180,
+            headerName: "Thời gian TT",
+            width: 150,
             renderCell: (params) => {
                 const createdAt = params.row?.booking?.created_at;
-                return <span>{formatDate(createdAt)}</span>;
+                return <span style={{ fontSize: '0.85rem' }}>{formatDate(createdAt)}</span>;
             },
         },
         {

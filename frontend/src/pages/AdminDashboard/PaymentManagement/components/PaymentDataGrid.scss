@@ -5,6 +5,9 @@
     box-shadow: 0 4px 16px rgba(13, 110, 253, 0.08);
     border: 1px solid rgba(13, 110, 253, 0.1);
     margin-bottom: 2rem;
+    overflow-x: auto;
+    width: 100%;
+    box-sizing: border-box;
 
     .MuiDataGrid-root {
         border: none;
@@ -78,4 +81,3 @@
         color: #6c757d;
     }
 }
-

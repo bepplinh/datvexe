@@ -199,9 +199,9 @@ class SeatLockService
                     $seatNum = $seatNumberById[$seatId] ?? (string)$seatId;
 
                     if (($c['type'] ?? '') === 'BOOKED') {
-                        $msg = "Ghế {$seatNum} đã được đặt trong chuyến {$tripId}. Vui lòng chọn ghế khác.";
+                        $msg = "Ghế {$seatNum} đã được đặt. Vui lòng chọn ghế khác.";
                     } else {
-                        $msg = "Ghế {$seatNum} đang được người khác đặt trong chuyến {$tripId}. Vui lòng chọn ghế khác.";
+                        $msg = "Ghế {$seatNum} đang được người khác đặt. Vui lòng chọn ghế khác.";
                     }
                 }
             }

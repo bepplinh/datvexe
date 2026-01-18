@@ -43,6 +43,14 @@ const UserNotificationBell = () => {
                 return <Clock className="notification-icon reminder" size={18} />;
             case "booking.success":
                 return <Bus className="notification-icon booking" size={18} />;
+            case "booking.cancelled":
+                return <Bell className="notification-icon cancelled" size={18} />;
+            case "refund.success":
+                return <Bell className="notification-icon refund" size={18} />;
+            case "trip.changed":
+                return <Bus className="notification-icon changed" size={18} />;
+            case "seat.changed":
+                return <Bell className="notification-icon changed" size={18} />;
             default:
                 return <Bell className="notification-icon default" size={18} />;
         }

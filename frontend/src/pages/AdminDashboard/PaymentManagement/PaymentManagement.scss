@@ -2,10 +2,13 @@
     padding: 24px;
     min-height: 100vh;
     background: #f8f9fa;
+    overflow-x: hidden;
 
     &__container {
         max-width: 1400px;
         margin: 0 auto;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     &__header {
@@ -200,4 +203,3 @@
         }
     }
 }
-

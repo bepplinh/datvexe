@@ -13,8 +13,17 @@ class ClientBookingController extends Controller
     {
         try {
             $userId = Auth::id();
-            $query = Booking::where('user_id', $userId)
-                ->with([
+            $query = Booking::where('user_id', $userId);
+
+            // Filter by type: upcoming or completed
+            $type = $request->input('type');
+            if ($type === 'upcoming') {
+                $query->upcoming();
+            } elseif ($type === 'completed') {
+                $query->completed();
+            }
+
+            $query->with([
                     'legs.trip.route',
                     'legs.trip.bus',
                     'legs.items.seat',

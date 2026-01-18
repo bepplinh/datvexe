@@ -11,14 +11,29 @@ class AdminNotificationService
 {
     public function notifyBookingPaid(Booking $booking)
     {
+        // Load relations nếu chưa có
+        $booking->loadMissing(['user', 'legs.trip.route.fromCity', 'legs.trip.route.toCity']);
+        
+        // Lấy thông tin tuyến từ leg đầu tiên
+        $firstLeg = $booking->legs->first();
+        $trip = $firstLeg?->trip;
+        $route = $trip?->route;
+        
+        $originName = $route?->fromCity?->name ?? '';
+        $destinationName = $route?->toCity?->name ?? '';
+        
+        // Tạo thông báo với tên tuyến đầy đủ
+        $routeDisplay = ($originName && $destinationName) 
+            ? "{$originName} - {$destinationName}" 
+            : ($route?->name ?? 'Không xác định');
+        
         $notification = AdminNotification::create([
             'type' => 'booking.success',
             'title'       => 'Đơn mới #' . $booking->code,
             'message'     => sprintf(
-                '%s đặt vé tuyến %s - %s, tổng %sđ',
+                '%s đặt vé tuyến %s, tổng %sđ',
                 optional($booking->user)->name ?? 'Khách lẻ',
-                optional($booking->legs->first()?->trip)->origin_name,
-                optional($booking->legs->first()?->trip)->destination_name,
+                $routeDisplay,
                 number_format($booking->total_price)
             ),
             'booking_id'  => $booking->id,

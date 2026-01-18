@@ -23,6 +23,7 @@ const TicketManagement = () => {
     const [selectedTicket, setSelectedTicket] = useState(null);
 
     useEffect(() => {
+        // Initial fetch based on default filter (all)
         fetchTickets();
     }, []);
 
@@ -30,15 +31,20 @@ const TicketManagement = () => {
         applyFilters();
     }, [tickets, filters, searchQuery, sortOption]);
 
-    const fetchTickets = async () => {
+    const fetchTickets = async (type = "") => {
         try {
             setLoading(true);
-            // Lấy nhiều vé hơn mặc định (API có paginate với per_page)
+            const params = {
+                per_page: 100,
+                page: 1,
+            };
+
+            if (type) {
+                params.type = type;
+            }
+
             const response = await axiosClient.get("/bookings", {
-                params: {
-                    per_page: 100, // có thể tăng/giảm tuỳ nhu cầu
-                    page: 1,
-                },
+                params: params,
             });
 
             const bookings = response.data?.data?.data || [];
@@ -70,6 +76,16 @@ const TicketManagement = () => {
                     returnLeg?.trip?.bus?.name ||
                     departureBusType;
 
+                // Determine logic status based on time
+                const isDeparted = departureTime ? new Date(departureTime) < new Date() : false;
+
+                let computedStatus = "not-departed";
+                if (booking.status === "cancelled") {
+                    computedStatus = "cancelled";
+                } else if (isDeparted) {
+                    computedStatus = "departed";
+                }
+
                 const ticket = {
                     id: booking.id,
                     code: booking.code,
@@ -93,10 +109,7 @@ const TicketManagement = () => {
                     return_bus_type: isRoundTrip ? returnBusType : null,
                     payment_status:
                         booking.status === "paid" ? "paid" : "unpaid",
-                    ticket_status:
-                        booking.status === "cancelled"
-                            ? "cancelled"
-                            : "not-departed",
+                    ticket_status: computedStatus,
                     price: booking.total_price || 0,
                     is_round_trip: isRoundTrip,
                     return_departure_date: returnDepartureTime
@@ -105,7 +118,7 @@ const TicketManagement = () => {
                     return_departure_time: returnDepartureTime
                         ? returnDepartureTime.slice(11, 16)
                         : null,
-                    raw: booking, // giữ booking gốc để modal dùng
+                    raw: booking,
                 };
 
                 return ticket;
@@ -121,65 +134,24 @@ const TicketManagement = () => {
         }
     };
 
-    const stats = useMemo(() => {
-        const total = tickets.length;
-        const paid = tickets.filter(
-            (ticket) => ticket.payment_status === "paid"
-        ).length;
-        const upcoming = tickets.filter(
-            (ticket) => ticket.ticket_status === "not-departed"
-        ).length;
-        const cancelled = tickets.filter(
-            (ticket) => ticket.ticket_status === "cancelled"
-        ).length;
-
-        return [
-            {
-                label: "Tổng số vé",
-                value: total,
-                accent: "primary",
-            },
-            {
-                label: "Đã thanh toán",
-                value: paid,
-                accent: "success",
-            },
-            {
-                label: "Sắp khởi hành",
-                value: upcoming,
-                accent: "info",
-            },
-            {
-                label: "Đã hủy",
-                value: cancelled,
-                accent: "danger",
-            },
-        ];
-    }, [tickets]);
+    // ... stats logic ...
 
     const applyFilters = () => {
         let filtered = [...tickets];
 
-        // Lọc theo trạng thái thanh toán
-        if (filters.payment_status !== "") {
-            filtered = filtered.filter((ticket) => {
-                if (filters.payment_status === "paid") {
-                    return (
-                        ticket.payment_status === "paid" ||
-                        ticket.payment_status === "Đã thanh toán"
-                    );
-                }
-                if (filters.payment_status === "unpaid") {
-                    return (
-                        ticket.payment_status === "unpaid" ||
-                        ticket.payment_status === "Chưa thanh toán"
-                    );
-                }
-                return true;
-            });
-        }
+        // If we are in "cancelled" tab, we filter locally because backend API 
+        // doesn't have ?type=cancelled yet (or we want to show all cancelled from 'all')
+        // However, if we fetched 'upcoming' or 'completed', tickets are already scoped.
+        // We just need to handle explicit status filters if set by user via dropdown.
 
-        // Lọc theo tình trạng vé
+        // Note: activeQuickFilter logic is handled by what we fetch, 
+        // EXCEPT for 'cancelled' which we might fetch ALL and filter? 
+        // Or if we fetch ALL, we filter by ticket_status if set in filters.
+
+        // For simplicity, let's respect the `filters.ticket_status` if it is set manually
+        // But `handleQuickFilter` will now drive the fetching.
+
+        // Let's keep `ticket_status` filter logic for safety:
         if (filters.ticket_status !== "") {
             filtered = filtered.filter((ticket) => {
                 if (filters.ticket_status === "departed") {
@@ -204,6 +176,31 @@ const TicketManagement = () => {
             });
         }
 
+        // Quick filter "cancelled" special handling if we fetched "all"
+        if (activeQuickFilter === 'cancelled') {
+            filtered = filtered.filter(t => t.ticket_status === 'cancelled');
+        }
+
+        // ... rest of filters (payment, date, search) ...
+        // Lọc theo trạng thái thanh toán
+        if (filters.payment_status !== "") {
+            filtered = filtered.filter((ticket) => {
+                if (filters.payment_status === "paid") {
+                    return (
+                        ticket.payment_status === "paid" ||
+                        ticket.payment_status === "Đã thanh toán"
+                    );
+                }
+                if (filters.payment_status === "unpaid") {
+                    return (
+                        ticket.payment_status === "unpaid" ||
+                        ticket.payment_status === "Chưa thanh toán"
+                    );
+                }
+                return true;
+            });
+        }
+
         // Lọc theo ngày đi
         if (filters.from_date !== "") {
             filtered = filtered.filter((ticket) => {
@@ -217,7 +214,7 @@ const TicketManagement = () => {
             filtered = filtered.filter((ticket) => {
                 const ticketDate = new Date(ticket.departure_date);
                 const toDate = new Date(filters.to_date);
-                toDate.setHours(23, 59, 59, 999); // Include the entire day
+                toDate.setHours(23, 59, 59, 999);
                 return ticketDate <= toDate;
             });
         }
@@ -277,18 +274,22 @@ const TicketManagement = () => {
     };
 
     const quickFilters = [
-        { key: "all", label: "Tất cả", status: "" },
-        { key: "upcoming", label: "Chưa đi", status: "not-departed" },
-        { key: "departed", label: "Đã đi", status: "departed" },
-        { key: "cancelled", label: "Đã hủy", status: "cancelled" },
+        { key: "all", label: "Tất cả", type: "" },
+        { key: "upcoming", label: "Chưa đi", type: "upcoming" },
+        { key: "departed", label: "Đã đi", type: "completed" },
+        { key: "cancelled", label: "Đã hủy", type: "" }, // Fetch all then filter locally
     ];
 
     const handleQuickFilter = (filter) => {
         setActiveQuickFilter(filter.key);
+        // Reset manual filters to avoid conflicts
         setFilters((prev) => ({
             ...prev,
-            ticket_status: filter.status,
+            ticket_status: "",
         }));
+
+        // Fetch data based on type
+        fetchTickets(filter.type);
     };
 
     return (
@@ -335,11 +336,10 @@ const TicketManagement = () => {
                             <button
                                 key={filter.key}
                                 type="button"
-                                className={`ticket-management__chip ${
-                                    activeQuickFilter === filter.key
+                                className={`ticket-management__chip ${activeQuickFilter === filter.key
                                         ? "ticket-management__chip--active"
                                         : ""
-                                }`}
+                                    }`}
                                 onClick={() => handleQuickFilter(filter)}
                             >
                                 {filter.label}

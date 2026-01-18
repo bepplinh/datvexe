@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('pickup_address')->nullable();
             $table->string('dropoff_address')->nullable();
             $table->decimal('total_price', 10, 0)->default(0);
+            $table->timestamp('reminder_sent_at')->nullable(); // For trip reminder notification
             $table->timestamps();
         });
     }

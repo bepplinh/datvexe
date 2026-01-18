@@ -1,9 +1,15 @@
 import ContactForm from "../ContactForm";
 
-function ContactStep({ contactInfo, onChange }) {
+function ContactStep({ register, errors, watch, setValue, clearErrors }) {
     return (
         <div className="stepContent">
-            <ContactForm values={contactInfo} onChange={onChange} />
+            <ContactForm
+                register={register}
+                errors={errors}
+                watch={watch}
+                setValue={setValue}
+                clearErrors={clearErrors}
+            />
         </div>
     );
 }

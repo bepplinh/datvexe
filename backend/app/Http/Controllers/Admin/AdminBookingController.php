@@ -12,6 +12,7 @@ use App\Http\Requests\Admin\AdminBookingRequest;
 use App\Http\Requests\Admin\AdminBookingModificationRequest;
 use App\Services\Admin\AdminBookingModification\AdminBookingModificationService;
 use App\Services\Checkout\RefundService;
+use App\Services\UserNotificationService;
 use Illuminate\Support\Facades\Log;
 use DomainException;
 
@@ -20,7 +21,8 @@ class AdminBookingController extends Controller
     public function __construct(
         private AdminBookingService $adminBookingService,
         private AdminBookingModificationService $modificationService,
-        private RefundService $refundService
+        private RefundService $refundService,
+        private UserNotificationService $userNotification
     ) {}
 
     /**
@@ -196,12 +198,22 @@ class AdminBookingController extends Controller
     {
         try {
             $bookingModel = Booking::findOrFail($booking);
+            
+            // Get old seat label for notification
+            $bookingItem = $bookingModel->legs->flatMap->items->firstWhere('id', $request->booking_item_id);
+            $oldSeatLabel = $bookingItem?->seat_label ?? $bookingItem?->seat?->seat_number ?? 'N/A';
+            
             $updatedBooking = $this->modificationService->changeSeat(
                 booking: $bookingModel,
                 bookingItemId: $request->booking_item_id,
                 newSeatId: $request->new_seat_id,
                 adminId: $request->user()->id
             );
+            
+            // Get new seat label and send notification
+            $updatedItem = $updatedBooking->legs->flatMap->items->firstWhere('id', $request->booking_item_id);
+            $newSeatLabel = $updatedItem?->seat_label ?? $updatedItem?->seat?->seat_number ?? 'N/A';
+            $this->userNotification->notifySeatChanged($updatedBooking, $oldSeatLabel, $newSeatLabel);
 
             return response()->json([
                 'success' => true,
@@ -224,6 +236,11 @@ class AdminBookingController extends Controller
     {
         try {
             $bookingModel = Booking::findOrFail($booking);
+            
+            // Get old trip info for notification
+            $oldLeg = $bookingModel->legs->first();
+            $oldTripInfo = $oldLeg?->trip?->departure_time?->format('H:i d/m/Y') ?? 'N/A';
+            
             $result = $this->modificationService->changeTrip(
                 booking: $bookingModel,
                 bookingItemId: $request->booking_item_id,
@@ -237,6 +254,12 @@ class AdminBookingController extends Controller
                 ],
                 adminId: $request->user()->id
             );
+            
+            // Get new trip info and send notification
+            $updatedBooking = $result['booking'];
+            $newLeg = $updatedBooking->legs->first();
+            $newTripInfo = $newLeg?->trip?->departure_time?->format('H:i d/m/Y') ?? 'N/A';
+            $this->userNotification->notifyTripChanged($updatedBooking, $oldTripInfo, $newTripInfo);
 
             return response()->json([
                 'success' => true,
@@ -473,6 +496,10 @@ class AdminBookingController extends Controller
             if (!$payment) {
                 throw new \RuntimeException('Không tìm thấy payment sau khi hoàn tiền.');
             }
+            
+            // Send refund notification
+            $refundAmount = $validated['refund_amount'] ?? $payment->refund_amount ?? 0;
+            $this->userNotification->notifyRefundSuccess($bookingModel, $refundAmount);
 
             return response()->json([
                 'success' => true,
@@ -490,9 +517,8 @@ class AdminBookingController extends Controller
                         'status' => $payment->status,
                     ],
                     'refund_info' => [
-                        'refunded_amount' => $validated['refund_amount'] ?? ($payment->amount - ($payment->refund_amount ?? 0)),
+                        'refunded_amount' => $validated['refund_amount'] ?? $payment->refund_amount,
                         'total_refunded' => $payment->refund_amount,
-                        'remaining_paid' => $totalPaid - $payment->refund_amount,
                     ],
                 ],
             ]);

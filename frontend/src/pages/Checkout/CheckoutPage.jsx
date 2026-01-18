@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "react-toastify";
 import MainLayout from "../../layout/MainLayout/MainLayout";
 import "./CheckoutPage.scss";
@@ -11,17 +13,18 @@ import ContactStep from "./components/steps/ContactStep";
 import PaymentStep from "./components/steps/PaymentStep";
 import ConfirmationStep from "./components/steps/ConfirmationStep";
 import { updateDraftPayment as updateDraftPaymentService } from "../../services/draftService";
-import { validateCoupon } from "../../services/couponService";
 import { mapContactFormToDraftPayload } from "./utils/contactMapper";
 import CountdownTimer from "./components/CountdownTimer/CountdownTimer";
-import { Button, Typography, Box, Paper } from "@mui/material";
+import { Button, Typography, Paper } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import BlockIcon from "@mui/icons-material/Block";
+import { checkoutSchema } from "./schemas/checkoutSchema";
+import { useCheckoutCoupon } from "./hooks/useCheckoutCoupon";
+import { useCheckoutFlow } from "./hooks/useCheckoutFlow";
 
 function CheckoutPage() {
     const navigate = useNavigate();
-    const [searchParams, setSearchParams] = useSearchParams();
     const {
         draftId,
         draftData,
@@ -36,181 +39,62 @@ function CheckoutPage() {
         paymentMethod,
         selectPaymentMethod,
         setResultBooking,
-        couponCode,
-        updateCouponCode,
     } = useCheckout();
 
+    // Form handling
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        trigger,
+        getValues,
+        setValue,
+        watch,
+        reset,
+        control,
+        clearErrors,
+    } = useForm({
+        resolver: yupResolver(checkoutSchema),
+        defaultValues: contactInfo,
+        mode: "onBlur",
+    });
+
+    useEffect(() => {
+        if (contactInfo) {
+            reset(contactInfo);
+        }
+    }, [contactInfo, reset]);
+
+    // Custom Hooks
+    const {
+        couponCode,
+        updateCouponCode,
+        couponId,
+        setCouponId,
+        couponMessage,
+        isCouponChecking,
+        isCouponValid,
+        couponDiscount,
+    } = useCheckoutCoupon(draftData);
+
+    const { fatalError } = useCheckoutFlow(
+        draftId,
+        draftData,
+        isLoadingDraft,
+        draftError,
+        goToStep
+    );
+
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [couponId, setCouponId] = useState(null);
-    const [couponMessage, setCouponMessage] = useState("");
-    const [isCouponChecking, setIsCouponChecking] = useState(false);
-    const [isCouponValid, setIsCouponValid] = useState(false);
-    const [couponDiscount, setCouponDiscount] = useState(0);
-    const couponTimerRef = useRef(null);
-
-    // Track last valid draft ID
-    const lastValidDraftId = useRef(null);
-    const [fatalError, setFatalError] = useState(null);
-
-    // Update last valid draft ID when draftData loads successfully
-    useEffect(() => {
-        if (draftData && draftId) {
-            lastValidDraftId.current = draftId;
-            setFatalError(null);
-        }
-    }, [draftData, draftId]);
-
-    // Xử lý redirect từ PayOS
-    useEffect(() => {
-        const paymentStatus = searchParams.get("payment_status");
-        const message = searchParams.get("message");
-        const step = searchParams.get("step");
-
-        if (step === "3") {
-            goToStep(3);
-        }
-
-        if (paymentStatus && message) {
-            // Decode message
-            const decodedMessage = decodeURIComponent(message);
-
-            if (paymentStatus === "success") {
-                toast.success(decodedMessage);
-            } else if (paymentStatus === "cancelled") {
-                toast.success(decodedMessage || "Bạn đã hủy thanh toán.");
-            } else if (paymentStatus === "failed") {
-                toast.error(decodedMessage);
-            } else if (paymentStatus === "processing") {
-                toast.info(decodedMessage);
-            }
-
-            // Xóa query params sau khi hiển thị thông báo
-            const newParams = new URLSearchParams(searchParams);
-            newParams.delete("payment_status");
-            newParams.delete("message");
-            newParams.delete("step");
-            setSearchParams(newParams, { replace: true });
-        }
-    }, [searchParams, goToStep, setSearchParams]);
-
-    // Debounce validate coupon when user types
-    useEffect(() => {
-        if (couponTimerRef.current) {
-            clearTimeout(couponTimerRef.current);
-        }
-
-        const code = couponCode?.trim();
-        if (!code) {
-            setCouponId(null);
-            setCouponMessage("");
-            setIsCouponValid(false);
-            setIsCouponChecking(false);
-            setCouponDiscount(0);
-            return;
-        }
-
-        setIsCouponChecking(true);
-        setIsCouponValid(false);
-        setCouponMessage("Đang kiểm tra mã giảm giá...");
-
-        couponTimerRef.current = setTimeout(async () => {
-            try {
-                // Tính orderAmount từ draftData
-                const orderAmount = draftData?.total_price ??
-                    (draftData?.trips || []).reduce((sum, trip) => {
-                        return sum + (trip.total_price ||
-                            (trip.seats || []).reduce((seatSum, seat) => seatSum + (seat.price || 0), 0));
-                    }, 0);
-
-
-                const validateRes = await validateCoupon(code, orderAmount);
-
-
-                // Response structure: { success: true, data: { valid: true, coupon: {...}, discount_amount: 12345 }, message: "..." }
-                // validateRes là res.data từ axios, nên structure là: { success, data: {...}, message }
-                const isValid =
-                    validateRes?.data?.valid ??
-                    validateRes?.valid ??
-                    validateRes?.success ??
-                    false;
-
-                const resolvedCoupon =
-                    validateRes?.data?.coupon ||
-                    validateRes?.coupon ||
-                    validateRes?.data?.data?.coupon;
-
-                if (!isValid || !resolvedCoupon?.id) {
-                    const message =
-                        validateRes?.data?.message ||
-                        validateRes?.message ||
-                        "Mã giảm giá không hợp lệ.";
-                    setCouponMessage(message);
-                    setCouponId(null);
-                    setIsCouponValid(false);
-                    setCouponDiscount(0);
-                } else {
-                    // Lưu thông tin discount từ response
-                    // Response structure: { success: true, data: { valid: true, coupon: {...}, discount_amount: 12345 }, message: "..." }
-                    const discountAmount =
-                        validateRes?.data?.discount_amount ?? // Lấy từ data.discount_amount (đúng structure)
-                        validateRes?.discount_amount ??        // Fallback
-                        resolvedCoupon?.discount_amount ??    // Fallback từ coupon object
-                        0;
-
-
-                    setCouponMessage("Áp dụng mã giảm giá thành công.");
-                    setCouponId(resolvedCoupon.id);
-                    setIsCouponValid(true);
-                    setCouponDiscount(Number(discountAmount) || 0); // Đảm bảo là số
-                }
-            } catch (err) {
-                console.error("Validate coupon failed", err);
-                setCouponMessage(
-                    err?.response?.data?.message ||
-                    "Không thể kiểm tra mã giảm giá."
-                );
-                setCouponId(null);
-                setIsCouponValid(false);
-                setCouponDiscount(0);
-            } finally {
-                setIsCouponChecking(false);
-            }
-        }, 500);
-
-        return () => {
-            if (couponTimerRef.current) {
-                clearTimeout(couponTimerRef.current);
-            }
-        };
-    }, [couponCode, draftData]);
-
-    const validateContactInfo = () => {
-        if (!contactInfo.name?.trim()) {
-            return "Vui lòng nhập họ tên hành khách.";
-        }
-        if (!contactInfo.phone?.trim()) {
-            return "Vui lòng nhập số điện thoại hành khách.";
-        }
-        if (contactInfo.isProxyBooking) {
-            if (!contactInfo.bookerName?.trim()) {
-                return "Vui lòng nhập họ tên người đặt hộ.";
-            }
-            if (!contactInfo.bookerPhone?.trim()) {
-                return "Vui lòng nhập số điện thoại người đặt hộ.";
-            }
-        }
-        return null;
-    };
 
     const handleContinue = async () => {
         if (isSubmitting) return;
 
         if (currentStep === 1) {
-            const validationError = validateContactInfo();
-            if (validationError) {
-                toast.error(validationError);
-                return;
-            }
+            const isValid = await trigger();
+            if (!isValid) return;
+
+            updateContactInfo(getValues());
             nextStep();
             return;
         }
@@ -230,7 +114,9 @@ function CheckoutPage() {
                 setIsSubmitting(true);
                 if (couponCode?.trim()) {
                     if (!isCouponValid || !couponId) {
-                        toast.error("Vui lòng kiểm tra mã giảm giá trước khi tiếp tục.");
+                        toast.error(
+                            "Vui lòng kiểm tra mã giảm giá trước khi tiếp tục."
+                        );
                         setIsSubmitting(false);
                         return;
                     }
@@ -259,7 +145,6 @@ function CheckoutPage() {
                         return;
                     }
 
-                    // Các payment method khác (cash, etc.)
                     toast.success("Thanh toán thành công.");
                     nextStep();
                 } else {
@@ -285,50 +170,16 @@ function CheckoutPage() {
         }, 1000);
     }, [navigate]);
 
-    // Xử lý lỗi khi không có quyền truy cập draft (403) hoặc draft không tồn tại (404)
-    useEffect(() => {
-        if (draftError && !isLoadingDraft) {
-            const errorStatus = draftError.status || draftError.response?.status;
-            const errorMessage = draftError.message || draftError.response?.data?.message;
-
-            // Check if we have a previously known valid draft ID
-            if (lastValidDraftId.current && lastValidDraftId.current !== draftId) {
-                // If user changed URL manually from a valid one, revert it
-                toast.warning("Bạn không có quyền truy cập đơn đặt vé này. Đã quay lại đơn cũ.");
-                setSearchParams({ draft_id: lastValidDraftId.current }, { replace: true });
-                return;
-            }
-
-            // If no previous valid ID (direct access to invalid URL), show fatal error
-            if (errorStatus === 403 || errorMessage?.includes("không có quyền")) {
-                setFatalError({
-                    title: "Không có quyền truy cập",
-                    subTitle: errorMessage || "Bạn không có quyền xem đơn đặt vé này.",
-                    status: "403"
-                });
-            } else if (errorStatus === 404 || errorMessage?.includes("không tồn tại")) {
-                setFatalError({
-                    title: "Không tìm thấy",
-                    subTitle: errorMessage || "Đơn đặt vé không tồn tại hoặc đã hết hạn.",
-                    status: "404"
-                });
-            } else if (errorStatus === 422 || errorMessage?.includes("hết hiệu lực")) {
-                setFatalError({
-                    title: "Đơn hết hiệu lực",
-                    subTitle: errorMessage || "Đơn đặt vé này đã hết hiệu lực hoặc đã được xử lý.",
-                    status: "error"
-                });
-            }
-        }
-    }, [draftError, isLoadingDraft, draftId, setSearchParams]);
-
     const renderStepContent = () => {
         switch (currentStep) {
             case 1:
                 return (
                     <ContactStep
-                        contactInfo={contactInfo}
-                        onChange={updateContactInfo}
+                        register={register}
+                        errors={errors}
+                        watch={watch}
+                        setValue={setValue}
+                        clearErrors={clearErrors}
                     />
                 );
             case 2:
@@ -375,25 +226,37 @@ function CheckoutPage() {
 
         return (
             <MainLayout>
-                <div style={{ padding: "50px 20px", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+                <div
+                    style={{
+                        padding: "50px 20px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        minHeight: "60vh",
+                    }}
+                >
                     <Paper
                         elevation={3}
                         sx={{
                             p: 4,
-                            textAlign: 'center',
+                            textAlign: "center",
                             maxWidth: 500,
                             borderRadius: 2,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: 2
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 2,
                         }}
                     >
                         <IconComponent sx={{ fontSize: 60 }} color={color} />
                         <Typography variant="h5" component="h2" gutterBottom>
                             {fatalError.title}
                         </Typography>
-                        <Typography variant="body1" color="text.secondary" paragraph>
+                        <Typography
+                            variant="body1"
+                            color="text.secondary"
+                            paragraph
+                        >
                             {fatalError.subTitle}
                         </Typography>
                         <Button

@@ -11,12 +11,18 @@ export const paymentService = {
             to_date,
             booking_code,
             search,
+            all = false,
         } = params;
 
-        const queryParams = new URLSearchParams({
-            page: page.toString(),
-            per_page: per_page.toString(),
-        });
+        const queryParams = new URLSearchParams();
+
+        // Nếu all=true, không thêm page và per_page để lấy tất cả dữ liệu
+        if (all) {
+            queryParams.append("all", "true");
+        } else {
+            queryParams.append("page", page.toString());
+            queryParams.append("per_page", per_page.toString());
+        }
 
         if (provider) queryParams.append("provider", provider);
         if (from_date) queryParams.append("from_date", from_date);
@@ -48,4 +54,3 @@ export const paymentService = {
         return response.data;
     },
 };
-

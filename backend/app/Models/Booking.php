@@ -59,4 +59,28 @@ class Booking extends Model
     {
         return $this->hasMany(Payment::class);
     }
+
+    /**
+     * Scope a query to only include upcoming bookings.
+     * At least one leg has a departure time in the future.
+     */
+    public function scopeUpcoming($query)
+    {
+        return $query->whereHas('legs.trip', function ($q) {
+            $q->where('departure_time', '>', now());
+        });
+    }
+
+    /**
+     * Scope a query to only include completed bookings.
+     * All legs have departure times in the past.
+     * We use whereDoesntHave with the inverse condition (future trips)
+     * to say "does not have any future trips" => all trips are past (or empty).
+     */
+    public function scopeCompleted($query)
+    {
+        return $query->whereDoesntHave('legs.trip', function ($q) {
+            $q->where('departure_time', '>', now());
+        });
+    }
 }

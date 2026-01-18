@@ -231,7 +231,7 @@ class AdminBookingService
 
     public function markBookingAsPaidManually(int $bookingId, int $adminId): Booking
     {
-        return DB::transaction(function () use ($bookingId, $adminId) {
+        $booking = DB::transaction(function () use ($bookingId, $adminId) {
             /** @var Booking $booking */
             $booking = Booking::lockForUpdate()->findOrFail($bookingId);
 
@@ -271,7 +271,48 @@ class AdminBookingService
 
             return $booking->fresh(['user', 'legs.items', 'payments']);
         });
+
+        // Send notification + email after transaction commits
+        $this->sendBookingSuccessNotification($booking);
+
+        return $booking;
     }
+
+    /**
+     * Send booking success email + web notification
+     */
+    protected function sendBookingSuccessNotification(Booking $booking): void
+    {
+        $email = $booking->passenger_email ?? $booking->user?->email;
+        
+        // Send email
+        if ($email) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($email)
+                    ->send(new \App\Mail\BookingSuccessMail($booking));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to send booking success email (admin)', [
+                    'booking_id' => $booking->id,
+                    'email' => $email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Send web notification
+        if ($booking->user) {
+            try {
+                app(\App\Services\UserNotificationService::class)
+                    ->notifyBookingSuccess($booking);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to send booking success notification (admin)', [
+                    'booking_id' => $booking->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
 
     /**
      * Chỉ check xem ghế đã BOOKED chưa (không create row mới ở đây).

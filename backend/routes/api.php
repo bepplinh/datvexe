@@ -168,6 +168,7 @@ Route::middleware(['auth:api', 'role:admin'])
         // Payments management
         Route::get('payments', [PaymentController::class, 'index']);
         Route::get('payments/stats', [PaymentController::class, 'stats']);
+        Route::get('payments/{id}', [PaymentController::class, 'show']);
     });
 
 Route::apiResource('/users', UserController::class);
@@ -279,5 +280,75 @@ Route::get('/test-trip-reminder-preview/{bookingLegId?}', function ($bookingLegI
     return view('emails.trip_reminder', [
         'leg' => $leg,
         'booking' => $leg->booking,
+    ]);
+});
+
+// Preview seat changed email
+Route::get('/test-email-preview/seat-changed/{bookingId?}', function ($bookingId = null) {
+    $booking = \App\Models\Booking::query()
+        ->when($bookingId, fn($q) => $q->where('id', $bookingId))
+        ->with(['legs.trip.route', 'legs.items.seat', 'legs.pickupLocation', 'legs.dropoffLocation'])
+        ->first();
+    
+    if (!$booking) {
+        return "Không tìm thấy booking!";
+    }
+    
+    return view('emails.seat_changed', [
+        'booking' => $booking,
+        'oldSeats' => 'A01, A02',
+        'newSeats' => 'B05, B06',
+    ]);
+});
+
+// Preview trip changed email
+Route::get('/test-email-preview/trip-changed/{bookingId?}', function ($bookingId = null) {
+    $booking = \App\Models\Booking::query()
+        ->when($bookingId, fn($q) => $q->where('id', $bookingId))
+        ->with(['legs.trip.route', 'legs.trip.bus', 'legs.items.seat', 'legs.pickupLocation', 'legs.dropoffLocation'])
+        ->first();
+    
+    if (!$booking) {
+        return "Không tìm thấy booking!";
+    }
+    
+    return view('emails.trip_changed', [
+        'booking' => $booking,
+        'oldTripInfo' => '08:00 - 15/01/2026',
+        'newTripInfo' => '14:00 - 16/01/2026',
+    ]);
+});
+
+// Preview refund success email
+Route::get('/test-email-preview/refund/{bookingId?}', function ($bookingId = null) {
+    $booking = \App\Models\Booking::query()
+        ->when($bookingId, fn($q) => $q->where('id', $bookingId))
+        ->with(['legs.trip.route', 'legs.items.seat', 'payments'])
+        ->first();
+    
+    if (!$booking) {
+        return "Không tìm thấy booking!";
+    }
+    
+    return view('emails.refund_success', [
+        'booking' => $booking,
+        'refundAmount' => 350000,
+    ]);
+});
+
+// Preview booking cancelled email
+Route::get('/test-email-preview/cancelled/{bookingId?}', function ($bookingId = null) {
+    $booking = \App\Models\Booking::query()
+        ->when($bookingId, fn($q) => $q->where('id', $bookingId))
+        ->with(['legs.trip.route', 'legs.items.seat', 'legs.pickupLocation', 'legs.dropoffLocation'])
+        ->first();
+    
+    if (!$booking) {
+        return "Không tìm thấy booking!";
+    }
+    
+    return view('emails.booking_cancelled', [
+        'booking' => $booking,
+        'reason' => 'Theo yêu cầu của khách hàng',
     ]);
 });

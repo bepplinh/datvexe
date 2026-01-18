@@ -93,6 +93,7 @@ function BookSeat({ trip, onClose }) {
                 }
                 toast.success("Đã giữ chỗ thành công!");
                 navigate(`/checkout?draft_id=${data.draft_id}`);
+                window.scrollTo(0, 0);
                 onClose?.();
             } else {
                 toast.error(
@@ -152,6 +153,7 @@ function BookSeat({ trip, onClose }) {
     const handleContinueDraft = () => {
         setShowPendingDialog(false);
         navigate(`/checkout?draft_id=${pendingDraft.id}`);
+        window.scrollTo(0, 0);
         onClose?.();
     };
 

@@ -15,6 +15,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Checkout\PayOSService;
 use App\Services\Checkout\BookingService;
 use App\Services\SeatFlow\SeatReleaseService;
+use App\Services\UserNotificationService;
 
 class PayOSWebhookController extends Controller
 {
@@ -23,6 +24,7 @@ class PayOSWebhookController extends Controller
         private SeatFlowService $seats,
         private SeatReleaseService $seatRelease,
         private BookingService  $booking,
+        private UserNotificationService $userNotification,
     ) {}
 
     public function handle(Request $req)
@@ -277,7 +279,12 @@ class PayOSWebhookController extends Controller
                             booked: $bookedBlocks,
                             userId: (int)$booking->user_id
                         ));
+                        
+                        // Send email
                         Mail::to($booking->email)->send(new BookingSuccessMail($booking));
+                        
+                        // Send web notification
+                        $this->userNotification->notifyBookingSuccess($booking);
                     } catch (Throwable $e) {
                         Log::error('AfterCommit dispatch error', ['e' => $e->getMessage()]);
                     }

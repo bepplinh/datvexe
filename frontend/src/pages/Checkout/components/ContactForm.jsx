@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 const countryOptions = [
     { value: "+84", label: "(VN) +84" },
@@ -6,19 +6,17 @@ const countryOptions = [
     { value: "+65", label: "+65" },
 ];
 
-function ContactForm({ values, onChange }) {
-    const handleChange = (field) => (event) => {
-        onChange?.(field, event.target.value);
-    };
+function ContactForm({ register, errors, watch, setValue, clearErrors }) {
+    const isProxyBooking = watch("isProxyBooking");
 
-    const handleProxyToggle = (event) => {
-        const checked = event.target.checked;
-        onChange?.("isProxyBooking", checked);
-        if (!checked) {
-            onChange?.("bookerName", "");
-            onChange?.("bookerPhone", "");
+    // Clear booker info if not booking for others
+    useEffect(() => {
+        if (!isProxyBooking) {
+            setValue("bookerName", "");
+            setValue("bookerPhone", "");
+            clearErrors(["bookerName", "bookerPhone"]);
         }
-    };
+    }, [isProxyBooking, setValue, clearErrors]);
 
     return (
         <div className="card">
@@ -28,30 +26,43 @@ function ContactForm({ values, onChange }) {
                     <label className="checkbox">
                         <input
                             type="checkbox"
-                            checked={values.isProxyBooking}
-                            onChange={handleProxyToggle}
+                            {...register("isProxyBooking")}
                         />
                         <span>Đặt hộ người khác</span>
                     </label>
                 </div>
 
-                {values.isProxyBooking && (
+                {isProxyBooking && (
                     <div className="form__row">
                         <div className="form__field form__field--half">
                             <label>Họ tên người đặt hộ *</label>
                             <input
-                                value={values.bookerName}
-                                onChange={handleChange("bookerName")}
+                                {...register("bookerName", {
+                                    onChange: () => clearErrors("bookerName"),
+                                })}
                                 placeholder="Họ và tên người đặt hộ"
+                                className={errors.bookerName ? "input-error" : ""}
                             />
+                            {errors.bookerName && (
+                                <span className="error-message">
+                                    {errors.bookerName.message}
+                                </span>
+                            )}
                         </div>
                         <div className="form__field form__field--half">
                             <label>Số điện thoại người đặt hộ *</label>
                             <input
-                                value={values.bookerPhone}
-                                onChange={handleChange("bookerPhone")}
+                                {...register("bookerPhone", {
+                                    onChange: () => clearErrors("bookerPhone"),
+                                })}
                                 placeholder="Số điện thoại người đặt hộ"
+                                className={errors.bookerPhone ? "input-error" : ""}
                             />
+                            {errors.bookerPhone && (
+                                <span className="error-message">
+                                    {errors.bookerPhone.message}
+                                </span>
+                            )}
                         </div>
                     </div>
                 )}
@@ -60,40 +71,45 @@ function ContactForm({ values, onChange }) {
                     <div className="form__field form__field--half">
                         <label>Họ tên *</label>
                         <input
-                            value={values.name}
-                            onChange={handleChange("name")}
+                            {...register("name", {
+                                onChange: () => clearErrors("name"),
+                            })}
                             placeholder="Họ và tên"
+                            className={errors.name ? "input-error" : ""}
                         />
+                        {errors.name && (
+                            <span className="error-message">{errors.name.message}</span>
+                        )}
                     </div>
                 </div>
                 <div className="form__row">
                     <div className="form__field form__field--half">
                         <label>Số điện thoại *</label>
                         <div className="phone">
-                            <select
-                                value={values.countryCode}
-                                onChange={handleChange("countryCode")}
-                            >
+                            <select {...register("countryCode")}>
                                 {countryOptions.map((option) => (
-                                    <option
-                                        value={option.value}
-                                        key={option.value}
-                                    >
+                                    <option value={option.value} key={option.value}>
                                         {option.label}
                                     </option>
                                 ))}
                             </select>
                             <input
-                                value={values.phone}
-                                onChange={handleChange("phone")}
+                                {...register("phone", {
+                                    onChange: () => clearErrors("phone"),
+                                })}
+                                className={errors.phone ? "input-error" : ""}
                             />
                         </div>
+                        {errors.phone && (
+                            <span className="error-message">{errors.phone.message}</span>
+                        )}
                     </div>
                     <div className="form__field form__field--half">
                         <label>Ghi chú</label>
                         <input
-                            value={values.note}
-                            onChange={handleChange("note")}
+                            {...register("note", {
+                                onChange: () => clearErrors("note"),
+                            })}
                             placeholder="Ghi chú"
                         />
                     </div>
@@ -102,16 +118,18 @@ function ContactForm({ values, onChange }) {
                     <div className="form__field form__field--half">
                         <label>NHẬP ĐIỂM ĐÓN CHI TIẾT</label>
                         <input
-                            value={values.pickup}
-                            onChange={handleChange("pickup")}
+                            {...register("pickup", {
+                                onChange: () => clearErrors("pickup"),
+                            })}
                             placeholder="Điểm đón chi tiết"
                         />
                     </div>
                     <div className="form__field form__field--half">
                         <label>NHẬP ĐIỂM TRẢ CHI TIẾT</label>
                         <input
-                            value={values.dropoff}
-                            onChange={handleChange("dropoff")}
+                            {...register("dropoff", {
+                                onChange: () => clearErrors("dropoff"),
+                            })}
                             placeholder="Điểm trả chi tiết"
                         />
                     </div>

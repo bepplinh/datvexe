@@ -179,6 +179,7 @@ export default function TripSelectedTickets() {
                 toast.success("Đã giữ chỗ thành công!");
                 clearPendingSelections();
                 navigate(`/checkout?draft_id=${data.draft_id}`);
+                window.scrollTo(0, 0);
             } else {
                 toast.error(
                     data.message || "Không thể giữ chỗ. Vui lòng thử lại."
@@ -219,6 +220,7 @@ export default function TripSelectedTickets() {
     const handleContinueDraft = () => {
         setShowPendingDialog(false);
         navigate(`/checkout?draft_id=${pendingDraft.id}`);
+        window.scrollTo(0, 0);
     };
 
     // Xử lý khi user chọn đặt vé mới

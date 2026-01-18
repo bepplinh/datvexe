@@ -31,15 +31,14 @@ const PaymentManagement = () => {
     const isMountedRef = useRef(true);
     const fetchingRef = useRef(false);
 
-    const fetchPayments = useCallback(async (page = 1) => {
+    const fetchPayments = useCallback(async () => {
         if (fetchingRef.current) return;
         fetchingRef.current = true;
 
         try {
             setLoading(true);
             const params = {
-                page,
-                per_page: 20,
+                all: true, // Lấy tất cả dữ liệu, không phân trang
             };
 
             if (filters.provider) params.provider = filters.provider;
@@ -52,11 +51,9 @@ const PaymentManagement = () => {
             const data = response?.data || response;
 
             if (isMountedRef.current) {
-                const paymentsData = data?.data || [];
+                // Nếu backend trả về dạng paginated, lấy data.data; nếu không lấy data trực tiếp
+                const paymentsData = Array.isArray(data) ? data : (data?.data || []);
                 setPayments(paymentsData);
-                setCurrentPage(data?.current_page || page);
-                setTotalPages(data?.last_page || 1);
-                setTotalItems(data?.total || 0);
             }
         } catch (error) {
             console.error("Error fetching payments:", error);
@@ -229,32 +226,11 @@ const PaymentManagement = () => {
                             </button>
                         </div>
                     ) : (
-                        <>
-                            <PaymentDataGrid
-                                payments={payments}
-                                onView={handleViewPayment}
-                                loading={loading}
-                            />
-                            {totalPages > 1 && (
-                                <div className="payment-management__pagination">
-                                    <button
-                                        disabled={currentPage === 1}
-                                        onClick={() => fetchPayments(currentPage - 1)}
-                                    >
-                                        Trước
-                                    </button>
-                                    <span>
-                                        Trang {currentPage} / {totalPages} ({totalItems} giao dịch)
-                                    </span>
-                                    <button
-                                        disabled={currentPage === totalPages}
-                                        onClick={() => fetchPayments(currentPage + 1)}
-                                    >
-                                        Sau
-                                    </button>
-                                </div>
-                            )}
-                        </>
+                        <PaymentDataGrid
+                            payments={payments}
+                            onView={handleViewPayment}
+                            loading={loading}
+                        />
                     )}
                 </div>
             </div>

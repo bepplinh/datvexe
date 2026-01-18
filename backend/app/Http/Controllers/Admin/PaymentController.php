@@ -67,10 +67,12 @@ class PaymentController extends Controller
                             $bookingQuery->where('code', 'like', '%' . $search . '%')
                                 ->orWhere('passenger_name', 'like', '%' . $search . '%')
                                 ->orWhere('passenger_phone', 'like', '%' . $search . '%')
+                                ->orWhere('passenger_email', 'like', '%' . $search . '%')
                                 ->orWhereHas('user', function ($userQuery) use ($search) {
                                     $userQuery->where('name', 'like', '%' . $search . '%')
                                         ->orWhere('username', 'like', '%' . $search . '%')
-                                        ->orWhere('email', 'like', '%' . $search . '%');
+                                        ->orWhere('email', 'like', '%' . $search . '%')
+                                        ->orWhere('phone', 'like', '%' . $search . '%');
                                 });
                         });
                 });
@@ -78,6 +80,16 @@ class PaymentController extends Controller
 
             // Order by paid_at desc (newest first)
             $query->orderBy('paid_at', 'desc');
+
+            // Nếu request param 'all' = true, trả về tất cả dữ liệu (không phân trang)
+            if ($request->boolean('all')) {
+                $payments = $query->get();
+                return response()->json([
+                    'success' => true,
+                    'data' => $payments,
+                    'message' => 'Lấy danh sách thanh toán thành công.'
+                ]);
+            }
 
             $perPage = $request->get('per_page', 20);
             $payments = $query->paginate($perPage);

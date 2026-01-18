@@ -27,6 +27,12 @@ return new class extends Migration
 
             $table->enum('status', ['pending', 'succeeded', 'failed', 'refunded', 'canceled'])
                 ->default('pending');
+            
+            // Failure tracking fields
+            $table->string('failure_code', 100)->nullable();
+            $table->text('failure_message')->nullable();
+            $table->json('error_data')->nullable();
+            
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('refunded_at')->nullable();
 

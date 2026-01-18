@@ -5,8 +5,7 @@ namespace App\Console\Commands;
 use Carbon\Carbon;
 use App\Models\BookingLeg;
 use App\Mail\TripReminderMail;
-use App\Models\UserNotification;
-use App\Events\UserNotificationCreated;
+use App\Services\UserNotificationService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -28,6 +27,12 @@ class SendTripReminders extends Command
      * @var string
      */
     protected $description = 'Send trip reminder notifications to passengers before departure';
+
+    public function __construct(
+        private UserNotificationService $notificationService
+    ) {
+        parent::__construct();
+    }
 
     /**
      * Execute the console command.
@@ -97,24 +102,16 @@ class SendTripReminders extends Command
                 // Send email
                 Mail::to($email)->send(new TripReminderMail($leg));
 
-                // Create web notification if user exists
+                // Create web notification if user exists (using service)
                 if ($user) {
-                    $notification = UserNotification::create([
-                        'user_id' => $user->id,
-                        'type' => 'trip.reminder',
-                        'title' => '⏰ Chuyến xe sắp khởi hành',
-                        'message' => "Chuyến xe của bạn sẽ khởi hành lúc {$departureTime?->format('H:i')} ngày {$departureTime?->format('d/m/Y')}. Vui lòng có mặt tại điểm đón trước 15-30 phút.",
-                        'booking_id' => $booking->id,
-                        'data' => [
-                            'booking_code' => $booking->code,
-                            'departure_time' => $departureTime?->toISOString(),
+                    $this->notificationService->notifyTripReminder(
+                        booking: $booking,
+                        departureTime: $departureTime,
+                        extraData: [
                             'pickup_address' => $leg->pickup_address,
                             'seat_count' => $leg->items?->count(),
-                        ],
-                    ]);
-
-                    // Broadcast to user
-                    event(new UserNotificationCreated($notification));
+                        ]
+                    );
                 }
 
                 // Mark as reminded
@@ -141,3 +138,4 @@ class SendTripReminders extends Command
         return Command::SUCCESS;
     }
 }
+
