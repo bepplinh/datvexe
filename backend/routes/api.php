@@ -47,6 +47,7 @@ use App\Http\Controllers\Client\Payment\PayOSWebhookController;
 use App\Http\Controllers\Client\Payment\PayOSRedirectController;
 use App\Http\Controllers\Client\Checkout\DraftCheckoutController;
 use App\Http\Controllers\Client\Checkout\CheckPendingDraftController;
+use App\Http\Controllers\Client\UserNotificationController;
 
 
 Route::post('/login',    [AuthController::class, 'login']);
@@ -67,6 +68,12 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('conversations/{conversation}', [ConversationController::class, 'show']);
     Route::post('conversations/{conversation}/messages', [ConversationController::class, 'storeMessage']);
     Route::patch('conversations/{conversation}/status', [ConversationController::class, 'updateStatus']);
+
+    // User notifications
+    Route::get('user/notifications', [UserNotificationController::class, 'index']);
+    Route::get('user/notifications/unread-count', [UserNotificationController::class, 'unreadCount']);
+    Route::post('user/notifications/{notification}/read', [UserNotificationController::class, 'markAsRead']);
+    Route::post('user/notifications/read-all', [UserNotificationController::class, 'markAllAsRead']);
 });
 
 
@@ -211,4 +218,66 @@ Route::get('/test-send-mail', function () {
     return "Đã gửi mail! (Hãy kiểm tra Mailtrap inbox của bạn)";
 });
 
+// Route để preview email và xem dữ liệu
+Route::get('/test-email-preview/{bookingId?}', function ($bookingId = 2) {
+    $booking = Booking::with([
+        'legs.items',
+            'legs.trip',
+            'legs',
+    ])->findOrFail($bookingId);
 
+    // Nếu muốn dd dữ liệu, bỏ comment dòng dưới
+    // dd($booking->toArray());
+
+    // Render email HTML để preview
+    return view('emails.booking_success', ['booking' => $booking]);
+});
+
+// Route dd dữ liệu booking
+Route::get('/test-email-data/{bookingId?}', function ($bookingId = 2) {
+    $booking = Booking::with([
+         'legs.items',
+            'legs.trip',
+            'legs',
+        'legs.pickupLocation:id,name',
+        'legs.dropoffLocation:id,name',
+    ])->findOrFail($bookingId);
+
+    dd($booking->toArray());
+});
+
+// Test trip reminder email
+Route::get('/test-trip-reminder/{bookingLegId?}', function ($bookingLegId = null) {
+    $leg = \App\Models\BookingLeg::query()
+        ->when($bookingLegId, fn($q) => $q->where('id', $bookingLegId))
+        ->whereHas('booking', fn($q) => $q->where('status', 'paid'))
+        ->with(['booking', 'trip', 'items.seat', 'pickupLocation', 'dropoffLocation'])
+        ->first();
+    
+    if (!$leg) {
+        return "Không tìm thấy booking leg phù hợp!";
+    }
+    
+    \Illuminate\Support\Facades\Mail::to('bep2702@gmail.com')
+        ->send(new \App\Mail\TripReminderMail($leg));
+    
+    return "Đã gửi email nhắc nhở đến bep2702@gmail.com cho booking #{$leg->booking->code}!";
+});
+
+// Preview trip reminder email
+Route::get('/test-trip-reminder-preview/{bookingLegId?}', function ($bookingLegId = null) {
+    $leg = \App\Models\BookingLeg::query()
+        ->when($bookingLegId, fn($q) => $q->where('id', $bookingLegId))
+        ->whereHas('booking', fn($q) => $q->where('status', 'paid'))
+        ->with(['booking', 'trip', 'items.seat', 'pickupLocation', 'dropoffLocation'])
+        ->first();
+    
+    if (!$leg) {
+        return "Không tìm thấy booking leg phù hợp!";
+    }
+    
+    return view('emails.trip_reminder', [
+        'leg' => $leg,
+        'booking' => $leg->booking,
+    ]);
+});

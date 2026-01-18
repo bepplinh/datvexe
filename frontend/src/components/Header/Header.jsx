@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { useUserNotifications } from "../../contexts/UserNotificationProvider";
+import UserNotificationBell from "../UserNotificationBell";
 import "./Header.scss";
 import PHONE_ICON from "../../assets/phone_icon.png";
 
@@ -100,6 +102,9 @@ export default function Header() {
                     </span>
                 </div>
             </div>
+
+            {/* Notification Bell for logged-in users */}
+            {user && <UserNotificationBell />}
 
             {user ? (
                 <div

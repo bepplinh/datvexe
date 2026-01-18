@@ -26,3 +26,8 @@ Broadcast::channel('conversation.{conversationId}', function ($user, $conversati
 Broadcast::channel('admin.conversations', function ($user) {
     return $user && $user->role === 'admin';
 });
+
+// Kênh cho user nhận thông báo cá nhân
+Broadcast::channel('user.notifications.{userId}', function ($user, $userId) {
+    return $user && (int) $user->id === (int) $userId;
+});

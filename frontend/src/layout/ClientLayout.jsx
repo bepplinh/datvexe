@@ -6,10 +6,11 @@ import ClientChatWidget from "../components/ClientChatWidget/ClientChatWidget";
 import RatingPrompt from "../components/RatingPrompt/RatingPrompt";
 import "./ClientLayout.scss";
 import TopBanner from "../components/TopBanner/TopBanner";
+import { UserNotificationProvider } from "../contexts/UserNotificationProvider";
 
 function ClientLayout() {
     return (
-        <>
+        <UserNotificationProvider>
             <TopBanner />
             <Header />
 
@@ -23,8 +24,9 @@ function ClientLayout() {
             <ChatBot />
             {/* Chat trực tiếp với admin */}
             <ClientChatWidget />
-        </>
+        </UserNotificationProvider>
     );
 }
 
 export default ClientLayout;
+

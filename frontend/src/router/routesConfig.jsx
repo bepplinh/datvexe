@@ -6,6 +6,7 @@ const Login = lazy(() => import("../pages/Login/Login"));
 const Register = lazy(() => import("../pages/Register/Register"));
 const ForgotPassword = lazy(() => import("../pages/ForgotPassword/ForgotPassword"));
 const Profile = lazy(() => import("../pages/Profile/Profile"));
+const UserNotifications = lazy(() => import("../pages/UserNotifications/UserNotifications"));
 const TicketManagement = lazy(() => import("../pages/TicketManagement/TicketManagement"));
 const Trip = lazy(() => import("../pages/Trip/Trip"));
 const CheckoutPage = lazy(() => import("../pages/Checkout/CheckoutPage"));
@@ -39,6 +40,7 @@ export const CLIENT_ROUTES = [
     { path: "/register", element: <Register /> },
     { path: "/forgot-password", element: <ForgotPassword /> },
     { path: "/profile", element: <Profile /> },
+    { path: "/profile/notifications", element: <UserNotifications /> },
     { path: "/tickets", element: <TicketManagement /> },
     { path: "/trip", element: <Trip /> },
     {

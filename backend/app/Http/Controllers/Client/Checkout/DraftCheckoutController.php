@@ -86,6 +86,7 @@ class DraftCheckoutController extends Controller
             'id' => $draft->id,
             'status' => $draft->status,
             'expires_at' => $draft->expires_at,
+            'payment_provider' => $draft->payment_provider,
             'contact' => [
                 'name' => $draft->passenger_name,
                 'phone' => $draft->passenger_phone,

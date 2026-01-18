@@ -5,12 +5,15 @@ function ConfirmationStep({ contactInfo, paymentMethod }) {
     const [searchParams] = useSearchParams();
     const { resultBooking, draftData } = useCheckout();
 
+    // Ưu tiên lấy từ draftData (đã lưu trong DB) nếu có, fallback về prop (state)
+    const resolvedPaymentMethod = draftData?.payment_provider || paymentMethod;
+
     const paymentLabel =
-        paymentMethod === "payos"
+        resolvedPaymentMethod === "payos"
             ? "PayOS"
-            : paymentMethod === "cash"
-            ? "Thanh toán tiền mặt"
-            : "Chưa chọn";
+            : resolvedPaymentMethod === "cash"
+                ? "Thanh toán tiền mặt"
+                : "Chưa chọn";
 
     // Kiểm tra trạng thái từ query params (PayOS redirect) hoặc draftData
     const paymentStatus = searchParams.get("payment_status");
@@ -36,9 +39,9 @@ function ConfirmationStep({ contactInfo, paymentMethod }) {
     const resolvedMessage = messageFromParams
         ? decodeURIComponent(messageFromParams)
         : resultBooking?.message ||
-          (isSuccess
-              ? "Đặt vé thành công! Chúng tôi sẽ liên hệ bạn trong thời gian sớm nhất."
-              : "Đặt vé không thành công. Vui lòng thử lại hoặc liên hệ hỗ trợ.");
+        (isSuccess
+            ? "Đặt vé thành công! Chúng tôi sẽ liên hệ bạn trong thời gian sớm nhất."
+            : "Đặt vé không thành công. Vui lòng thử lại hoặc liên hệ hỗ trợ.");
 
     return (
         <div className="card confirmationCard">
@@ -64,9 +67,8 @@ function ConfirmationStep({ contactInfo, paymentMethod }) {
                 <div className="confirmationCard__section">
                     <div className="confirmationCard__label">Số điện thoại</div>
                     <div className="confirmationCard__value">
-                        {`${contactInfo.countryCode || ""}${
-                            contactInfo.phone || "—"
-                        }`}
+                        {`${contactInfo.countryCode || ""}${contactInfo.phone || "—"
+                            }`}
                     </div>
                 </div>
                 {contactInfo.isProxyBooking && (
