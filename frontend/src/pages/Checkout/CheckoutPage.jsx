@@ -31,7 +31,7 @@ function CheckoutPage() {
         isLoadingDraft,
         draftError,
         contactInfo,
-        updateContactInfo,
+        updateContactInfoBatch,
         currentStep,
         nextStep,
         prevStep,
@@ -94,7 +94,7 @@ function CheckoutPage() {
             const isValid = await trigger();
             if (!isValid) return;
 
-            updateContactInfo(getValues());
+            updateContactInfoBatch(getValues());
             nextStep();
             return;
         }
