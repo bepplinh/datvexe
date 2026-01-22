@@ -217,7 +217,13 @@ class OtpAuthController extends Controller
         $data = $request->validate([
             'register_token' => ['required', 'string'],
             'username'       => ['required', 'string', 'min:4', 'max:32', 'alpha_dash', 'unique:users,username'],
-            'password'       => ['required', 'string', 'min:6'],
+            'password'       => [
+                'required',
+                'string',
+                'min:6',
+                'regex:/[A-Z]/',           // Ít nhất 1 chữ in hoa
+                'regex:/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\\\/`~;\']/',  // Ít nhất 1 ký tự đặc biệt
+            ],
             'name'           => ['nullable', 'string', 'max:255'],
             'birthday'       => ['nullable', 'date'],
             'email'          => ['nullable', 'email:rfc', 'unique:users,email'],

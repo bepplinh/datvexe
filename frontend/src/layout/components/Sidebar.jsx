@@ -53,7 +53,7 @@ function Sidebar({ sidebarOpen, mobileMenuOpen, onCloseMobileMenu, onLogout }) {
                                 Admin Panel
                             </span>
                             <span className="admin-sidebar__logo-subtitle">
-                                Nhà xe Ngọc Sơn
+                                DucAnh Transport
                             </span>
                         </div>
                     )}

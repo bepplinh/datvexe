@@ -40,8 +40,11 @@ class AuthController extends Controller
         $ttlMinutes = $remember ? 43200 : 60;
         config(['jwt.ttl' => $ttlMinutes]);
 
-        // 3) Xác định xem identifier có phải số điện thoại E.164 không
-        $isPhone = preg_match('/^\+[1-9]\d{6,14}$/', $identifier) === 1;
+
+        // 3) Xác định xem identifier có phải số điện thoại không (cả format +84xxx và 0xxx)
+        $isE164Phone   = preg_match('/^\+[1-9]\d{6,14}$/', $identifier) === 1;
+        $isLocalPhone  = preg_match('/^0\d{9,10}$/', $identifier) === 1;
+        $isPhone       = $isE164Phone || $isLocalPhone;
 
         $token = null;
 
@@ -53,10 +56,24 @@ class AuthController extends Controller
 
         // 5) Nếu chưa login được & identifier là phone → thử login theo phone
         if (! $token && $isPhone) {
-            $token = auth('api')->attempt([
-                'phone'    => $identifier,
-                'password' => $password,
-            ]);
+            // Tạo danh sách phone formats để thử
+            $phoneFormats = [$identifier];
+            
+            if ($isLocalPhone && str_starts_with($identifier, '0')) {
+                // 0849... → cũng thử +84849...
+                $phoneFormats[] = '+84' . substr($identifier, 1);
+            } elseif ($isE164Phone && str_starts_with($identifier, '+84')) {
+                // +84849... → cũng thử 0849...
+                $phoneFormats[] = '0' . substr($identifier, 3);
+            }
+            
+            foreach ($phoneFormats as $phoneFormat) {
+                $token = auth('api')->attempt([
+                    'phone'    => $phoneFormat,
+                    'password' => $password,
+                ]);
+                if ($token) break;
+            }
         }
 
         // 6) Nếu vẫn không login được → sai tài khoản / mật khẩu

@@ -32,7 +32,7 @@ const TripPerformance = lazy(() => import("../pages/AdminDashboard/TripPerforman
 const RevenueDashboard = lazy(() => import("../pages/AdminDashboard/RevenueDashboard/RevenueDashboard"));
 const RevenueAnalysis = lazy(() => import("../pages/AdminDashboard/RevenueAnalysis/RevenueAnalysis"));
 const ScheduleTemplate = lazy(() => import("../pages/AdminDashboard/ScheduleTemplate/ScheduleTemplate"));
-const Test = lazy(() => import("../pages/test"));
+
 
 export const CLIENT_ROUTES = [
     { path: "/", element: <HomePage /> },
@@ -52,7 +52,7 @@ export const CLIENT_ROUTES = [
         ),
     },
     { path: "/book", element: <BookSeat /> },
-    { path: "/test", element: <Test /> }
+
 ];
 
 export const ADMIN_ROUTES = [

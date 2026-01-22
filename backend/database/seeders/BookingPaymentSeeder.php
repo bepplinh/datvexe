@@ -15,7 +15,8 @@ class BookingPaymentSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * Tạo dữ liệu booking và payment từ 01/2025 đến 01/2026
+     * Tạo dữ liệu booking và payment từ 05/2025 đến 24/01/2026
+     * Các trạng thái: paid (đã thanh toán), completed (đã đi), cancelled (đã huỷ)
      */
     public function run(): void
     {
@@ -45,11 +46,14 @@ class BookingPaymentSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         $this->command->info("✅ Old data deleted.");
 
-        // Tạo dữ liệu từ tháng 1/2025 đến tháng 1/2026
-        $startDate = Carbon::create(2025, 1, 1);
-        $endDate = Carbon::create(2026, 1, 15); // Ngày hiện tại
+        // Ngày hiện tại để xác định completed/upcoming
+        $today = Carbon::create(2026, 1, 22); // Ngày hiện tại theo yêu cầu
 
-        // Tổng số booking: ~600 (trung bình ~50 booking/tháng)
+        // Tạo dữ liệu từ tháng 5/2025 đến 24/01/2026
+        $startDate = Carbon::create(2025, 5, 1);
+        $endDate = Carbon::create(2026, 1, 24);
+
+        // Tạo danh sách các tháng
         $months = [];
         $currentMonth = $startDate->copy();
         while ($currentMonth <= $endDate) {
@@ -60,16 +64,19 @@ class BookingPaymentSeeder extends Seeder
             $currentMonth->addMonth();
         }
 
-        $this->command->info("📅 Will create bookings for " . count($months) . " months (01/2025 - 01/2026)");
+        $this->command->info("📅 Will create bookings for " . count($months) . " months (05/2025 - 01/2026)");
 
         $totalBookings = 0;
         foreach ($months as $index => $monthData) {
             // Số booking mỗi tháng: 40-60 (random để tạo sự đa dạng)
-            $bookingsThisMonth = rand(40, 60);
+            $bookingsThisMonth = rand(45, 65);
 
-            // Tháng cuối (01/2026) ít hơn vì chỉ có 15 ngày
+            // Tháng 5/2025 và tháng 1/2026 có thể ít hơn
+            if ($monthData['year'] == 2025 && $monthData['month'] == 5) {
+                $bookingsThisMonth = rand(35, 50);
+            }
             if ($monthData['year'] == 2026 && $monthData['month'] == 1) {
-                $bookingsThisMonth = rand(20, 30);
+                $bookingsThisMonth = rand(30, 45); // Chỉ đến ngày 24
             }
 
             $this->command->info("  📆 Creating {$bookingsThisMonth} bookings for {$monthData['month']}/{$monthData['year']}...");
@@ -82,13 +89,23 @@ class BookingPaymentSeeder extends Seeder
                 $seats,
                 $locations,
                 $users,
-                $coupons
+                $coupons,
+                $today,
+                $endDate
             );
 
             $totalBookings += $bookingsThisMonth;
         }
 
         $this->command->info("✅ Successfully created {$totalBookings} bookings with payments!");
+
+        // Thống kê
+        $paidCount = Booking::where('status', 'paid')->count();
+        $cancelledCount = Booking::where('status', 'cancelled')->count();
+
+        $this->command->info("📊 Statistics:");
+        $this->command->info("   - Paid (đã thanh toán + đã đi): {$paidCount}");
+        $this->command->info("   - Cancelled (đã huỷ): {$cancelledCount}");
     }
 
     /**
@@ -102,14 +119,16 @@ class BookingPaymentSeeder extends Seeder
         $seats,
         $locations,
         $users,
-        $coupons
+        $coupons,
+        Carbon $today,
+        Carbon $endDate
     ): void {
         // Xác định ngày tối đa trong tháng
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 
-        // Nếu tháng 1/2026, chỉ tạo đến ngày 15
+        // Nếu tháng 1/2026, chỉ tạo đến ngày 24
         if ($year == 2026 && $month == 1) {
-            $daysInMonth = 15;
+            $daysInMonth = 24;
         }
 
         for ($i = 0; $i < $numberOfBookings; $i++) {
@@ -121,8 +140,33 @@ class BookingPaymentSeeder extends Seeder
             // Random user
             $userId = $users->random();
 
-            // Random status: 75% paid, 25% cancelled
-            $isCancelled = rand(1, 100) <= 25;
+            // Random ngày trong tháng
+            $day = rand(1, $daysInMonth);
+            $hour = rand(6, 22);
+            $minute = rand(0, 59);
+            $bookingDate = Carbon::create($year, $month, $day, $hour, $minute, 0);
+
+            // Ngày khởi hành của trip (có thể là ngày đặt hoặc sau vài ngày)
+            $tripDepartureDate = $bookingDate->copy()->addDays(rand(0, 7));
+
+            // Đảm bảo không vượt quá ngày kết thúc
+            if ($tripDepartureDate > $endDate) {
+                $tripDepartureDate = $endDate->copy();
+            }
+
+            // Xác định status dựa trên ngày khởi hành so với ngày hiện tại
+            // Vé trong quá khứ: 70% đã đi (paid), 30% đã huỷ (cancelled)
+            // Vé trong tương lai hoặc gần đây: 80% đã thanh toán (paid), 20% đã huỷ (cancelled)
+            $isPastTrip = $tripDepartureDate < $today;
+
+            if ($isPastTrip) {
+                // Trip đã qua - 75% completed (paid), 25% cancelled
+                $isCancelled = rand(1, 100) <= 25;
+            } else {
+                // Trip sắp tới - 85% paid, 15% cancelled
+                $isCancelled = rand(1, 100) <= 15;
+            }
+
             $status = $isCancelled ? 'cancelled' : 'paid';
 
             // Random số lượng legs (1 hoặc 2 - OUT hoặc OUT+RETURN)
@@ -137,12 +181,6 @@ class BookingPaymentSeeder extends Seeder
             if (rand(1, 100) <= 15 && $coupons->isNotEmpty()) {
                 $couponId = $coupons->random();
             }
-
-            // Tạo ngày tháng cho booking
-            $day = rand(1, $daysInMonth);
-            $hour = rand(6, 22);
-            $minute = rand(0, 59);
-            $bookingDate = Carbon::create($year, $month, $day, $hour, $minute, 0);
 
             // Random payment provider
             $paymentProvider = rand(1, 100) <= 80 ? 'payos' : 'cash';
@@ -177,8 +215,10 @@ class BookingPaymentSeeder extends Seeder
             ]);
 
             // Tạo booking legs
-            foreach ($legTypes as $legType) {
+            foreach ($legTypes as $legIndex => $legType) {
+                // Random chọn trip thực sự từ database
                 $trip = $trips->random();
+
                 $pickupLocation = $locations->random();
                 $dropoffLocation = $locations->where('id', '!=', $pickupLocation->id)->random();
 

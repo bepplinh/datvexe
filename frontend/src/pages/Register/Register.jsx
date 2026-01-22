@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { authService } from "../../services/authService";
 import "./Register.scss";
 
@@ -21,8 +24,36 @@ const formatPhoneToE164 = (phone) => {
     return phone;
 };
 
-const RegisterPage = () => {
+// Yup schema cho step COMPLETE
+const registerSchema = yup.object().shape({
+    username: yup
+        .string()
+        .required("Vui lòng nhập tên đăng nhập")
+        .min(4, "Tên đăng nhập phải có ít nhất 4 ký tự")
+        .max(32, "Tên đăng nhập tối đa 32 ký tự")
+        .matches(
+            /^[a-zA-Z0-9_-]+$/,
+            "Tên đăng nhập chỉ được chứa chữ cái, số, dấu gạch dưới và gạch ngang"
+        ),
+    password: yup
+        .string()
+        .required("Vui lòng nhập mật khẩu")
+        .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
+        .matches(/[A-Z]/, "Mật khẩu phải chứa ít nhất 1 chữ in hoa")
+        .matches(
+            /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/`~;']/,
+            "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt (!@#$%^&*...)"
+        ),
+    confirmPassword: yup
+        .string()
+        .required("Vui lòng xác nhận mật khẩu")
+        .oneOf([yup.ref("password")], "Mật khẩu xác nhận không khớp"),
+    name: yup.string().max(255, "Họ và tên tối đa 255 ký tự"),
+    email: yup.string().email("Email không hợp lệ"),
+    birthday: yup.string(),
+});
 
+const RegisterPage = () => {
     const [step, setStep] = useState("PHONE"); // PHONE | OTP | COMPLETE
     const [phone, setPhone] = useState("");
     const [otp, setOtp] = useState("");
@@ -30,13 +61,22 @@ const RegisterPage = () => {
     const [countdown, setCountdown] = useState(0);
     const [isSending, setIsSending] = useState(false);
 
-    const [formData, setFormData] = useState({
-        username: "",
-        password: "",
-        confirmPassword: "",
-        name: "",
-        email: "",
-        birthday: "",
+    // React Hook Form for step COMPLETE
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm({
+        resolver: yupResolver(registerSchema),
+        mode: "onBlur",
+        defaultValues: {
+            username: "",
+            password: "",
+            confirmPassword: "",
+            name: "",
+            email: "",
+            birthday: "",
+        },
     });
 
     // Đếm ngược OTP
@@ -114,23 +154,7 @@ const RegisterPage = () => {
         }
     };
 
-    const handleCompleteRegister = async () => {
-        // Validation
-        if (!formData.username.trim() || formData.username.length < 4) {
-            toast.error("Tên đăng nhập phải có ít nhất 4 ký tự");
-            return;
-        }
-
-        if (!formData.password || formData.password.length < 6) {
-            toast.error("Mật khẩu phải có ít nhất 6 ký tự");
-            return;
-        }
-
-        if (formData.password !== formData.confirmPassword) {
-            toast.error("Mật khẩu xác nhận không khớp");
-            return;
-        }
-
+    const handleCompleteRegister = async (formData) => {
         try {
             setIsSending(true);
 
@@ -144,8 +168,6 @@ const RegisterPage = () => {
             });
 
             if (result.token) {
-                // Token đã được lưu vào cookie trong authService.completeRegister
-                // Reload page để AuthProvider tự động lấy user từ token
                 toast.success("Đăng ký thành công!");
                 setTimeout(() => {
                     window.location.href = "/";
@@ -169,16 +191,15 @@ const RegisterPage = () => {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleFormSubmit = (e) => {
         e.preventDefault();
 
         if (step === "PHONE") {
             handleSendOtp();
         } else if (step === "OTP") {
             handleVerifyOtp();
-        } else if (step === "COMPLETE") {
-            handleCompleteRegister();
         }
+        // Step COMPLETE is handled by react-hook-form's handleSubmit
     };
 
     const handleResendOtp = () => {
@@ -226,27 +247,11 @@ const RegisterPage = () => {
                         </div>
                     </div>
 
-                    {/* Form */}
-                    <form className="login-form" onSubmit={handleSubmit}>
-                        {/* Step PHONE: Nhập số điện thoại */}
-                        {step === "PHONE" && (
-                            <div className="login-form__field">
-                                <label className="login-form__label">
-                                    Số điện thoại
-                                </label>
-                                <input
-                                    type="tel"
-                                    className="login-form__input"
-                                    placeholder="Nhập số điện thoại (VD: 0901234567)"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
-                                />
-                            </div>
-                        )}
-
-                        {/* Step OTP: Nhập mã OTP */}
-                        {step === "OTP" && (
-                            <>
+                    {/* Form for PHONE & OTP steps */}
+                    {step !== "COMPLETE" && (
+                        <form className="login-form" onSubmit={handleFormSubmit}>
+                            {/* Step PHONE: Nhập số điện thoại */}
+                            {step === "PHONE" && (
                                 <div className="login-form__field">
                                     <label className="login-form__label">
                                         Số điện thoại
@@ -254,183 +259,184 @@ const RegisterPage = () => {
                                     <input
                                         type="tel"
                                         className="login-form__input"
+                                        placeholder="Nhập số điện thoại (VD: 0901234567)"
                                         value={phone}
-                                        disabled
+                                        onChange={(e) => setPhone(e.target.value)}
                                     />
                                 </div>
-                                <div className="login-form__field">
-                                    <label className="login-form__label">
-                                        Mã OTP
-                                    </label>
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        maxLength={8}
-                                        className="login-form__input"
-                                        placeholder="Nhập mã OTP"
-                                        value={otp}
-                                        onChange={(e) =>
-                                            setOtp(e.target.value.replace(/\D/g, ""))
-                                        }
-                                    />
+                            )}
 
-                                    <div className="otp-extra">
-                                        <div className="otp-extra__left">
-                                            {countdown > 0 ? (
-                                                <span>
-                                                    Gửi lại mã sau{" "}
-                                                    <strong>{countdown}s</strong>
-                                                </span>
-                                            ) : (
-                                                <span>Bạn không nhận được mã?</span>
-                                            )}
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className="otp-extra__resend"
-                                            onClick={handleResendOtp}
-                                            disabled={countdown > 0 || isSending}
-                                        >
-                                            Gửi lại mã
-                                        </button>
+                            {/* Step OTP: Nhập mã OTP */}
+                            {step === "OTP" && (
+                                <>
+                                    <div className="login-form__field">
+                                        <label className="login-form__label">
+                                            Số điện thoại
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            className="login-form__input"
+                                            value={phone}
+                                            disabled
+                                        />
                                     </div>
-                                </div>
-                            </>
-                        )}
+                                    <div className="login-form__field">
+                                        <label className="login-form__label">
+                                            Mã OTP
+                                        </label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            maxLength={8}
+                                            className="login-form__input"
+                                            placeholder="Nhập mã OTP"
+                                            value={otp}
+                                            onChange={(e) =>
+                                                setOtp(e.target.value.replace(/\D/g, ""))
+                                            }
+                                        />
 
-                        {/* Step COMPLETE: Nhập thông tin đăng ký */}
-                        {step === "COMPLETE" && (
-                            <>
-                                <div className="login-form__field">
-                                    <label className="login-form__label">
-                                        Tên đăng nhập <span style={{ color: "red" }}>*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="login-form__input"
-                                        placeholder="Tên đăng nhập (tối thiểu 4 ký tự)"
-                                        value={formData.username}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                username: e.target.value,
-                                            })
-                                        }
-                                        required
-                                    />
-                                </div>
+                                        <div className="otp-extra">
+                                            <div className="otp-extra__left">
+                                                {countdown > 0 ? (
+                                                    <span>
+                                                        Gửi lại mã sau{" "}
+                                                        <strong>{countdown}s</strong>
+                                                    </span>
+                                                ) : (
+                                                    <span>Bạn không nhận được mã?</span>
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="otp-extra__resend"
+                                                onClick={handleResendOtp}
+                                                disabled={countdown > 0 || isSending}
+                                            >
+                                                Gửi lại mã
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
 
-                                <div className="login-form__field">
-                                    <label className="login-form__label">
-                                        Mật khẩu <span style={{ color: "red" }}>*</span>
-                                    </label>
-                                    <input
-                                        type="password"
-                                        className="login-form__input"
-                                        placeholder="Mật khẩu (tối thiểu 6 ký tự)"
-                                        value={formData.password}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                password: e.target.value,
-                                            })
-                                        }
-                                        required
-                                    />
-                                </div>
-
-                                <div className="login-form__field">
-                                    <label className="login-form__label">
-                                        Xác nhận mật khẩu <span style={{ color: "red" }}>*</span>
-                                    </label>
-                                    <input
-                                        type="password"
-                                        className="login-form__input"
-                                        placeholder="Nhập lại mật khẩu"
-                                        value={formData.confirmPassword}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                confirmPassword: e.target.value,
-                                            })
-                                        }
-                                        required
-                                    />
-                                </div>
-
-                                <div className="login-form__field">
-                                    <label className="login-form__label">
-                                        Họ và tên
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="login-form__input"
-                                        placeholder="Họ và tên (tùy chọn)"
-                                        value={formData.name}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                name: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </div>
-
-                                <div className="login-form__field">
-                                    <label className="login-form__label">
-                                        Email
-                                    </label>
-                                    <input
-                                        type="email"
-                                        className="login-form__input"
-                                        placeholder="Email (tùy chọn)"
-                                        value={formData.email}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                email: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </div>
-
-                                <div className="login-form__field">
-                                    <label className="login-form__label">
-                                        Ngày sinh
-                                    </label>
-                                    <input
-                                        type="date"
-                                        className="login-form__input"
-                                        value={formData.birthday}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                birthday: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </div>
-                            </>
-                        )}
-
-                        <button
-                            type="submit"
-                            className="btn btn--primary"
-                            disabled={isSending}
-                        >
-                            {step === "PHONE"
-                                ? isSending
-                                    ? "Đang gửi mã..."
-                                    : "Gửi mã OTP"
-                                : step === "OTP"
+                            <button
+                                type="submit"
+                                className="btn btn--primary"
+                                disabled={isSending}
+                            >
+                                {step === "PHONE"
                                     ? isSending
-                                        ? "Đang xác thực..."
-                                        : "Xác nhận OTP"
+                                        ? "Đang gửi mã..."
+                                        : "Gửi mã OTP"
                                     : isSending
-                                        ? "Đang đăng ký..."
-                                        : "Hoàn tất đăng ký"}
-                        </button>
-                    </form>
+                                        ? "Đang xác thực..."
+                                        : "Xác nhận OTP"}
+                            </button>
+                        </form>
+                    )}
+
+                    {/* Form for COMPLETE step with react-hook-form */}
+                    {step === "COMPLETE" && (
+                        <form
+                            className="login-form"
+                            onSubmit={handleSubmit(handleCompleteRegister)}
+                        >
+                            <div className="login-form__field">
+                                <label className="login-form__label">
+                                    Tên đăng nhập <span style={{ color: "red" }}>*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    className={`login-form__input ${errors.username ? "login-form__input--error" : ""}`}
+                                    placeholder="Tên đăng nhập (tối thiểu 4 ký tự)"
+                                    {...register("username")}
+                                />
+                                {errors.username && (
+                                    <p className="login-form__error">{errors.username.message}</p>
+                                )}
+                            </div>
+
+                            <div className="login-form__field">
+                                <label className="login-form__label">
+                                    Mật khẩu <span style={{ color: "red" }}>*</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    className={`login-form__input ${errors.password ? "login-form__input--error" : ""}`}
+                                    placeholder="Mật khẩu (tối thiểu 6 ký tự, có chữ in hoa và ký tự đặc biệt)"
+                                    {...register("password")}
+                                />
+                                {errors.password && (
+                                    <p className="login-form__error">{errors.password.message}</p>
+                                )}
+                            </div>
+
+                            <div className="login-form__field">
+                                <label className="login-form__label">
+                                    Xác nhận mật khẩu <span style={{ color: "red" }}>*</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    className={`login-form__input ${errors.confirmPassword ? "login-form__input--error" : ""}`}
+                                    placeholder="Nhập lại mật khẩu"
+                                    {...register("confirmPassword")}
+                                />
+                                {errors.confirmPassword && (
+                                    <p className="login-form__error">{errors.confirmPassword.message}</p>
+                                )}
+                            </div>
+
+                            <div className="login-form__field">
+                                <label className="login-form__label">
+                                    Họ và tên
+                                </label>
+                                <input
+                                    type="text"
+                                    className={`login-form__input ${errors.name ? "login-form__input--error" : ""}`}
+                                    placeholder="Họ và tên (tùy chọn)"
+                                    {...register("name")}
+                                />
+                                {errors.name && (
+                                    <p className="login-form__error">{errors.name.message}</p>
+                                )}
+                            </div>
+
+                            <div className="login-form__field">
+                                <label className="login-form__label">
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    className={`login-form__input ${errors.email ? "login-form__input--error" : ""}`}
+                                    placeholder="Email (tùy chọn)"
+                                    {...register("email")}
+                                />
+                                {errors.email && (
+                                    <p className="login-form__error">{errors.email.message}</p>
+                                )}
+                            </div>
+
+                            <div className="login-form__field">
+                                <label className="login-form__label">
+                                    Ngày sinh
+                                </label>
+                                <input
+                                    type="date"
+                                    className="login-form__input"
+                                    {...register("birthday")}
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="btn btn--primary"
+                                disabled={isSending}
+                            >
+                                {isSending ? "Đang đăng ký..." : "Hoàn tất đăng ký"}
+                            </button>
+                        </form>
+                    )}
 
                     {/* Footer */}
                     <div className="login-footer">

@@ -102,7 +102,9 @@
     font-size: 0.95rem;
     color: var(--color-text-main);
     background-color: #fff;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .login-form__input::placeholder {
@@ -118,6 +120,23 @@
 .login-form__input:disabled {
     background-color: #f1f1f1;
     cursor: not-allowed;
+}
+
+/* === Error states === */
+.login-form__input--error {
+    border-color: #dc2626;
+}
+
+.login-form__input--error:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.15);
+}
+
+.login-form__error {
+    font-size: 0.8rem;
+    color: #dc2626;
+    margin-top: 0.25rem;
+    margin-bottom: 0;
 }
 
 /* === OTP extra === */
@@ -169,7 +188,9 @@
     border: none;
     cursor: pointer;
     margin-top: 0.75rem;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
 }
 
 .btn--primary {

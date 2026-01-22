@@ -43,6 +43,13 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(TripStationRepositoryInterface::class, TripStationRepository::class);
 
         $this->app->bind(SeatLayoutTemplateRepositoryInterface::class, SeatLayoutTemplateRepository::class);
+
+        // GeminiAI Services - UserMessageParser cần resolver
+        $this->app->bind(\App\Services\GeminiAI\Parser\UserMessageParser::class, function ($app) {
+            return new \App\Services\GeminiAI\Parser\UserMessageParser(
+                $app->make(\App\Services\GeminiAI\LocationResolverService::class)
+            );
+        });
     }
 
 
