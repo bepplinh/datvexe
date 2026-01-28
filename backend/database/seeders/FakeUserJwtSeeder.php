@@ -40,11 +40,34 @@ class FakeUserJwtSeeder extends Seeder
             'phone_verified_at' => now()
         ]);
 
-        // 2. Tạo 49 user random
-        $usedUsernames = ['admintester'];
-        $users = [];
+        // 2. Tạo 2 tài khoản client cố định để test
+        $client1 = User::create([
+            'name' => 'Lê Đức Anh',
+            'username' => 'ducanhle',
+            'email' => 'ducanhle@gmail.com',
+            'phone' => '0912345678',
+            'password' => bcrypt('user12345'),
+            'role' => 'customer',
+            'gender' => 'male',
+            'phone_verified_at' => now()
+        ]);
 
-        for ($i = 0; $i < 49; $i++) {
+        $client2 = User::create([
+            'name' => 'Lê Phương Linh',
+            'username' => 'phuonglinhle',
+            'email' => 'phuonglinhle@gmail.com',
+            'phone' => '0912345679',
+            'password' => bcrypt('user12345'),
+            'role' => 'customer',
+            'gender' => 'female',
+            'phone_verified_at' => now()
+        ]);
+
+        // 3. Tạo 47 user random (giảm từ 49 xuống 47 để tổng vẫn là 50)
+        $usedUsernames = ['admintester', 'ducanhle', 'phuonglinhle'];
+        $users = [$client1, $client2];
+
+        for ($i = 0; $i < 47; $i++) {
             // Tạo tên tiếng Việt
             $hoRandom = $ho[array_rand($ho)];
             $tenDemRandom = $tenDem[array_rand($tenDem)];
@@ -101,9 +124,11 @@ class FakeUserJwtSeeder extends Seeder
             json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
         );
 
-        $this->command->info("✅ Created 50 users (1 admin + 49 customers)");
+        $this->command->info("✅ Created 50 users (1 admin + 2 fixed clients + 47 random customers)");
         $this->command->info("   - Admin: admintester / admin12345");
-        $this->command->info("   - All other users: user12345 (username 6 chars)");
+        $this->command->info("   - Client 1: ducanhle / user12345");
+        $this->command->info("   - Client 2: phuonglinhle / user12345");
+        $this->command->info("   - All other users password: user12345");
     }
 
     /**
