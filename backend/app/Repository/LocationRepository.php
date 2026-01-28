@@ -23,7 +23,7 @@ class LocationRepository implements LocationRepositoryInterface
 
     public function paginate($perPage = 15): LengthAwarePaginator
     {
-        return $this->model->paginate($perPage);
+        return $this->model->with('parent')->paginate($perPage);
     }
 
     public function find($id): ?Location

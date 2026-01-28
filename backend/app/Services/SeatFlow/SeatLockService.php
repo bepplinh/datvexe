@@ -6,6 +6,7 @@ use App\Events\SeatLocked;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Validation\ValidationException;
 use App\Services\DraftCheckoutService\DraftCheckoutService;
+use App\Services\SeatFlow\Redis\SeatRedisKeys;
 use App\Models\Seat;
 
 class SeatLockService
@@ -113,68 +114,12 @@ class SeatLockService
         string $token,
         int $ttl
     ): void {
-        $lua = <<<'LUA'
-    local payload = cjson.decode(ARGV[1])
-    local token   = ARGV[2]
-    local ttl     = tonumber(ARGV[3])
-    
-    -- Thu thập conflict trước
-    local conflicts = {}  -- mỗi phần tử: {type="BOOKED"/"LOCKED", trip_id=..., seat_id=...}
-    
-    for trip_id_str, seat_list in pairs(payload) do
-        local trip_id = tostring(trip_id_str)
-        for _, seat_id in ipairs(seat_list) do
-            local seatKey   = "trip:" .. trip_id .. ":seat:" .. seat_id .. ":lock"
-            local bookedKey = "trip:" .. trip_id .. ":booked"
-    
-            -- Nếu ghế đã BOOKED
-            if redis.call("SISMEMBER", bookedKey, seat_id) == 1 then
-                table.insert(conflicts, { type = "BOOKED", trip_id = trip_id, seat_id = seat_id })
-            else
-                local current = redis.call("GET", seatKey)
-                if current and current ~= token then
-                    table.insert(conflicts, { type = "LOCKED", trip_id = trip_id, seat_id = seat_id })
-                end
-            end
-        end
-    end
-    
-    -- Nếu có bất kỳ conflict -> không lock gì cả
-    if #conflicts > 0 then
-        return "CONFLICTS:" .. cjson.encode(conflicts)
-    end
-    
-    -- Không conflict -> lock tất cả
-    local tripsSet = "sess:" .. token .. ":trips"
-    
-    for trip_id_str, seat_list in pairs(payload) do
-        local trip_id = tostring(trip_id_str)
-        
-        -- Thêm trip_id vào set trips của session
-        redis.call("SADD", tripsSet, trip_id)
-        
-        for _, seat_id in ipairs(seat_list) do
-            local seatKey = "trip:" .. trip_id .. ":seat:" .. seat_id .. ":lock"
-    
-            -- key lock theo ghế
-            redis.call("SET", seatKey, token, "EX", ttl)
-    
-            -- set ghế đang locked theo trip
-            redis.call("SADD", "trip:" .. trip_id .. ":locked", seat_id)
-    
-            -- set ghế theo session token
-            redis.call("SADD", "session:" .. token .. ":seats", trip_id .. ":" .. seat_id)
-            
-            -- set ghế theo session và trip (để dễ query sau)
-            redis.call("SADD", "trip:" .. trip_id .. ":sess:" .. token .. ":s", seat_id)
-        end
-    end
-    
-    -- Set TTL cho trips set (cùng TTL với session)
-    redis.call("EXPIRE", tripsSet, ttl)
-    
-    return "OK"
-    LUA;
+        // Load Lua script from external file
+        $scriptPath = __DIR__ . '/Redis/Scripts/lock_seats_with_conflict_check.lua';
+        if (!file_exists($scriptPath)) {
+            throw new \RuntimeException("Lua script not found: {$scriptPath}");
+        }
+        $lua = file_get_contents($scriptPath);
 
         $payload = $seatsByTrip;
 
@@ -211,7 +156,7 @@ class SeatLockService
             ]);
         }
 
-        Redis::setex("session:{$token}:ttl", $ttl, 1);
+        Redis::setex(SeatRedisKeys::sessionTtl($token), $ttl, 1);
     }
 
 
@@ -220,7 +165,7 @@ class SeatLockService
         $map = [];
         foreach ($seatsByTrip as $tripId => $seatIds) {
             foreach ($seatIds as $sid) {
-                $key = "trip:{$tripId}:seat:{$sid}:lock";
+                $key = SeatRedisKeys::seatLock($tripId, $sid);
                 $ttl = (int) Redis::ttl($key);
                 $map["{$tripId}:{$sid}"] = $ttl > 0 ? $ttl : null;
             }

@@ -74,7 +74,7 @@ class PayOSService
 
         // 2) orderCode: unique, map về draft.payment_intent_id
         $orderCode   = (int) (now()->format('ymdHis') . random_int(100, 999));
-        $description = 'Thanh toán đơn hàng #' . $draft->id;
+        $description = 'VE ' . $draft->id;
 
         // 3) expiredAt từ TTL (mặc định 15 phút)
         $ttlMinutes = $ttlMinutes ?? 1;
@@ -132,11 +132,6 @@ class PayOSService
     }
 
 
-    /**
-     * Verify webhook.
-     * Lưu ý: Quy tắc verify có thể khác giữa "payment-requests" và "webhook" tùy spec.
-     * Ở đây mình giữ cách sort key + key=value&... + HMAC sha256.
-     */
     public function verifyWebhook(array $payload): array
     {
         $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];

@@ -5,31 +5,27 @@ namespace App\Services\Admin;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\BookingLeg;
+use App\Services\Admin\Revenue\RevenueCalculator;
+use App\Services\Admin\Revenue\TrendAnalyzer;
+use App\Services\Admin\Revenue\TopPerformers;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class RevenueService
 {
+    public function __construct(
+        private RevenueCalculator $calculator,
+        private TrendAnalyzer $trendAnalyzer,
+        private TopPerformers $topPerformers
+    ) {}
     /**
      * Tính doanh thu từ payments (chính xác - có tính refund)
      * Doanh thu thực = Tổng payments thành công - Tổng refund_amount
      */
     public function calculateRevenue(Carbon $startDate, Carbon $endDate): float
     {
-        // Tổng payments thành công
-        $totalPaid = Payment::where('status', 'succeeded')
-            ->whereNotNull('paid_at')
-            ->whereBetween('paid_at', [$startDate, $endDate])
-            ->sum('amount');
-
-        // Tổng refund_amount từ các payments thành công (refund có thể là partial)
-        $totalRefunded = Payment::where('status', 'succeeded')
-            ->whereNotNull('paid_at')
-            ->whereBetween('paid_at', [$startDate, $endDate])
-            ->sum('refund_amount');
-
-        return $totalPaid - $totalRefunded;
+        return $this->calculator->calculateRevenue($startDate, $endDate);
     }
 
     /**
@@ -38,12 +34,7 @@ class RevenueService
      */
     public function getBookingCount(Carbon $startDate, Carbon $endDate): int
     {
-        return Payment::where('status', 'succeeded')
-            ->whereNotNull('paid_at')
-            ->whereBetween('paid_at', [$startDate, $endDate])
-            ->select('booking_id')
-            ->distinct()
-            ->count('booking_id');
+        return $this->calculator->getBookingCount($startDate, $endDate);
     }
 
     /**
@@ -51,32 +42,7 @@ class RevenueService
      */
     public function getPeriodRange(Carbon $date, string $period): array
     {
-        return match ($period) {
-            'day' => [
-                'start' => $date->copy()->startOfDay(),
-                'end' => $date->copy()->endOfDay(),
-            ],
-            'week' => [
-                'start' => $date->copy()->startOfWeek(),
-                'end' => $date->copy()->endOfWeek(),
-            ],
-            'month' => [
-                'start' => $date->copy()->startOfMonth(),
-                'end' => $date->copy()->endOfMonth(),
-            ],
-            'quarter' => [
-                'start' => $date->copy()->startOfQuarter(),
-                'end' => $date->copy()->endOfQuarter(),
-            ],
-            'year' => [
-                'start' => $date->copy()->startOfYear(),
-                'end' => $date->copy()->endOfYear(),
-            ],
-            default => [
-                'start' => $date->copy()->startOfDay(),
-                'end' => $date->copy()->endOfDay(),
-            ],
-        };
+        return $this->calculator->getPeriodRange($date, $period);
     }
 
     /**
@@ -84,16 +50,7 @@ class RevenueService
      */
     public function getPreviousPeriodRange(Carbon $date, string $period): array
     {
-        $previousDate = match ($period) {
-            'day' => $date->copy()->subDay(),
-            'week' => $date->copy()->subWeek(),
-            'month' => $date->copy()->subMonth(),
-            'quarter' => $date->copy()->subQuarter(),
-            'year' => $date->copy()->subYear(),
-            default => $date->copy()->subDay(),
-        };
-
-        return $this->getPeriodRange($previousDate, $period);
+        return $this->calculator->getPreviousPeriodRange($date, $period);
     }
 
     /**
@@ -101,11 +58,7 @@ class RevenueService
      */
     public function calculatePercentageChange(float $current, float $previous): float
     {
-        if ($previous == 0) {
-            return $current > 0 ? 100 : 0;
-        }
-
-        return (($current - $previous) / $previous) * 100;
+        return $this->calculator->calculatePercentageChange($current, $previous);
     }
 
     /**
@@ -162,165 +115,23 @@ class RevenueService
      */
     public function getTrendData(Carbon $fromDate, Carbon $toDate, string $period): Collection
     {
-        $data = collect();
-        $current = $fromDate->copy();
-
-        while ($current <= $toDate) {
-            $range = $this->getPeriodRange($current, $period);
-            $revenue = $this->calculateRevenue($range['start'], $range['end']);
-            $bookingCount = $this->getBookingCount($range['start'], $range['end']);
-
-            $label = $this->getPeriodLabel($current, $period);
-
-            $data->push([
-                'label' => $label,
-                'date' => $range['start']->format('Y-m-d'),
-                'revenue' => $revenue,
-                'booking_count' => $bookingCount,
-            ]);
-
-            // Tăng current theo period
-            $current = $this->incrementDateByPeriod($current, $period);
-        }
-
-        return $data;
-    }
-
-    /**
-     * Lấy label cho period
-     */
-    private function getPeriodLabel(Carbon $date, string $period): string
-    {
-        return match ($period) {
-            'day' => $date->format('Y-m-d'),
-            'week' => 'Tuần ' . $date->format('W/Y'),
-            'month' => $date->format('Y-m'),
-            'quarter' => 'Q' . $date->quarter . '/' . $date->year,
-            'year' => $date->format('Y'),
-            default => $date->format('Y-m-d'),
-        };
-    }
-
-    /**
-     * Tăng date theo period
-     */
-    private function incrementDateByPeriod(Carbon $date, string $period): Carbon
-    {
-        return match ($period) {
-            'day' => $date->addDay(),
-            'week' => $date->addWeek(),
-            'month' => $date->addMonth(),
-            'quarter' => $date->addQuarter(),
-            'year' => $date->addYear(),
-            default => $date->addDay(),
-        };
+        return $this->trendAnalyzer->getTrendData($fromDate, $toDate, $period);
     }
 
     /**
      * Lấy top tuyến đường có doanh thu cao nhất
-     * Tính từ payments để chính xác (có trừ refund)
      */
     public function getTopRoutes(Carbon $fromDate, Carbon $toDate, int $limit = 10): Collection
     {
-        return BookingLeg::query()
-            ->join('trips', 'booking_legs.trip_id', '=', 'trips.id')
-            ->join('routes', 'trips.route_id', '=', 'routes.id')
-            ->join('bookings', 'booking_legs.booking_id', '=', 'bookings.id')
-            ->join('payments', function ($join) {
-                $join->on('bookings.id', '=', 'payments.booking_id')
-                    ->where('payments.status', '=', 'succeeded');
-            })
-            ->whereNotNull('payments.paid_at')
-            ->whereBetween('payments.paid_at', [$fromDate, $toDate])
-            ->where('bookings.status', 'paid')
-            ->select(
-                'routes.id',
-                'routes.name',
-                'routes.from_city',
-                'routes.to_city',
-                DB::raw('SUM(payments.amount - COALESCE(payments.refund_amount, 0)) as revenue'),
-                DB::raw('COUNT(DISTINCT bookings.id) as booking_count'),
-                DB::raw('COUNT(booking_legs.id) as leg_count')
-            )
-            ->groupBy('routes.id', 'routes.name', 'routes.from_city', 'routes.to_city')
-            ->orderByDesc('revenue')
-            ->limit($limit)
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'route_id' => $item->id,
-                    'route_name' => $item->name,
-                    'from_city' => $item->from_city,
-                    'to_city' => $item->to_city,
-                    'revenue' => (float) $item->revenue,
-                    'booking_count' => (int) $item->booking_count,
-                    'leg_count' => (int) $item->leg_count,
-                ];
-            });
+        return $this->topPerformers->getTopRoutes($fromDate, $toDate, $limit);
     }
 
     /**
      * Lấy top chuyến xe có doanh thu cao nhất
-     * Tính từ payments để chính xác (có trừ refund)
      */
     public function getTopTrips(Carbon $fromDate, Carbon $toDate, int $limit = 10): Collection
     {
-        return BookingLeg::query()
-            ->join('trips', 'booking_legs.trip_id', '=', 'trips.id')
-            ->join('routes', 'trips.route_id', '=', 'routes.id')
-            ->join('bookings', 'booking_legs.booking_id', '=', 'bookings.id')
-            ->join('payments', function ($join) {
-                $join->on('bookings.id', '=', 'payments.booking_id')
-                    ->where('payments.status', '=', 'succeeded');
-            })
-            ->whereNotNull('payments.paid_at')
-            ->whereBetween('payments.paid_at', [$fromDate, $toDate])
-            ->where('bookings.status', 'paid')
-            ->select(
-                'trips.id',
-                'trips.route_id',
-                'trips.departure_time',
-                'routes.name as route_name',
-                'routes.from_city',
-                'routes.to_city',
-                DB::raw('SUM(payments.amount - COALESCE(payments.refund_amount, 0)) as revenue'),
-                DB::raw('COUNT(DISTINCT bookings.id) as booking_count'),
-                DB::raw('COUNT(booking_legs.id) as leg_count')
-            )
-            ->groupBy(
-                'trips.id',
-                'trips.route_id',
-                'trips.departure_time',
-                'routes.name',
-                'routes.from_city',
-                'routes.to_city'
-            )
-            ->orderByDesc('revenue')
-            ->limit($limit)
-            ->get()
-            ->map(function ($item) {
-                // Parse departure_time nếu là string hoặc Carbon instance
-                $departureTime = null;
-                if ($item->departure_time) {
-                    if (is_string($item->departure_time)) {
-                        $departureTime = Carbon::parse($item->departure_time)->format('Y-m-d H:i:s');
-                    } elseif ($item->departure_time instanceof Carbon) {
-                        $departureTime = $item->departure_time->format('Y-m-d H:i:s');
-                    }
-                }
-
-                return [
-                    'trip_id' => $item->id,
-                    'route_id' => $item->route_id,
-                    'route_name' => $item->route_name,
-                    'from_city' => $item->from_city,
-                    'to_city' => $item->to_city,
-                    'departure_time' => $departureTime,
-                    'revenue' => (float) $item->revenue,
-                    'booking_count' => (int) $item->booking_count,
-                    'leg_count' => (int) $item->leg_count,
-                ];
-            });
+        return $this->topPerformers->getTopTrips($fromDate, $toDate, $limit);
     }
 
     /**
@@ -500,6 +311,47 @@ class RevenueService
         }
 
         return $data;
+    }
+
+    /**
+     * Lấy top khách hàng đặt vé nhiều nhất
+     * Tính từ payments để chính xác (có trừ refund)
+     */
+    public function getTopCustomers(Carbon $fromDate, Carbon $toDate, int $limit = 10): Collection
+    {
+        return Booking::query()
+            ->join('users', 'bookings.user_id', '=', 'users.id')
+            ->join('payments', function ($join) {
+                $join->on('bookings.id', '=', 'payments.booking_id')
+                    ->where('payments.status', '=', 'succeeded');
+            })
+            ->whereNotNull('payments.paid_at')
+            ->whereBetween('payments.paid_at', [$fromDate, $toDate])
+            ->where('bookings.status', 'paid')
+            ->select(
+                'users.id',
+                'users.name',
+                'users.email',
+                'users.phone',
+                DB::raw('SUM(payments.amount - COALESCE(payments.refund_amount, 0)) as total_spent'),
+                DB::raw('COUNT(DISTINCT bookings.id) as booking_count'),
+                DB::raw('COUNT(DISTINCT payments.id) as payment_count')
+            )
+            ->groupBy('users.id', 'users.name', 'users.email', 'users.phone')
+            ->orderByDesc('total_spent')
+            ->limit($limit)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'user_id' => $item->id,
+                    'name' => $item->name,
+                    'email' => $item->email,
+                    'phone_number' => $item->phone_number,
+                    'total_spent' => (float) $item->total_spent,
+                    'booking_count' => (int) $item->booking_count,
+                    'payment_count' => (int) $item->payment_count,
+                ];
+            });
     }
 
     /**

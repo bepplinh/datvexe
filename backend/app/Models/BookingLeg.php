@@ -22,6 +22,7 @@ class BookingLeg extends Model
         'pickup_address',
         'dropoff_address',
         'total_price',
+        'reminder_sent_at',
     ];
 
     public function booking()

@@ -24,13 +24,14 @@ use App\Http\Controllers\Auth\OtpAuthController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\RatingAdminController;
-use App\Http\Controllers\Admin\TripPerformanceController;
 
 use App\Http\Controllers\Admin\RevenueController;
 use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\Client\GeminiChatController;
 use App\Http\Controllers\Client\TripSearchController;
 use App\Http\Controllers\Admin\AdminBookingController;
+use App\Http\Controllers\Admin\AdminBookingModificationController;
+use App\Http\Controllers\Admin\AdminRefundController;
 use App\Http\Controllers\SeatLayoutTemplateController;
 use App\Http\Controllers\Admin\AdminTripSeatController;
 use App\Http\Controllers\Admin\BusSeatLayoutController;
@@ -126,12 +127,16 @@ Route::middleware(['auth:api', 'role:admin'])
         // Group booking modification routes to ensure proper route model binding
         Route::prefix('bookings/{booking}')->group(function () {
             Route::post('mark-paid', [AdminBookingController::class, 'markAsPaid']);
-            Route::post('mark-additional-payment-paid', [AdminBookingController::class, 'markAdditionalPaymentPaid']);
-            Route::post('change-seat', [AdminBookingController::class, 'changeSeat']);
-            Route::post('change-trip', [AdminBookingController::class, 'changeTrip']);
-            Route::get('refund-policy', [AdminBookingController::class, 'getRefundPolicy']);
-            Route::post('refund-price-difference', [AdminBookingController::class, 'refundPriceDifference']);
-            Route::post('refund', [AdminBookingController::class, 'refund']);
+            
+            // Modification routes - AdminBookingModificationController
+            Route::post('mark-additional-payment-paid', [AdminBookingModificationController::class, 'markAdditionalPaymentPaid']);
+            Route::post('change-seat', [AdminBookingModificationController::class, 'changeSeat']);
+            Route::post('change-trip', [AdminBookingModificationController::class, 'changeTrip']);
+            
+            // Refund routes - AdminRefundController  
+            Route::get('refund-policy', [AdminRefundController::class, 'getRefundPolicy']);
+            Route::post('refund-price-difference', [AdminRefundController::class, 'refundPriceDifference']);
+            Route::post('refund', [AdminRefundController::class, 'refund']);
         });
         Route::get('trips/{tripId}/seats', [AdminTripSeatController::class, 'show']);
 
@@ -150,6 +155,7 @@ Route::middleware(['auth:api', 'role:admin'])
             Route::get('/trend', [RevenueController::class, 'trend']);
             Route::get('/top-routes', [RevenueController::class, 'topRoutes']);
             Route::get('/top-trips', [RevenueController::class, 'topTrips']);
+            Route::get('/top-customers', [RevenueController::class, 'topCustomers']);
             Route::get('/analysis', [RevenueController::class, 'analysis']);
         });
 
@@ -169,6 +175,10 @@ Route::middleware(['auth:api', 'role:admin'])
         Route::get('payments', [PaymentController::class, 'index']);
         Route::get('payments/stats', [PaymentController::class, 'stats']);
         Route::get('payments/{id}', [PaymentController::class, 'show']);
+
+        // Transactions (Refunds & Modifications)
+        Route::get('transactions/refunds', [\App\Http\Controllers\Admin\AdminTransactionController::class, 'getRefunds']);
+        Route::get('transactions/modifications', [\App\Http\Controllers\Admin\AdminTransactionController::class, 'getModifications']);
     });
 
 Route::apiResource('/users', UserController::class);

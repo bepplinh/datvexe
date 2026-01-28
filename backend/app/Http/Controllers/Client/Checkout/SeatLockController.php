@@ -36,7 +36,7 @@ class SeatLockController extends Controller
             'trips.*.seat_ids.*' => ['required', 'integer', 'min:1'],
 
             'trips.*.leg' => ['nullable', 'string', Rule::in(['OUT', 'RETURN'])],
-            
+
             // Nếu true hoặc không gửi, sẽ xóa draft cũ và tạo mới
             // Nếu false, sẽ giữ lại draft cũ (dùng để thêm ghế vào draft hiện có)
             'force_new' => ['nullable', 'boolean'],

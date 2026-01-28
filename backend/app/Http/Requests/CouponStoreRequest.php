@@ -36,8 +36,10 @@ class CouponStoreRequest extends FormRequest
                     }
                 },
             ],
+            'max_discount_amount' => 'nullable|numeric|min:0',
             'minimum_order_amount' => 'nullable|numeric|min:0',
             'max_usage' => 'nullable|integer|min:1',
+            'usage_limit_per_user' => 'nullable|integer|min:1',
             'valid_from' => 'nullable|date',
             'valid_until' => [
                 'nullable',

@@ -175,6 +175,46 @@ class RevenueController extends Controller
     }
 
     /**
+     * Top khách hàng đặt vé nhiều nhất
+     * GET /api/admin/revenue/top-customers?limit=10&from_date=2024-01-01&to_date=2024-01-31
+     */
+    public function topCustomers(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'limit' => 'nullable|integer|min:1|max:100',
+                'from_date' => 'nullable|date',
+                'to_date' => 'nullable|date|after_or_equal:from_date',
+            ]);
+
+            $limit = $request->input('limit', 10);
+            $fromDate = $request->input('from_date')
+                ? Carbon::parse($request->input('from_date'))->startOfDay()
+                : Carbon::now()->subDays(30)->startOfDay();
+            $toDate = $request->input('to_date')
+                ? Carbon::parse($request->input('to_date'))->endOfDay()
+                : Carbon::now()->endOfDay();
+
+            $topCustomers = $this->revenueService->getTopCustomers($fromDate, $toDate, $limit);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'from_date' => $fromDate->format('Y-m-d'),
+                    'to_date' => $toDate->format('Y-m-d'),
+                    'top_customers' => $topCustomers,
+                ],
+                'message' => 'Lấy danh sách top khách hàng thành công.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Phân tích doanh thu chi tiết
      * GET /api/admin/revenue/analysis?group_by=route&from_date=2024-01-01&to_date=2024-01-31
      */

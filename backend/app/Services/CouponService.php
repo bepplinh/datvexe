@@ -156,24 +156,29 @@ class CouponService
         return $this->couponRepository->search($keyword);
     }
 
-    private function validateCouponData(array $data, int $id = null): void
+    private function validateCouponData(array $data, ?int $id = null): void
     {
         $rules = [
-            'code' => 'required|string|max:50',
-            'name' => 'required|string|max:255',
+            'code' => 'sometimes|string|max:50',
+            'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
-            'discount_type' => 'required|in:fixed_amount,percentage',
-            'discount_value' => 'required|numeric|min:0',
+            'discount_type' => 'sometimes|in:fixed_amount,percentage',
+            'discount_value' => 'sometimes|numeric|min:0',
+            'max_discount_amount' => 'nullable|numeric|min:0',
             'minimum_order_amount' => 'nullable|numeric|min:0',
             'max_usage' => 'nullable|integer|min:1',
+            'usage_limit_per_user' => 'nullable|integer|min:1',
             'valid_from' => 'nullable|date',
             'valid_until' => 'nullable|date|after:valid_from',
             'is_active' => 'boolean'
         ];
 
-        // Nếu là update, không validate unique cho code
-        if ($id) {
+        // Nếu là create, bắt buộc một số field
+        if (!$id) {
             $rules['code'] = 'required|string|max:50';
+            $rules['name'] = 'required|string|max:255';
+            $rules['discount_type'] = 'required|in:fixed_amount,percentage';
+            $rules['discount_value'] = 'required|numeric|min:0';
         }
 
         $validator = Validator::make($data, $rules);

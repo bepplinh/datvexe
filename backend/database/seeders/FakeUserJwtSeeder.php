@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class FakeUserJwtSeeder extends Seeder
@@ -31,56 +30,39 @@ class FakeUserJwtSeeder extends Seeder
 
         // 1. Tạo admin (quản trị viên)
         $admin = User::create([
-            'name' => 'Quản Trị Viên',
-            'username' => 'admin',
+            'name' => 'Admin Tester',
+            'username' => 'admintester',
             'email' => 'admin@datvexe.com',
             'phone' => '0901234567',
-            'password' => bcrypt('admin123'),
+            'password' => bcrypt('admin12345'),
             'role' => 'admin',
             'gender' => 'male',
             'phone_verified_at' => now()
         ]);
 
-        // 2. Tạo user ducanh
-        $ducanh = User::create([
-            'name' => 'Lê Đức Anh',
-            'username' => 'ducanh',
-            'email' => 'ducanh@datvexe.com',
-            'phone' => '0912345678',
-            'password' => bcrypt('user123'),
-            'role' => 'customer',
-            'gender' => 'male',
-            'phone_verified_at' => now()
-        ]);
-
-        // 3. Tạo 48 user random
-        $usedUsernames = ['admin', 'ducanh'];
+        // 2. Tạo 49 user random
+        $usedUsernames = ['admintester'];
         $users = [];
 
-        for ($i = 0; $i < 48; $i++) {
+        for ($i = 0; $i < 49; $i++) {
             // Tạo tên tiếng Việt
             $hoRandom = $ho[array_rand($ho)];
             $tenDemRandom = $tenDem[array_rand($tenDem)];
             $tenRandom = $ten[array_rand($ten)];
             $fullName = $hoRandom . ' ' . $tenDemRandom . ' ' . $tenRandom;
 
-            // Tạo username từ tên (không dấu + số)
-            $baseUsername = $this->removeVietnameseAccents(strtolower($tenRandom));
-            $username = $baseUsername;
-            $counter = 1;
-            
-            // Đảm bảo username unique
-            while (in_array($username, $usedUsernames)) {
-                $username = $baseUsername . $counter;
-                $counter++;
-            }
+            // Tạo username từ tên đệm + tên (không dấu) + số random
+            $username = $this->generateUsername($tenDemRandom, $tenRandom, $usedUsernames);
             $usedUsernames[] = $username;
 
-            // Random giới tính dựa trên tên đệm
-            $gender = in_array($tenDemRandom, ['Thị', 'Thu', 'Ngọc', 'Kim', 'Hồng']) ? 'female' : 'male';
+            // Random giới tính
+            $gender = rand(0, 1) ? 'male' : 'female';
 
             // Random ngày sinh (18-60 tuổi)
             $birthday = now()->subYears(rand(18, 60))->subDays(rand(0, 365))->format('Y-m-d');
+
+            // Random phone_verified_at (có hoặc không)
+            $phoneVerifiedAt = rand(0, 1) ? now() : null;
 
             $user = User::create([
                 'name' => $fullName,
@@ -88,18 +70,17 @@ class FakeUserJwtSeeder extends Seeder
                 'email' => $username . '@gmail.com',
                 'phone' => $this->randomPhoneNumber(),
                 'birthday' => $birthday,
-                'password' => bcrypt('user123'),
+                'password' => bcrypt('user12345'),
                 'role' => 'customer',
                 'gender' => $gender,
-                'phone_verified_at' => now()
+                'phone_verified_at' => $phoneVerifiedAt
             ]);
 
             $users[] = $user;
         }
 
-        // Sinh JWT token cho admin và ducanh
+        // Sinh JWT token cho admin
         $adminToken = JWTAuth::fromUser($admin);
-        $ducanhToken = JWTAuth::fromUser($ducanh);
 
         // Lưu ra file để tiện copy token test nhanh
         $payload = [
@@ -108,18 +89,11 @@ class FakeUserJwtSeeder extends Seeder
                 'id' => $admin->id,
                 'name' => $admin->name,
                 'username' => $admin->username,
-                'password' => 'admin123',
+                'password' => 'admin12345',
                 'token' => $adminToken,
             ],
-            'ducanh' => [
-                'id' => $ducanh->id,
-                'name' => $ducanh->name,
-                'username' => $ducanh->username,
-                'password' => 'user123',
-                'token' => $ducanhToken,
-            ],
             'total_users' => 50,
-            'all_user_password' => 'user123',
+            'all_user_password' => 'user12345',
         ];
 
         Storage::put(
@@ -128,9 +102,25 @@ class FakeUserJwtSeeder extends Seeder
         );
 
         $this->command->info("✅ Created 50 users (1 admin + 49 customers)");
-        $this->command->info("   - Admin: admin / admin123");
-        $this->command->info("   - DucAnh: ducanh / user123");
-        $this->command->info("   - All other users: user123");
+        $this->command->info("   - Admin: admintester / admin12345");
+        $this->command->info("   - All other users: user12345 (username 6 chars)");
+    }
+
+    /**
+     * Tạo username từ tên đệm + tên (không dấu) + số random
+     * Ví dụ: kieuanh123, thuylinh456
+     */
+    private function generateUsername(string $tenDem, string $ten, array $usedUsernames): string
+    {
+        // Chuyển tên đệm và tên thành không dấu, viết thường
+        $baseUsername = $this->removeVietnameseAccents(strtolower($tenDem . $ten));
+        
+        do {
+            // Thêm số random 3 chữ số
+            $username = $baseUsername . rand(100, 999);
+        } while (in_array($username, $usedUsernames));
+        
+        return $username;
     }
 
     /**
@@ -154,6 +144,7 @@ class FakeUserJwtSeeder extends Seeder
 
         return $str;
     }
+
 
     /**
      * Tạo số điện thoại ngẫu nhiên

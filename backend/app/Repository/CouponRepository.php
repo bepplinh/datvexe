@@ -94,12 +94,43 @@ class CouponRepository
 
     public function create(array $data): Coupon
     {
-        return $this->model->create($data);
+        $transformedData = $this->transformData($data);
+        return $this->model->create($transformedData);
     }
 
     public function update(Coupon $coupon, array $data): bool
     {
-        return $coupon->update($data);
+        $transformedData = $this->transformData($data);
+        return $coupon->update($transformedData);
+    }
+
+    /**
+     * Transform API field names to database column names
+     */
+    private function transformData(array $data): array
+    {
+        $mapping = [
+            // API field => Database column
+            'minimum_order_amount' => 'min_order_value',
+            'max_usage' => 'usage_limit_global',
+            'valid_from' => 'start_date',
+            'valid_until' => 'end_date',
+        ];
+
+        $transformed = [];
+
+        foreach ($data as $key => $value) {
+            // Bỏ qua field 'name' vì Model không có field này
+            if ($key === 'name') {
+                continue;
+            }
+            
+            // Chuyển đổi key nếu có trong mapping
+            $dbKey = $mapping[$key] ?? $key;
+            $transformed[$dbKey] = $value;
+        }
+
+        return $transformed;
     }
 
     public function delete(Coupon $coupon): bool

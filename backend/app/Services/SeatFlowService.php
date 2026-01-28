@@ -9,6 +9,7 @@ use App\Models\TripSeatStatus;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use App\Services\DraftCheckoutService\DraftCheckoutService;
+use App\Services\SeatFlow\Redis\SeatRedisKeys;
 
 class SeatFlowService
 {
@@ -45,7 +46,7 @@ class SeatFlowService
       ->all();
 
     // 2. Ghế đang lock trên Redis
-    $lockedKey = "trip:{$tripId}:locked";
+    $lockedKey = SeatRedisKeys::tripLockedSet($tripId);
     $lockedSeatIds = array_map('intval', Redis::smembers($lockedKey) ?: []);
     $lockedSeatIds = array_values(array_intersect($lockedSeatIds, $seatIds));
 
@@ -56,7 +57,7 @@ class SeatFlowService
         ->toArray();
 
       foreach ($lockedSeatIds as $seatId) {
-        $ttl = (int) Redis::ttl("trip:{$tripId}:seat:{$seatId}:lock");
+        $ttl = (int) Redis::ttl(SeatRedisKeys::seatLock($tripId, $seatId));
         if ($ttl <= 0) {
           // TTL hết hạn -> gỡ khỏi set locked để tránh hiển thị sai
           Redis::srem($lockedKey, $seatId);
@@ -78,31 +79,12 @@ class SeatFlowService
   }
 
 
-  /* ============================================================
-     |  PUBLIC API
-     * ============================================================
-     */
 
-  /**
-   * Multi-trip checkout (atomic): lock tất cả ghế của nhiều trip trong 1 lần.
-   *
-   * @param array       $trips   [['trip_id'=>101,'seat_ids'=>[12,13],'leg'=>'OUT'], ...]
-   * @param string      $token   Session token duy nhất (ổn định cho phiên)
-   * @param int         $ttlSeconds
-   * @param int         $maxPerSessionPerTrip
-   * @param int|null    $userId  Nếu có đăng nhập
-   * @return array      Kết quả JSON-friendly
-   */
-
-
-  /**
-   * Dùng trước khi finalize 1 trip: khẳng định tất cả seat vẫn đang lock bởi token.
-   */
   public function assertSeatsLockedByToken(int $tripId, array $seatIds, string $token): void
   {
     $seatIds = $this->normalizeSeatIds($seatIds);
     foreach ($seatIds as $sid) {
-      $k = $this->kSeatLock($tripId, $sid);
+      $k = SeatRedisKeys::seatLock($tripId, $sid);
       $owner = Redis::get($k);
       if ($owner !== $token) {
         throw new RuntimeException("Seat {$sid} (trip {$tripId}) không còn lock bởi token.");
@@ -130,7 +112,7 @@ class SeatFlowService
     $tripIds = array_values(array_unique(array_map('intval', $tripIds)));
 
     // KEYS = [ trip:{tid}:locked_by:{token}, ... ]
-    $setKeys = array_map(fn($tid) => $this->kTripLockedByToken($tid, $token), $tripIds);
+    $setKeys = array_map(fn($tid) => SeatRedisKeys::tripLockedByToken($tid, $token), $tripIds);
 
     $res = $this->evalshaOrEval(
       Redis::connection(),
@@ -141,32 +123,6 @@ class SeatFlowService
     );
 
     return (int)($res[0] ?? 0);
-  }
-
-  /* ============================================================
-     |  KEY BUILDERS
-     * ============================================================
-     */
-
-  private function kSeatLock(int $tripId, int $seatId): string
-  {
-    // Giữ format này vì Lua parse theo pattern này
-    return "trip:{$tripId}:seat:{$seatId}:lock";
-  }
-
-  private function kTripLockedByToken(int $tripId, string $token): string
-  {
-    return "trip:{$tripId}:locked_by:{$token}";
-  }
-
-  private function kSessionSet(int $tripId, string $token): string
-  {
-    return "trip:{$tripId}:sess:{$token}:s";
-  }
-
-  private function kTripSet(int $tripId): string
-  {
-    return "trip:{$tripId}:locks:s";
   }
 
   /* ============================================================
@@ -238,93 +194,15 @@ class SeatFlowService
 
   /**
    * LUA: LOCK MULTI-TRIP (atomic)
-   * KEYS = [ trip:{tid}:seat:{sid}:lock, ... ]
-   * ARGV = [ token, ttlSeconds, maxPerTrip ]
-   * Return:
-   *  {1, lockedCount}
-   *  {0, failedKey}
-   *  {-1, tripId, limit, current, add}
-   *  {-2, "BAD_KEY", key}
+   * Loads script from external file for better maintainability
    */
   private function luaTryLockScript(): string
   {
-    return <<< 'LUA'
-local token  = ARGV[1]
-local ttlSec = tonumber(ARGV[2]) or 180
-local maxPer = tonumber(ARGV[3]) or 6
-local ttlMs  = ttlSec * 1000
-
-local function parseTripId(key)
-  local tid = string.match(key, "^trip:(%d+):seat:")
-  return tonumber(tid or "0")
-end
-local function parseSeatId(key)
-  local sid = string.match(key, "^trip:%d+:seat:(%d+):lock$")
-  return tonumber(sid or "0")
-end
-local function sessSetKey(tid)
-  return "trip:"..tid..":sess:"..token..":s"
-end
-local function tripSetKey(tid)
-  return "trip:"..tid..":locks:s"
-end
-local addCount = {}  -- tid -> count
-local trips = {}
-
--- 0) gom ghế dự định lock theo từng trip & check key format
-for i=1, #KEYS do
-  local key = KEYS[i]
-  local tid = parseTripId(key)
-  if not (tid and tid>0) then
-    return {-2, "BAD_KEY", key}
-  end
-  if not addCount[tid] then
-    addCount[tid] = 0
-    table.insert(trips, tid)
-  end
-  addCount[tid] = addCount[tid] + 1
-end
-
--- 1) quota per trip (trước khi lock)
-for _, tid in ipairs(trips) do
-  local sess = sessSetKey(tid)
-  local cur  = tonumber(redis.call("SCARD", sess)) or 0
-  local need = addCount[tid]
-  if (cur + need) > maxPer then
-    return {-1, tid, maxPer, cur, need}
-  end
-end
-
--- 2) detect conflict trước (đỡ rollback)
-for i=1, #KEYS do
-  local key   = KEYS[i]
-  local owner = redis.call("GET", key)
-  if owner and owner ~= token then
-    return {0, key}
-  end
-end
-
--- 3) acquire + index
-for i=1, #KEYS do
-  local key = KEYS[i]
-  local ok  = redis.call("SET", key, token, "NX", "PX", ttlMs)
-  if not ok then
-    return {0, key}
-  end
-
-  local tid = parseTripId(key)
-  local sid = parseSeatId(key)
-  if tid and tid>0 and sid and sid>0 then
-    local tset = tripSetKey(tid)
-    local sset = sessSetKey(tid)
-    redis.call("SADD", tset, sid)
-    redis.call("SADD", sset, sid)
-    redis.call("PEXPIRE", sset, ttlMs)
-  end
-end
-
-return {1, #KEYS}
-LUA;
+    $scriptPath = __DIR__ . '/SeatFlow/Redis/Scripts/lock_seats.lua';
+    if (!file_exists($scriptPath)) {
+      throw new RuntimeException("Lua script not found: {$scriptPath}");
+    }
+    return file_get_contents($scriptPath);
   }
 
   /**
@@ -363,7 +241,7 @@ LUA;
 
   public function isSessionHoldAlive(string $token): bool
   {
-    $key = "session:{$token}:ttl";
+    $key = SeatRedisKeys::sessionTtl($token);
 
     // Nếu không tồn tại key => hết TTL
     if (!Redis::exists($key)) {
@@ -388,7 +266,7 @@ LUA;
        * 1) Kéo TTL cho session tổng
        *    session:{token}:ttl
        */
-      $sessionKey = "session:{$sessionToken}:ttl";
+      $sessionKey = SeatRedisKeys::sessionTtl($sessionToken);
 
       if ($redis->exists($sessionKey)) {
           $ttlBefore = $redis->ttl($sessionKey);
@@ -440,7 +318,7 @@ LUA;
       foreach ($pairs as $pair) {
           [$tripId, $seatId] = explode(':', $pair);
 
-          $lockKey = "trip:{$tripId}:seat:{$seatId}:lock";
+          $lockKey = SeatRedisKeys::seatLock((int)$tripId, (int)$seatId);
 
           if ($redis->exists($lockKey)) {
               $lockTtlBefore = $redis->ttl($lockKey);
