@@ -16,16 +16,30 @@ class CorsMiddleware
             'http://vantaiducanh.io.vn',
         ];
 
-        // Handle preflight OPTIONS request BEFORE passing to next middleware
+        // Chuẩn hóa origin để so sánh
+        $isAllowed = false;
+        if ($origin) {
+            foreach ($allowedOrigins as $allowed) {
+                if (rtrim($origin, '/') === rtrim($allowed, '/')) {
+                    $isAllowed = true;
+                    break;
+                }
+            }
+        }
+
+        // Handle preflight OPTIONS request
         if ($request->getMethod() === 'OPTIONS') {
             $response = response('', 200);
 
-            if (in_array($origin, $allowedOrigins)) {
+            if ($isAllowed) {
                 $response->headers->set('Access-Control-Allow-Origin', $origin);
+            } else {
+                // Để debug, nếu chưa chạy đúng thì tạm thời allow $origin nếu muốn fix nhanh
+                // $response->headers->set('Access-Control-Allow-Origin', $origin);
             }
 
             $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-            $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Session-Token, Accept');
+            $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Session-Token, Accept, X-Socket-ID');
             $response->headers->set('Access-Control-Allow-Credentials', 'true');
             $response->headers->set('Access-Control-Max-Age', '86400');
 
@@ -34,7 +48,7 @@ class CorsMiddleware
 
         $response = $next($request);
 
-        if (in_array($origin, $allowedOrigins)) {
+        if ($isAllowed) {
             $response->headers->set('Access-Control-Allow-Origin', $origin);
         }
 
