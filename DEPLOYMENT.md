@@ -159,7 +159,7 @@ sudo chmod -R 775 /var/www/datvexe/backend/bootstrap/cache
     ```
 3.  Load và Start các process:
     ```bash
-    sudo supersdvisorctl reread
+    sudo supervisorctl reread
     sudo supervisorctl update
     sudo supervisorctl start all
     ```

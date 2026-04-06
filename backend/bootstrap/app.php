@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Register CORS middleware globally (runs first on every request)
+        $middleware->prepend(CorsMiddleware::class);
+
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'auth' => Authenticate::class,
